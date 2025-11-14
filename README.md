@@ -44,11 +44,11 @@ pub fn try_from_deposit_context(accounts: &[AccountInfo])
 {
     let detector_account = accounts.first()?;
 
-    if detector_account.key().eq(&KAMINO_PROGRAM_ID) {
+    if pubkey_eq(detector_account.key(), &KAMINO_PROGRAM_ID) {
         return Ok(DepositContext::Kamino(parse_kamino_accounts(accounts)?));
     }
 
-    if detector_account.key().eq(&JUPITER_PROGRAM_ID) {
+    if pubkey_eq(detector_account.key(), &JUPITER_PROGRAM_ID) {
         return Ok(DepositContext::Jupiter(parse_jupiter_accounts(accounts)?));
     }
 
@@ -195,7 +195,7 @@ And add detection logic:
 // In try_from_deposit_context()
 
 #[cfg(feature = "your_protocol")]
-if detector_account.key().eq(&crate::programs::your_protocol::YOUR_PROTOCOL_PROGRAM_ID) {
+if pubkey_eq(detector_account.key(), &crate::programs::your_protocol::YOUR_PROTOCOL_PROGRAM_ID) {
     let ctx = crate::programs::your_protocol::YourProtocolDepositAccounts::try_from(accounts)?;
     return Ok(DepositContext::YourProtocol(ctx));
 }

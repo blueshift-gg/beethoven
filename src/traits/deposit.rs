@@ -1,4 +1,7 @@
-use pinocchio::{instruction::Signer, program_error::ProgramError, account_info::AccountInfo, ProgramResult};
+use pinocchio::{
+    ProgramResult, account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
+    pubkey::pubkey_eq,
+};
 
 /// Core trait for deposit operations across different protocols (Kamino, Jupiter, etc.)
 ///
@@ -49,7 +52,11 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
 
             #[cfg(feature = "jupiter")]
             DepositContext::Jupiter(jupiter_ctx) => {
-                crate::programs::jupiter::JupiterEarn::deposit_signed(jupiter_ctx, amount, signer_seeds)
+                crate::programs::jupiter::JupiterEarn::deposit_signed(
+                    jupiter_ctx,
+                    amount,
+                    signer_seeds,
+                )
             }
         }
     }
@@ -94,20 +101,24 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
 /// DepositContext::deposit(&ctx, amount)?;
 /// ```
 pub fn try_from_deposit_context<'info>(
-    accounts: &'info [AccountInfo]
+    accounts: &'info [AccountInfo],
 ) -> Result<DepositContext<'info>, ProgramError> {
-    let detector_account = accounts
-        .first()
-        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let detector_account = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     #[cfg(feature = "kamino")]
-    if detector_account.key().eq(&crate::programs::kamino::KAMINO_LEND_PROGRAM_ID) {
+    if pubkey_eq(
+        detector_account.key(),
+        &crate::programs::kamino::KAMINO_LEND_PROGRAM_ID,
+    ) {
         let ctx = crate::programs::kamino::KaminoDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Kamino(ctx));
     }
 
     #[cfg(feature = "jupiter")]
-    if detector_account.key().eq(&crate::programs::jupiter::JUPITER_EARN_PROGRAM_ID) {
+    if pubkey_eq(
+        detector_account.key(),
+        &crate::programs::jupiter::JUPITER_EARN_PROGRAM_ID,
+    ) {
         let ctx = crate::programs::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Jupiter(ctx));
     }
@@ -131,7 +142,7 @@ pub fn try_from_deposit_context<'info>(
 pub fn deposit_signed<'info>(
     accounts: &'info [AccountInfo],
     amount: u64,
-    signer_seeds: &[Signer]
+    signer_seeds: &[Signer],
 ) -> ProgramResult {
     let ctx = try_from_deposit_context(accounts)?;
     DepositContext::deposit_signed(&ctx, amount, signer_seeds)
@@ -149,9 +160,6 @@ pub fn deposit_signed<'info>(
 /// # Returns
 /// * `Ok(())` - Deposit executed successfully
 /// * `Err(ProgramError)` - Parsing, discrimination, or CPI failed
-pub fn deposit<'info>(
-    accounts: &'info [AccountInfo],
-    amount: u64,
-) -> ProgramResult {
+pub fn deposit<'info>(accounts: &'info [AccountInfo], amount: u64) -> ProgramResult {
     deposit_signed(accounts, amount, &[])
 }
