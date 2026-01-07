@@ -39,16 +39,16 @@ tx.remainingAccounts([JUPITER_PROGRAM_ID, vault, userAccount, ...])
 **Protocol detection:** First account in the slice must be the target program ID.
 
 ```rust
-pub fn try_from_deposit_context(accounts: &[AccountInfo])
+pub fn try_from_deposit_context(accounts: &[AccountView])
     -> Result<DepositContext, ProgramError>
 {
     let detector_account = accounts.first()?;
 
-    if pubkey_eq(detector_account.key(), &KAMINO_PROGRAM_ID) {
+    if pubkey_eq(detector_account.address(), &KAMINO_PROGRAM_ID) {
         return Ok(DepositContext::Kamino(parse_kamino_accounts(accounts)?));
     }
 
-    if pubkey_eq(detector_account.key(), &JUPITER_PROGRAM_ID) {
+    if pubkey_eq(detector_account.address(), &JUPITER_PROGRAM_ID) {
         return Ok(DepositContext::Jupiter(parse_jupiter_accounts(accounts)?));
     }
 
@@ -63,7 +63,7 @@ let ctx = try_from_deposit_context(accounts)?;
 
 match &ctx {
     DepositContext::Kamino(k) => {
-        require!(k.reserve.key() == approved_reserve);
+        require!(k.reserve.address() == approved_reserve);
     }
     DepositContext::Jupiter(j) => {
         // different validation
@@ -104,10 +104,10 @@ beethoven::deposit(&accounts, amount)?;
 let ctx = try_from_deposit_context(&accounts)?;
 match &ctx {
     DepositContext::Kamino(k) => {
-        require!(k.reserve.key() == approved_reserve);
+        require!(k.reserve.address() == approved_reserve);
     }
     DepositContext::Jupiter(j) => {
-        require!(j.vault.key() == approved_vault);
+        require!(j.vault.address() == approved_vault);
     }
 }
 DepositContext::deposit(&ctx, amount)?;
@@ -140,16 +140,16 @@ pub const YOUR_PROTOCOL_PROGRAM_ID: [u8; 32] = [...];
 pub struct YourProtocol;
 
 pub struct YourProtocolDepositAccounts<'info> {
-    pub user: &'info AccountInfo,
-    pub vault: &'info AccountInfo,
+    pub user: &'info AccountView,
+    pub vault: &'info AccountView,
     // ... your protocol's required accounts
 }
 
 // Parse accounts from raw slice
-impl<'info> TryFrom<&'info [AccountInfo]> for YourProtocolDepositAccounts<'info> {
+impl<'info> TryFrom<&'info [AccountView]> for YourProtocolDepositAccounts<'info> {
     type Error = ProgramError;
 
-    fn try_from(accounts: &'info [AccountInfo]) -> Result<Self, Self::Error> {
+    fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
         // Validate account count and parse
     }
 }
@@ -195,7 +195,7 @@ And add detection logic:
 // In try_from_deposit_context()
 
 #[cfg(feature = "your_protocol")]
-if pubkey_eq(detector_account.key(), &crate::programs::your_protocol::YOUR_PROTOCOL_PROGRAM_ID) {
+if pubkey_eq(detector_account.address(), &crate::programs::your_protocol::YOUR_PROTOCOL_PROGRAM_ID) {
     let ctx = crate::programs::your_protocol::YourProtocolDepositAccounts::try_from(accounts)?;
     return Ok(DepositContext::YourProtocol(ctx));
 }
