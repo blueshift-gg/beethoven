@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cargo_fmt:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v6
+        - uses: Swatinem/rust-cache@v2
+        - name: Rust install nightly
+          uses: dtolnay/rust-toolchain@nightly
+          with:
+            components: rustfmt
+        - name: Run Cargo fmt
+          run: cargo +nightly fmt --all -- --check
+  cargo_clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: Swatinem/rust-cache@v2
+      - name: Rust install nightly
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run Cargo clippy
+        run: cargo clippy --all-targets --all-features
