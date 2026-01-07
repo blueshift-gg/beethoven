@@ -2,15 +2,14 @@ use {
     crate::Deposit,
     core::mem::MaybeUninit,
     pinocchio::{
-        ProgramResult,
-        account_info::AccountInfo,
-        cpi::invoke_signed,
-        instruction::{AccountMeta, Instruction, Signer},
-        program_error::ProgramError,
+        AccountView, Address, ProgramResult,
+        cpi::{Signer, invoke_signed},
+        error::ProgramError,
+        instruction::{InstructionAccount, InstructionView},
     },
 };
 
-pub const JUPITER_EARN_PROGRAM_ID: [u8; 32] = [0u8; 32]; // TODO: Replace with actual Jupiter Earn program ID
+pub const JUPITER_EARN_PROGRAM_ID: Address = Address::new_from_array([0u8; 32]); // TODO: Replace with actual Jupiter Earn program ID
 pub const DEPOSIT_DISCRIMINATOR: [u8; 8] = [242, 35, 198, 137, 82, 225, 242, 182];
 
 /// Jupiter earn protocol integration
@@ -19,47 +18,47 @@ pub struct JupiterEarn;
 /// Account context for JupiterEarn's deposit instruction.
 pub struct JupiterEarnDepositAccounts<'info> {
     /// Target lending program
-    pub lending_program: &'info AccountInfo,
+    pub lending_program: &'info AccountView,
     /// User signer (mutable, signer)
-    pub signer: &'info AccountInfo,
+    pub signer: &'info AccountView,
     /// User's token account to deposit from (mutable)
-    pub depositor_token_account: &'info AccountInfo,
+    pub depositor_token_account: &'info AccountView,
     /// Recipient's token account to receive fTokens (mutable)
-    pub recipient_token_account: &'info AccountInfo,
+    pub recipient_token_account: &'info AccountView,
     /// Token mint being deposited
-    pub mint: &'info AccountInfo,
+    pub mint: &'info AccountView,
     /// Lending admin account (readonly)
-    pub lending_admin: &'info AccountInfo,
+    pub lending_admin: &'info AccountView,
     /// Lending account (mutable)
-    pub lending: &'info AccountInfo,
+    pub lending: &'info AccountView,
     /// fToken mint (mutable)
-    pub f_token_mint: &'info AccountInfo,
+    pub f_token_mint: &'info AccountView,
     /// Supply token reserves liquidity (mutable)
-    pub supply_token_reserves_liquidity: &'info AccountInfo,
+    pub supply_token_reserves_liquidity: &'info AccountView,
     /// Lending supply position on liquidity (mutable)
-    pub lending_supply_position_on_liquidity: &'info AccountInfo,
+    pub lending_supply_position_on_liquidity: &'info AccountView,
     /// Rate model (readonly)
-    pub rate_model: &'info AccountInfo,
+    pub rate_model: &'info AccountView,
     /// Vault (mutable)
-    pub vault: &'info AccountInfo,
+    pub vault: &'info AccountView,
     /// Liquidity (mutable)
-    pub liquidity: &'info AccountInfo,
+    pub liquidity: &'info AccountView,
     /// Liquidity program (mutable)
-    pub liquidity_program: &'info AccountInfo,
+    pub liquidity_program: &'info AccountView,
     /// Rewards rate model (readonly)
-    pub rewards_rate_model: &'info AccountInfo,
+    pub rewards_rate_model: &'info AccountView,
     /// Token program
-    pub token_program: &'info AccountInfo,
+    pub token_program: &'info AccountView,
     /// Associated token program
-    pub associated_token_program: &'info AccountInfo,
+    pub associated_token_program: &'info AccountView,
     /// System program
-    pub system_program: &'info AccountInfo,
+    pub system_program: &'info AccountView,
 }
 
-impl<'info> TryFrom<&'info [AccountInfo]> for JupiterEarnDepositAccounts<'info> {
+impl<'info> TryFrom<&'info [AccountView]> for JupiterEarnDepositAccounts<'info> {
     type Error = ProgramError;
 
-    /// Converts a slice of `AccountInfo` into validated `JupiterEarnDepositAccounts`.
+    /// Converts a slice of `AccountView` into validated `JupiterEarnDepositAccounts`.
     ///
     /// # Arguments
     /// * `accounts` - Slice containing at least 18 accounts in the correct order
@@ -73,7 +72,7 @@ impl<'info> TryFrom<&'info [AccountInfo]> for JupiterEarnDepositAccounts<'info> 
     /// * Mutability and signer constraints are NOT validated here; Jupiter's program will
     ///   enforce them during CPI, providing clearer error messages
     /// * The `..` pattern allows passing more than 18 accounts without error
-    fn try_from(accounts: &'info [AccountInfo]) -> Result<Self, Self::Error> {
+    fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
         // Require minimum of 18 accounts to prevent undefined behavior
         if accounts.len() < 18 {
             return Err(ProgramError::NotEnoughAccountKeys);
@@ -150,23 +149,23 @@ impl<'info> Deposit<'info> for JupiterEarn {
     ) -> ProgramResult {
         // Build account metas for the Jupiter Earn deposit instruction
         let accounts = [
-            AccountMeta::writable_signer(ctx.signer.key()),
-            AccountMeta::writable(ctx.depositor_token_account.key()),
-            AccountMeta::writable(ctx.recipient_token_account.key()),
-            AccountMeta::readonly(ctx.mint.key()),
-            AccountMeta::readonly(ctx.lending_admin.key()),
-            AccountMeta::writable(ctx.lending.key()),
-            AccountMeta::writable(ctx.f_token_mint.key()),
-            AccountMeta::writable(ctx.supply_token_reserves_liquidity.key()),
-            AccountMeta::writable(ctx.lending_supply_position_on_liquidity.key()),
-            AccountMeta::readonly(ctx.rate_model.key()),
-            AccountMeta::writable(ctx.vault.key()),
-            AccountMeta::writable(ctx.liquidity.key()),
-            AccountMeta::writable(ctx.liquidity_program.key()),
-            AccountMeta::readonly(ctx.rewards_rate_model.key()),
-            AccountMeta::readonly(ctx.token_program.key()),
-            AccountMeta::readonly(ctx.associated_token_program.key()),
-            AccountMeta::readonly(ctx.system_program.key()),
+            InstructionAccount::writable_signer(ctx.signer.address()),
+            InstructionAccount::writable(ctx.depositor_token_account.address()),
+            InstructionAccount::writable(ctx.recipient_token_account.address()),
+            InstructionAccount::readonly(ctx.mint.address()),
+            InstructionAccount::readonly(ctx.lending_admin.address()),
+            InstructionAccount::writable(ctx.lending.address()),
+            InstructionAccount::writable(ctx.f_token_mint.address()),
+            InstructionAccount::writable(ctx.supply_token_reserves_liquidity.address()),
+            InstructionAccount::writable(ctx.lending_supply_position_on_liquidity.address()),
+            InstructionAccount::readonly(ctx.rate_model.address()),
+            InstructionAccount::writable(ctx.vault.address()),
+            InstructionAccount::writable(ctx.liquidity.address()),
+            InstructionAccount::writable(ctx.liquidity_program.address()),
+            InstructionAccount::readonly(ctx.rewards_rate_model.address()),
+            InstructionAccount::readonly(ctx.token_program.address()),
+            InstructionAccount::readonly(ctx.associated_token_program.address()),
+            InstructionAccount::readonly(ctx.system_program.address()),
         ];
 
         let account_infos = [
@@ -197,7 +196,7 @@ impl<'info> Deposit<'info> for JupiterEarn {
             core::ptr::copy_nonoverlapping(amount.to_le_bytes().as_ptr(), ptr.add(8), 8);
         }
 
-        let deposit_ix = Instruction {
+        let deposit_ix = InstructionView {
             program_id: &JUPITER_EARN_PROGRAM_ID,
             accounts: &accounts,
             data: unsafe {

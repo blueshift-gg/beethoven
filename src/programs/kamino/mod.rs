@@ -2,15 +2,15 @@ use {
     crate::Deposit,
     core::mem::MaybeUninit,
     pinocchio::{
-        ProgramResult,
-        account_info::AccountInfo,
+        AccountView, Address, ProgramResult,
+        cpi::Signer,
         cpi::invoke_signed,
-        instruction::{AccountMeta, Instruction, Signer},
-        program_error::ProgramError,
+        error::ProgramError,
+        instruction::{InstructionAccount, InstructionView},
     },
 };
 
-pub const KAMINO_LEND_PROGRAM_ID: [u8; 32] = [0u8; 32];
+pub const KAMINO_LEND_PROGRAM_ID: Address = Address::new_from_array([0; 32]);
 const REFRESH_RESERVE_DISCRIMINATOR: [u8; 8] = [2, 218, 138, 235, 79, 201, 25, 102];
 const REFRESH_OBLIGATION_DISCRIMINATOR: [u8; 8] = [33, 132, 147, 228, 151, 192, 72, 89];
 const DEPOSIT_RESERVE_LIQUIDITY_AND_OBLIGATION_COLLATERAL_V2_DISCRIMINATOR: [u8; 8] =
@@ -29,51 +29,51 @@ pub struct Kamino;
 /// will validate that at least 19 accounts are present.
 pub struct KaminoDepositAccounts<'info> {
     /// Kamino Lending Program (used for optional accounts)
-    pub kamino_lending_program: &'info AccountInfo,
+    pub kamino_lending_program: &'info AccountView,
     /// Owner of the obligation (must be signer and writable)
-    pub owner: &'info AccountInfo,
+    pub owner: &'info AccountView,
     /// The obligation account to deposit collateral into (writable)
-    pub obligation: &'info AccountInfo,
+    pub obligation: &'info AccountView,
     /// The lending market this operation belongs to
-    pub lending_market: &'info AccountInfo,
+    pub lending_market: &'info AccountView,
     /// Lending market authority PDA
-    pub lending_market_authority: &'info AccountInfo,
+    pub lending_market_authority: &'info AccountView,
     /// The reserve account being deposited into (writable)
-    pub reserve: &'info AccountInfo,
+    pub reserve: &'info AccountView,
     /// Mint of the reserve's liquidity token
-    pub reserve_liquidity_mint: &'info AccountInfo,
+    pub reserve_liquidity_mint: &'info AccountView,
     /// Reserve's liquidity supply account (writable)
-    pub reserve_liquidity_supply: &'info AccountInfo,
+    pub reserve_liquidity_supply: &'info AccountView,
     /// Reserve's collateral token mint (writable)
-    pub reserve_collateral_mint: &'info AccountInfo,
+    pub reserve_collateral_mint: &'info AccountView,
     /// Destination for the minted collateral tokens (writable)
-    pub reserve_destination_deposit_collateral: &'info AccountInfo,
+    pub reserve_destination_deposit_collateral: &'info AccountView,
     /// User's source liquidity token account (writable)
-    pub user_source_liquidity: &'info AccountInfo,
+    pub user_source_liquidity: &'info AccountView,
     /// Placeholder for user destination collateral (can be program ID if not used)
-    pub placeholder_user_destination_collateral: &'info AccountInfo,
+    pub placeholder_user_destination_collateral: &'info AccountView,
     /// Token program for collateral operations
-    pub collateral_token_program: &'info AccountInfo,
+    pub collateral_token_program: &'info AccountView,
     /// Token program for liquidity operations
-    pub liquidity_token_program: &'info AccountInfo,
+    pub liquidity_token_program: &'info AccountView,
     /// Sysvar Instructions account for introspection
-    pub instruction_sysvar_account: &'info AccountInfo,
+    pub instruction_sysvar_account: &'info AccountView,
     /// Obligation's farm user state (writable, can be program ID if farms not used)
-    pub obligation_farm_user_state: &'info AccountInfo,
+    pub obligation_farm_user_state: &'info AccountView,
     /// Reserve's farm state (writable, can be program ID if farms not used)
-    pub reserve_farm_state: &'info AccountInfo,
+    pub reserve_farm_state: &'info AccountView,
     /// Farms program
-    pub farms_program: &'info AccountInfo,
+    pub farms_program: &'info AccountView,
     /// Scope Oracle
-    pub scope_oracle: &'info AccountInfo,
+    pub scope_oracle: &'info AccountView,
     /// Reserve Accounts
-    pub reserve_accounts: &'info [AccountInfo],
+    pub reserve_accounts: &'info [AccountView],
 }
 
-impl<'info> TryFrom<&'info [AccountInfo]> for KaminoDepositAccounts<'info> {
+impl<'info> TryFrom<&'info [AccountView]> for KaminoDepositAccounts<'info> {
     type Error = ProgramError;
 
-    /// Converts a slice of `AccountInfo` into validated `KaminoDepositAccounts`.
+    /// Converts a slice of `AccountView` into validated `KaminoDepositAccounts`.
     ///
     /// # Arguments
     /// * `accounts` - Slice containing at least 17 accounts in the correct order
@@ -87,7 +87,7 @@ impl<'info> TryFrom<&'info [AccountInfo]> for KaminoDepositAccounts<'info> {
     /// * Mutability and signer constraints are NOT validated here; Kamino's program will
     ///   enforce them during CPI, providing clearer error messages
     /// * The `..` pattern allows passing more than 17 accounts without error
-    fn try_from(accounts: &'info [AccountInfo]) -> Result<Self, Self::Error> {
+    fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
         // Require minimum of 19 accounts to prevent undefined behavior
         if accounts.len() < 19 {
             return Err(ProgramError::NotEnoughAccountKeys);
@@ -125,7 +125,7 @@ impl<'info> TryFrom<&'info [AccountInfo]> for KaminoDepositAccounts<'info> {
         let mut total_reserve_accounts = 0;
 
         for reserve in remaining_accounts {
-            if reserve.is_owned_by(&KAMINO_LEND_PROGRAM_ID) && total_reserve_accounts < 13 {
+            if reserve.owned_by(&KAMINO_LEND_PROGRAM_ID) && total_reserve_accounts < 13 {
                 total_reserve_accounts += 1;
             } else {
                 break;
@@ -180,11 +180,11 @@ impl<'info> Deposit<'info> for Kamino {
         // Refresh reserves
         // - Start by the refreshing the reserve we're depositing into
         let accounts = [
-            AccountMeta::writable(ctx.reserve.key()),
-            AccountMeta::readonly(ctx.kamino_lending_program.key()),
-            AccountMeta::readonly(ctx.kamino_lending_program.key()),
-            AccountMeta::readonly(ctx.kamino_lending_program.key()),
-            AccountMeta::readonly(ctx.scope_oracle.key()),
+            InstructionAccount::writable(ctx.reserve.address()),
+            InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+            InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+            InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+            InstructionAccount::readonly(ctx.scope_oracle.address()),
         ];
 
         let account_infos = [
@@ -195,7 +195,7 @@ impl<'info> Deposit<'info> for Kamino {
             ctx.scope_oracle,
         ];
 
-        let instruction = Instruction {
+        let instruction = InstructionView {
             program_id: &KAMINO_LEND_PROGRAM_ID,
             accounts: &accounts,
             data: &REFRESH_RESERVE_DISCRIMINATOR,
@@ -206,11 +206,11 @@ impl<'info> Deposit<'info> for Kamino {
         // - Now refresh all the other reserves (if any)
         for reserve in ctx.reserve_accounts {
             let accounts = [
-                AccountMeta::writable(reserve.key()),
-                AccountMeta::readonly(ctx.kamino_lending_program.key()),
-                AccountMeta::readonly(ctx.kamino_lending_program.key()),
-                AccountMeta::readonly(ctx.kamino_lending_program.key()),
-                AccountMeta::readonly(ctx.scope_oracle.key()),
+                InstructionAccount::writable(reserve.address()),
+                InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+                InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+                InstructionAccount::readonly(ctx.kamino_lending_program.address()),
+                InstructionAccount::readonly(ctx.scope_oracle.address()),
             ];
 
             let account_infos = [
@@ -221,7 +221,7 @@ impl<'info> Deposit<'info> for Kamino {
                 ctx.scope_oracle,
             ];
 
-            let instruction = Instruction {
+            let instruction = InstructionView {
                 program_id: &KAMINO_LEND_PROGRAM_ID,
                 accounts: &accounts,
                 data: &REFRESH_RESERVE_DISCRIMINATOR,
@@ -235,26 +235,26 @@ impl<'info> Deposit<'info> for Kamino {
 
         // Build account metas: obligation + lending_market + all reserves (up to 13)
         let mut obligation_accounts =
-            MaybeUninit::<[AccountMeta; MAX_REFRESH_OBLIGATION_ACCOUNTS]>::uninit();
-        let obligation_accounts_ptr = obligation_accounts.as_mut_ptr() as *mut AccountMeta;
+            MaybeUninit::<[InstructionAccount; MAX_REFRESH_OBLIGATION_ACCOUNTS]>::uninit();
+        let obligation_accounts_ptr = obligation_accounts.as_mut_ptr() as *mut InstructionAccount;
 
         unsafe {
             // First account: writable obligation
             core::ptr::write(
                 obligation_accounts_ptr,
-                AccountMeta::writable(ctx.obligation.key()),
+                InstructionAccount::writable(ctx.obligation.address()),
             );
             // Second account: readonly lending_market
             core::ptr::write(
                 obligation_accounts_ptr.add(1),
-                AccountMeta::readonly(ctx.lending_market.key()),
+                InstructionAccount::readonly(ctx.lending_market.address()),
             );
 
             // Add all reserve accounts (read-only)
             for (i, reserve) in ctx.reserve_accounts.iter().enumerate() {
                 core::ptr::write(
                     obligation_accounts_ptr.add(2 + i),
-                    AccountMeta::readonly(reserve.key()),
+                    InstructionAccount::readonly(reserve.address()),
                 );
             }
         }
@@ -274,7 +274,7 @@ impl<'info> Deposit<'info> for Kamino {
             obligation_account_infos[2 + i] = reserve;
         }
 
-        let instruction = Instruction {
+        let instruction = InstructionView {
             program_id: &KAMINO_LEND_PROGRAM_ID,
             accounts: obligation_accounts_slice,
             data: &REFRESH_OBLIGATION_DISCRIMINATOR,
@@ -285,23 +285,23 @@ impl<'info> Deposit<'info> for Kamino {
 
         // Deposit CPI
         let accounts = [
-            AccountMeta::writable_signer(ctx.owner.key()),
-            AccountMeta::writable(ctx.obligation.key()),
-            AccountMeta::readonly(ctx.lending_market.key()),
-            AccountMeta::readonly(ctx.lending_market_authority.key()),
-            AccountMeta::writable(ctx.reserve.key()),
-            AccountMeta::readonly(ctx.reserve_liquidity_mint.key()),
-            AccountMeta::writable(ctx.reserve_liquidity_supply.key()),
-            AccountMeta::writable(ctx.reserve_collateral_mint.key()),
-            AccountMeta::writable(ctx.reserve_destination_deposit_collateral.key()),
-            AccountMeta::writable(ctx.user_source_liquidity.key()),
-            AccountMeta::readonly(ctx.placeholder_user_destination_collateral.key()),
-            AccountMeta::readonly(ctx.collateral_token_program.key()),
-            AccountMeta::readonly(ctx.liquidity_token_program.key()),
-            AccountMeta::readonly(ctx.instruction_sysvar_account.key()),
-            AccountMeta::writable(ctx.obligation_farm_user_state.key()),
-            AccountMeta::writable(ctx.reserve_farm_state.key()),
-            AccountMeta::readonly(ctx.farms_program.key()),
+            InstructionAccount::writable_signer(ctx.owner.address()),
+            InstructionAccount::writable(ctx.obligation.address()),
+            InstructionAccount::readonly(ctx.lending_market.address()),
+            InstructionAccount::readonly(ctx.lending_market_authority.address()),
+            InstructionAccount::writable(ctx.reserve.address()),
+            InstructionAccount::readonly(ctx.reserve_liquidity_mint.address()),
+            InstructionAccount::writable(ctx.reserve_liquidity_supply.address()),
+            InstructionAccount::writable(ctx.reserve_collateral_mint.address()),
+            InstructionAccount::writable(ctx.reserve_destination_deposit_collateral.address()),
+            InstructionAccount::writable(ctx.user_source_liquidity.address()),
+            InstructionAccount::readonly(ctx.placeholder_user_destination_collateral.address()),
+            InstructionAccount::readonly(ctx.collateral_token_program.address()),
+            InstructionAccount::readonly(ctx.liquidity_token_program.address()),
+            InstructionAccount::readonly(ctx.instruction_sysvar_account.address()),
+            InstructionAccount::writable(ctx.obligation_farm_user_state.address()),
+            InstructionAccount::writable(ctx.reserve_farm_state.address()),
+            InstructionAccount::readonly(ctx.farms_program.address()),
         ];
 
         let account_infos = [
@@ -335,7 +335,7 @@ impl<'info> Deposit<'info> for Kamino {
             core::ptr::copy_nonoverlapping(amount.to_le_bytes().as_ptr(), ptr.add(8), 8);
         }
 
-        let deposit_ix = Instruction {
+        let deposit_ix = InstructionView {
             program_id: &KAMINO_LEND_PROGRAM_ID,
             accounts: &accounts,
             data: unsafe {

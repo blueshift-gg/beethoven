@@ -1,6 +1,5 @@
 use pinocchio::{
-    ProgramResult, account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
-    pubkey::pubkey_eq,
+    AccountView, ProgramResult, address::address_eq, cpi::Signer, error::ProgramError,
 };
 
 /// Core trait for deposit operations across different protocols (Kamino, Jupiter, etc.)
@@ -101,13 +100,13 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
 /// DepositContext::deposit(&ctx, amount)?;
 /// ```
 pub fn try_from_deposit_context<'info>(
-    accounts: &'info [AccountInfo],
+    accounts: &'info [AccountView],
 ) -> Result<DepositContext<'info>, ProgramError> {
     let detector_account = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     #[cfg(feature = "kamino")]
-    if pubkey_eq(
-        detector_account.key(),
+    if address_eq(
+        detector_account.address(),
         &crate::programs::kamino::KAMINO_LEND_PROGRAM_ID,
     ) {
         let ctx = crate::programs::kamino::KaminoDepositAccounts::try_from(accounts)?;
@@ -115,8 +114,8 @@ pub fn try_from_deposit_context<'info>(
     }
 
     #[cfg(feature = "jupiter")]
-    if pubkey_eq(
-        detector_account.key(),
+    if address_eq(
+        detector_account.address(),
         &crate::programs::jupiter::JUPITER_EARN_PROGRAM_ID,
     ) {
         let ctx = crate::programs::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
@@ -140,7 +139,7 @@ pub fn try_from_deposit_context<'info>(
 /// * `Ok(())` - Deposit executed successfully
 /// * `Err(ProgramError)` - Parsing, discrimination, or CPI failed
 pub fn deposit_signed<'info>(
-    accounts: &'info [AccountInfo],
+    accounts: &'info [AccountView],
     amount: u64,
     signer_seeds: &[Signer],
 ) -> ProgramResult {
@@ -160,6 +159,6 @@ pub fn deposit_signed<'info>(
 /// # Returns
 /// * `Ok(())` - Deposit executed successfully
 /// * `Err(ProgramError)` - Parsing, discrimination, or CPI failed
-pub fn deposit<'info>(accounts: &'info [AccountInfo], amount: u64) -> ProgramResult {
+pub fn deposit<'info>(accounts: &'info [AccountView], amount: u64) -> ProgramResult {
     deposit_signed(accounts, amount, &[])
 }
