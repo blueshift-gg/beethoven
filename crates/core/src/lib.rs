@@ -1,6 +1,6 @@
 #![no_std]
 
-use pinocchio::{cpi::Signer, ProgramResult};
+use {solana_instruction_view::cpi::Signer, solana_program_error::ProgramResult};
 
 /// Core trait for swap operations across different DEX protocols.
 ///

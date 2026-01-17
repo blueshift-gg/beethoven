@@ -1,11 +1,7 @@
 use {
-    crate::helper::*,
-    solana_sdk::{
-        instruction::AccountMeta, program_pack::Pack, pubkey::Pubkey, signature::Keypair,
-        signer::Signer,
-    },
-    spl_token_interface::state::Account as TokenAccount,
-    std::str::FromStr,
+    crate::helper::*, solana_address::Address, solana_instruction::AccountMeta,
+    solana_keypair::Keypair, solana_program_pack::Pack, solana_signer::Signer,
+    spl_token_interface::state::Account as TokenAccount, std::str::FromStr,
 };
 
 // Known addresses from dumped fixtures
@@ -32,7 +28,7 @@ fn beethoven_program_path() -> String {
     )
 }
 
-fn get_token_balance(svm: &litesvm::LiteSVM, token_account: &Pubkey) -> u64 {
+fn get_token_balance(svm: &litesvm::LiteSVM, token_account: &Address) -> u64 {
     let account = svm
         .get_account(token_account)
         .expect("Token account not found");
@@ -56,20 +52,20 @@ fn test_manifest_swap_loads_fixtures() {
         &mut svm,
         &format!("{}/manifest_usdc_sol_market.json", manifest_fixtures_dir()),
     );
-    assert_eq!(market, Pubkey::from_str(MARKET).unwrap());
+    assert_eq!(market, Address::from_str(MARKET).unwrap());
 
     // Load mints from common fixtures
     let wsol_mint = load_and_set_json_fixture(
         &mut svm,
         &format!("{}/wsol_mint.json", common_fixtures_dir()),
     );
-    assert_eq!(wsol_mint, Pubkey::from_str(WSOL_MINT).unwrap());
+    assert_eq!(wsol_mint, Address::from_str(WSOL_MINT).unwrap());
 
     let usdc_mint = load_and_set_json_fixture(
         &mut svm,
         &format!("{}/usdc_mint.json", common_fixtures_dir()),
     );
-    assert_eq!(usdc_mint, Pubkey::from_str(USDC_MINT).unwrap());
+    assert_eq!(usdc_mint, Address::from_str(USDC_MINT).unwrap());
 
     // Load vaults from manifest fixtures
     let base_vault = load_and_set_json_fixture(
@@ -79,7 +75,7 @@ fn test_manifest_swap_loads_fixtures() {
             manifest_fixtures_dir()
         ),
     );
-    assert_eq!(base_vault, Pubkey::from_str(BASE_VAULT).unwrap());
+    assert_eq!(base_vault, Address::from_str(BASE_VAULT).unwrap());
 
     let quote_vault = load_and_set_json_fixture(
         &mut svm,
@@ -88,7 +84,7 @@ fn test_manifest_swap_loads_fixtures() {
             manifest_fixtures_dir()
         ),
     );
-    assert_eq!(quote_vault, Pubkey::from_str(QUOTE_VAULT).unwrap());
+    assert_eq!(quote_vault, Address::from_str(QUOTE_VAULT).unwrap());
 
     // Verify accounts are loaded
     assert!(svm.get_account(&market).is_some());
@@ -137,11 +133,11 @@ fn test_manifest_swap_account_structure() {
         ),
     );
 
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    let market = Pubkey::from_str(MARKET).unwrap();
-    let base_vault = Pubkey::from_str(BASE_VAULT).unwrap();
-    let quote_vault = Pubkey::from_str(QUOTE_VAULT).unwrap();
+    let wsol_mint = Address::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Address::from_str(USDC_MINT).unwrap();
+    let market = Address::from_str(MARKET).unwrap();
+    let base_vault = Address::from_str(BASE_VAULT).unwrap();
+    let quote_vault = Address::from_str(QUOTE_VAULT).unwrap();
 
     // Create trader token accounts
     let trader_base = create_token_account(&mut svm, &payer.pubkey(), &wsol_mint, 1_000_000_000); // 1 SOL
@@ -251,13 +247,13 @@ fn test_manifest_swap_cpi() {
         &format!("{}/manifest_global_vault.json", manifest_fixtures_dir()),
     );
 
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    let market = Pubkey::from_str(MARKET).unwrap();
-    let base_vault = Pubkey::from_str(BASE_VAULT).unwrap();
-    let quote_vault = Pubkey::from_str(QUOTE_VAULT).unwrap();
-    let global = Pubkey::from_str(GLOBAL).unwrap();
-    let global_vault = Pubkey::from_str(GLOBAL_VAULT).unwrap();
+    let wsol_mint = Address::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Address::from_str(USDC_MINT).unwrap();
+    let market = Address::from_str(MARKET).unwrap();
+    let base_vault = Address::from_str(BASE_VAULT).unwrap();
+    let quote_vault = Address::from_str(QUOTE_VAULT).unwrap();
+    let global = Address::from_str(GLOBAL).unwrap();
+    let global_vault = Address::from_str(GLOBAL_VAULT).unwrap();
 
     // Debug: verify account owners
     let market_account = svm.get_account(&market).expect("Market not found");

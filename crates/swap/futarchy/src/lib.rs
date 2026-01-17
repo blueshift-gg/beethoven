@@ -3,17 +3,17 @@
 use {
     beethoven_core::Swap,
     core::mem::MaybeUninit,
-    pinocchio::{
+    solana_account_view::AccountView,
+    solana_address::Address,
+    solana_instruction_view::{
         cpi::{invoke_signed, Signer},
-        error::ProgramError,
-        instruction::{InstructionAccount, InstructionView},
-        AccountView, Address, ProgramResult,
+        InstructionAccount, InstructionView,
     },
+    solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const FUTARCHY_PROGRAM_ID: Address = Address::new_from_array(five8_const::decode_32_const(
-    "FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq",
-));
+pub const FUTARCHY_PROGRAM_ID: Address =
+    Address::from_str_const("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 
 const SWAP_DISCRIMINATOR: [u8; 8] = [167, 97, 12, 231, 237, 78, 166, 251];
 

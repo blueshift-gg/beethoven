@@ -1,15 +1,14 @@
 use {
     litesvm::LiteSVM,
-    solana_sdk::{
-        account::Account,
-        instruction::{AccountMeta, Instruction},
-        program_pack::Pack,
-        pubkey::Pubkey,
-        rent::Rent,
-        signature::Keypair,
-        signer::Signer,
-        transaction::Transaction,
-    },
+    solana_account::Account,
+    solana_address::{address, Address},
+    solana_instruction::{AccountMeta, Instruction},
+    solana_keypair::Keypair,
+    solana_program_option::COption,
+    solana_program_pack::Pack,
+    solana_rent::Rent,
+    solana_signer::Signer,
+    solana_transaction::Transaction,
     spl_token_interface::state::{Account as TokenAccount, AccountState, Mint},
 };
 
@@ -17,24 +16,17 @@ use {
 // Constants
 // =============================================================================
 
-pub const TEST_PROGRAM_ID: Pubkey = Pubkey::new_from_array([0x01; 32]);
-pub const TOKEN_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+pub const TEST_PROGRAM_ID: Address = Address::new_from_array([0x01; 32]);
+pub const TOKEN_PROGRAM_ID: Address = address!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 // Protocol program IDs (for detection)
-pub const KAMINO_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
-pub const JUPITER_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
-pub const PERENA_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
-pub const SOLFI_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
-pub const GAMMA_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("GAMMA7meSFWaBXF25oSUgmGRwaWJfSFLQzPiSfPKqp2W");
-pub const MANIFEST_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
-pub const SYSTEM_PROGRAM_ID: Pubkey = solana_sdk::pubkey!("11111111111111111111111111111111");
+pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
+pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
+pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
+pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaWJfSFLQzPiSfPKqp2W");
+pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
+pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 
 pub mod discriminator {
     pub const DEPOSIT: u8 = 0;
@@ -90,20 +82,20 @@ pub fn create_account_for_token_account(token_account_data: TokenAccount) -> Acc
 /// Create and set a token account in the SVM
 pub fn create_token_account(
     svm: &mut LiteSVM,
-    owner: &Pubkey,
-    mint: &Pubkey,
+    owner: &Address,
+    mint: &Address,
     amount: u64,
-) -> Pubkey {
+) -> Address {
     let pubkey = Keypair::new().pubkey();
     let account = create_account_for_token_account(TokenAccount {
         mint: *mint,
         owner: *owner,
         amount,
-        delegate: solana_sdk::program_option::COption::None,
+        delegate: COption::None,
         state: AccountState::Initialized,
-        is_native: solana_sdk::program_option::COption::None,
+        is_native: COption::None,
         delegated_amount: 0,
-        close_authority: solana_sdk::program_option::COption::None,
+        close_authority: COption::None,
     });
     svm.set_account(pubkey, account).unwrap();
     pubkey
@@ -112,33 +104,33 @@ pub fn create_token_account(
 /// Create and set a token account at a specific address
 pub fn create_token_account_at(
     svm: &mut LiteSVM,
-    pubkey: Pubkey,
-    owner: &Pubkey,
-    mint: &Pubkey,
+    pubkey: Address,
+    owner: &Address,
+    mint: &Address,
     amount: u64,
 ) {
     let account = create_account_for_token_account(TokenAccount {
         mint: *mint,
         owner: *owner,
         amount,
-        delegate: solana_sdk::program_option::COption::None,
+        delegate: COption::None,
         state: AccountState::Initialized,
-        is_native: solana_sdk::program_option::COption::None,
+        is_native: COption::None,
         delegated_amount: 0,
-        close_authority: solana_sdk::program_option::COption::None,
+        close_authority: COption::None,
     });
     svm.set_account(pubkey, account).unwrap();
 }
 
 /// Create and set a mint in the SVM
-pub fn create_mint(svm: &mut LiteSVM, mint_authority: &Pubkey, decimals: u8) -> Pubkey {
+pub fn create_mint(svm: &mut LiteSVM, mint_authority: &Address, decimals: u8) -> Address {
     let pubkey = Keypair::new().pubkey();
     let account = create_account_for_mint(Mint {
-        mint_authority: solana_sdk::program_option::COption::Some(*mint_authority),
+        mint_authority: COption::Some(*mint_authority),
         supply: 0,
         decimals,
         is_initialized: true,
-        freeze_authority: solana_sdk::program_option::COption::None,
+        freeze_authority: COption::None,
     });
     svm.set_account(pubkey, account).unwrap();
     pubkey
@@ -147,17 +139,17 @@ pub fn create_mint(svm: &mut LiteSVM, mint_authority: &Pubkey, decimals: u8) -> 
 /// Create and set a mint at a specific address
 pub fn create_mint_at(
     svm: &mut LiteSVM,
-    pubkey: Pubkey,
-    mint_authority: &Pubkey,
+    pubkey: Address,
+    mint_authority: &Address,
     decimals: u8,
     supply: u64,
 ) {
     let account = create_account_for_mint(Mint {
-        mint_authority: solana_sdk::program_option::COption::Some(*mint_authority),
+        mint_authority: COption::Some(*mint_authority),
         supply,
         decimals,
         is_initialized: true,
-        freeze_authority: solana_sdk::program_option::COption::None,
+        freeze_authority: COption::None,
     });
     svm.set_account(pubkey, account).unwrap();
 }
@@ -166,13 +158,13 @@ pub fn create_mint_at(
 // Mock Protocol Account Helpers
 // =============================================================================
 
-pub fn create_program_account(svm: &mut LiteSVM, program_id: Pubkey) {
+pub fn create_program_account(svm: &mut LiteSVM, program_id: Address) {
     svm.set_account(
         program_id,
         Account {
             lamports: Rent::default().minimum_balance(0),
             data: vec![],
-            owner: solana_sdk::bpf_loader::ID,
+            owner: solana_sdk_ids::bpf_loader::ID,
             executable: true,
             rent_epoch: 0,
         },
@@ -180,7 +172,7 @@ pub fn create_program_account(svm: &mut LiteSVM, program_id: Pubkey) {
     .unwrap();
 }
 
-pub fn create_mock_account(svm: &mut LiteSVM, owner: &Pubkey, data: Vec<u8>) -> Pubkey {
+pub fn create_mock_account(svm: &mut LiteSVM, owner: &Address, data: Vec<u8>) -> Address {
     let pubkey = Keypair::new().pubkey();
     svm.set_account(
         pubkey,
@@ -196,7 +188,7 @@ pub fn create_mock_account(svm: &mut LiteSVM, owner: &Pubkey, data: Vec<u8>) -> 
     pubkey
 }
 
-pub fn create_mock_account_at(svm: &mut LiteSVM, pubkey: Pubkey, owner: &Pubkey, data: Vec<u8>) {
+pub fn create_mock_account_at(svm: &mut LiteSVM, pubkey: Address, owner: &Address, data: Vec<u8>) {
     svm.set_account(
         pubkey,
         Account {
@@ -293,7 +285,7 @@ pub fn load_fixture_bytes(path: &str) -> Vec<u8> {
     std::fs::read(path).unwrap_or_else(|_| panic!("Failed to read fixture: {}", path))
 }
 
-pub fn load_fixture_account(path: &str, owner: &Pubkey) -> Account {
+pub fn load_fixture_account(path: &str, owner: &Address) -> Account {
     let data = load_fixture_bytes(path);
     Account {
         lamports: Rent::default().minimum_balance(data.len()),
@@ -306,7 +298,7 @@ pub fn load_fixture_account(path: &str, owner: &Pubkey) -> Account {
 
 /// Load a JSON fixture exported by `solana account --output json-compact`
 /// Returns (pubkey, Account)
-pub fn load_json_fixture(path: &str) -> (Pubkey, Account) {
+pub fn load_json_fixture(path: &str) -> (Address, Account) {
     use {
         base64::{engine::general_purpose::STANDARD, Engine},
         std::str::FromStr,
@@ -318,12 +310,12 @@ pub fn load_json_fixture(path: &str) -> (Pubkey, Account) {
         .unwrap_or_else(|_| panic!("Failed to parse JSON: {}", path));
 
     let pubkey_str = json["pubkey"].as_str().expect("Missing pubkey field");
-    let pubkey = Pubkey::from_str(pubkey_str).expect("Invalid pubkey");
+    let pubkey = Address::from_str(pubkey_str).expect("Invalid pubkey");
 
     let account_json = &json["account"];
     let lamports = account_json["lamports"].as_u64().expect("Missing lamports");
     let owner_str = account_json["owner"].as_str().expect("Missing owner");
-    let owner = Pubkey::from_str(owner_str).expect("Invalid owner pubkey");
+    let owner = Address::from_str(owner_str).expect("Invalid owner pubkey");
     let executable = account_json["executable"].as_bool().unwrap_or(false);
 
     let data_array = account_json["data"].as_array().expect("Missing data array");
@@ -345,14 +337,14 @@ pub fn load_json_fixture(path: &str) -> (Pubkey, Account) {
 }
 
 /// Load JSON fixture and set it in the SVM
-pub fn load_and_set_json_fixture(svm: &mut LiteSVM, path: &str) -> Pubkey {
+pub fn load_and_set_json_fixture(svm: &mut LiteSVM, path: &str) -> Address {
     let (pubkey, account) = load_json_fixture(path);
     svm.set_account(pubkey, account).unwrap();
     pubkey
 }
 
 /// Load and deploy a program from .so file
-pub fn load_program(svm: &mut LiteSVM, program_id: Pubkey, so_path: &str) {
+pub fn load_program(svm: &mut LiteSVM, program_id: Address, so_path: &str) {
     let program_bytes = load_fixture_bytes(so_path);
     let _ = svm.add_program(program_id, &program_bytes);
 }

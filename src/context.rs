@@ -1,8 +1,9 @@
 use {
     crate::Swap,
-    pinocchio::{
-        address::address_eq, cpi::Signer, error::ProgramError, AccountView, ProgramResult,
-    },
+    solana_account_view::AccountView,
+    solana_address::address_eq,
+    solana_instruction_view::cpi::Signer,
+    solana_program_error::{ProgramError, ProgramResult},
 };
 
 /// Typed context for swap operations, discriminated by protocol.

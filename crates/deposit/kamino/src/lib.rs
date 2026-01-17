@@ -3,12 +3,13 @@
 use {
     beethoven_core::Deposit,
     core::mem::MaybeUninit,
-    pinocchio::{
+    solana_account_view::AccountView,
+    solana_address::Address,
+    solana_instruction_view::{
         cpi::{invoke_signed, Signer},
-        error::ProgramError,
-        instruction::{InstructionAccount, InstructionView},
-        AccountView, Address, ProgramResult,
+        InstructionAccount, InstructionView,
     },
+    solana_program_error::{ProgramError, ProgramResult},
 };
 
 pub const KAMINO_LEND_PROGRAM_ID: Address = Address::new_from_array([0; 32]);

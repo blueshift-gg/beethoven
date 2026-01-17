@@ -3,17 +3,17 @@
 use {
     beethoven_core::Swap,
     core::mem::MaybeUninit,
-    pinocchio::{
+    solana_account_view::AccountView,
+    solana_address::Address,
+    solana_instruction_view::{
         cpi::{invoke_signed, Signer},
-        error::ProgramError,
-        instruction::{InstructionAccount, InstructionView},
-        AccountView, Address, ProgramResult,
+        InstructionAccount, InstructionView,
     },
+    solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const ALDRIN_V2_PROGRAM_ID: Address = Address::new_from_array(five8_const::decode_32_const(
-    "CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4",
-));
+pub const ALDRIN_V2_PROGRAM_ID: Address =
+    Address::from_str_const("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
 
 const SWAP_DISCRIMINATOR: [u8; 8] = [248, 198, 158, 145, 225, 117, 135, 200];
 

@@ -6,4 +6,5 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-pinocchio = { version = "0.10.0", features = ["cpi"] }
+solana-instruction-view = { version = "1.0.0", features = ["cpi"] }
+solana-program-error = "3.0.0"

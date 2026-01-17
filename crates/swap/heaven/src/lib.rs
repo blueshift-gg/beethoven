@@ -3,17 +3,17 @@
 use {
     beethoven_core::Swap,
     core::mem::MaybeUninit,
-    pinocchio::{
+    solana_account_view::AccountView,
+    solana_address::Address,
+    solana_instruction_view::{
         cpi::{invoke_signed, Signer},
-        error::ProgramError,
-        instruction::{InstructionAccount, InstructionView},
-        AccountView, Address, ProgramResult,
+        InstructionAccount, InstructionView,
     },
+    solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const HEAVEN_PROGRAM_ID: Address = Address::new_from_array(five8_const::decode_32_const(
-    "HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5mJYkdeC8BAX2o",
-));
+pub const HEAVEN_PROGRAM_ID: Address =
+    Address::from_str_const("HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5mJYkdeC8BAX2o");
 
 const BUY_DISCRIMINATOR: [u8; 8] = [102, 6, 61, 18, 1, 218, 235, 234];
 const SELL_DISCRIMINATOR: [u8; 8] = [51, 230, 133, 164, 1, 127, 131, 173];

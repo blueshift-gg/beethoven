@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 beethoven-core = { path = "../../core" }
-pinocchio = { version = "0.10.0", features = ["cpi"] }
+solana-account-view = "1.0.0"
+solana-address = "2.0.0"
+solana-instruction-view = "1.0.0"
+solana-program-error = "3.0.0"

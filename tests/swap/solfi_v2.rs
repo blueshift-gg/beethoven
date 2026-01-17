@@ -1,7 +1,4 @@
-use {
-    crate::helper::*,
-    solana_sdk::{signature::Keypair, signer::Signer},
-};
+use {crate::helper::*, solana_keypair::Keypair, solana_signer::Signer};
 
 #[test]
 fn test_solfi_v2_swap() {
