@@ -1,7 +1,7 @@
 SHELL := /usr/bin/env bash
 NIGHTLY_TOOLCHAIN := nightly
 
-.PHONY: nightly-version format format-fix clippy clippy-fix check-features build test all-checks
+.PHONY: nightly-version format format-fix clippy clippy-fix check-features build-program-test test all-checks
 
 nightly-version:
 	@echo $(NIGHTLY_TOOLCHAIN)
@@ -18,12 +18,12 @@ clippy:
 clippy-fix:
 	@cargo +$(NIGHTLY_TOOLCHAIN) clippy --all --all-features --all-targets --fix --allow-dirty --allow-staged -- -D warnings
 
-build:
-	@cargo build-sbf
+build-program-test:
+	@cd program-test && cargo +$(NIGHTLY_TOOLCHAIN) build-bpf
 
 test:
-	@$(MAKE) build
-	@cargo test-sbf
+	@$(MAKE) build-program-test
+	@cargo test
 
 all-checks:
 	@echo "Running all checks..."

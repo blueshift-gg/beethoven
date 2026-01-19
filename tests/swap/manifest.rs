@@ -23,7 +23,7 @@ fn manifest_fixtures_dir() -> String {
 
 fn beethoven_program_path() -> String {
     format!(
-        "{}/target/deploy/beethoven_test.so",
+        "{}/target/bpfel-unknown-none/release/libbeethoven_test.so",
         env!("CARGO_MANIFEST_DIR")
     )
 }

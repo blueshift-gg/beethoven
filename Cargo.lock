@@ -593,6 +593,7 @@ version = "0.0.1"
 dependencies = [
  "beethoven",
  "pinocchio",
+ "solana-define-syscall 4.0.1",
 ]
 
 [[package]]
@@ -1710,7 +1711,6 @@ dependencies = [
  "solana-account-view",
  "solana-address 2.0.0",
  "solana-define-syscall 4.0.1",
- "solana-instruction-view",
  "solana-program-error",
 ]
 

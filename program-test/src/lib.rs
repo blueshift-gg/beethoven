@@ -1,13 +1,18 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use pinocchio::{entrypoint, error::ProgramError, AccountView, Address, ProgramResult};
+use pinocchio::{
+    error::ProgramError, no_allocator, nostd_panic_handler, AccountView, Address, ProgramResult,
+};
 
 mod deposit;
 mod swap;
 
-pinocchio::nostd_panic_handler!();
-entrypoint!(process_instruction);
+no_allocator!();
+nostd_panic_handler!();
+
+#[cfg(target_arch = "bpf")]
+pinocchio::program_entrypoint!(process_instruction);
 
 pub fn process_instruction(
     _program_id: &Address,

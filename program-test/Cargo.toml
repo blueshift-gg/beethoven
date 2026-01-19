@@ -4,11 +4,14 @@ version = "0.0.1"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 
 [features]
 default = []
 
 [dependencies]
 beethoven = { path = "..", features = ["deposit", "swap"] }
-pinocchio = { version = "0.10.1" }
+pinocchio = { version = "0.10.1", default-features = false }
+solana-define-syscall = { version = "4.0.1", features = [
+    "unstable-static-syscalls",
+] }
