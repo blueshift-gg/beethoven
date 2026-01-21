@@ -10,7 +10,7 @@ rustflags = [
     "-C",
     "save-temps",
     "-C",
-    "link-arg=--llvm-args=-bpf-stack-size=4096",
+    "link-arg=--llvm-args=-bpf-stack-size=8192",
     "-C",
     "relocation-model=static",
 ]
