@@ -68,6 +68,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.nightly.outputs.version }}
+          components: rust-src
       - name: Install sbpf linker
         uses: taiki-e/install-action@v2
         with:
