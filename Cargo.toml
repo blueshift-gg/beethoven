@@ -8,6 +8,9 @@ edition = "2021"
 [features]
 default = ["deposit", "swap"]
 
+# Test program selection (for dev-dependencies)
+upstream-bpf = []
+
 # Action groups
 deposit = ["kamino-deposit", "jupiter-deposit"]
 swap = [
@@ -87,4 +90,14 @@ solana-rent = "3.1.0"
 solana-sdk-ids = "3.1.0"
 solana-signer = "3.0.0"
 solana-transaction = "3.0.2"
+solana-compute-budget-instruction = "3.1.7"
 spl-token-interface = "2"
+mollusk-svm = "0.10.1"
+mollusk-svm-programs-token = "0.10.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

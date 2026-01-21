@@ -1,5 +1,7 @@
 use {
+    base64::{engine::general_purpose::STANDARD, Engine as _},
     litesvm::LiteSVM,
+    mollusk_svm::{program::keyed_account_for_system_program, result::ProgramResult, Mollusk},
     solana_account::Account,
     solana_address::{address, Address},
     solana_instruction::{AccountMeta, Instruction},
@@ -10,6 +12,7 @@ use {
     solana_signer::Signer,
     solana_transaction::Transaction,
     spl_token_interface::state::{Account as TokenAccount, AccountState, Mint},
+    std::str::FromStr,
 };
 
 // =============================================================================
@@ -27,6 +30,7 @@ pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLV
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaWJfSFLQzPiSfPKqp2W");
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
+pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
 pub mod discriminator {
     pub const DEPOSIT: u8 = 0;
@@ -45,6 +49,64 @@ pub fn setup_svm_with_program(program_bytes: &[u8]) -> LiteSVM {
     let mut svm = LiteSVM::new();
     let _ = svm.add_program(TEST_PROGRAM_ID, program_bytes);
     svm
+}
+
+// =============================================================================
+// Mollusk Setup
+// =============================================================================
+
+pub fn setup_mollusk_with_programs(
+    beethoven_bytes: &[u8],
+    additional_programs: &[(Address, &[u8])],
+) -> Mollusk {
+    let mut mollusk = Mollusk::default();
+    mollusk.add_program_with_loader_and_elf(&TEST_PROGRAM_ID, &BPF_LOADER, beethoven_bytes);
+
+    for (program_id, bytes) in additional_programs {
+        mollusk.add_program_with_loader_and_elf(program_id, &BPF_LOADER, bytes);
+    }
+
+    // Add the SPL Token program
+    mollusk_svm_programs_token::token::add_program(&mut mollusk);
+
+    mollusk
+}
+
+pub fn get_mollusk_system_program() -> (Address, Account) {
+    keyed_account_for_system_program()
+}
+
+pub fn get_mollusk_token_program() -> (Address, Account) {
+    mollusk_svm_programs_token::token::keyed_account()
+}
+
+pub fn create_mollusk_program_account(program_bytes: &[u8]) -> Account {
+    Account {
+        lamports: 1,
+        data: program_bytes.to_vec(),
+        owner: BPF_LOADER,
+        executable: true,
+        rent_epoch: 0,
+    }
+}
+
+/// Verify mollusk result is successful and return resulting accounts
+pub fn assert_mollusk_success(result: &mollusk_svm::result::InstructionResult) {
+    match &result.program_result {
+        ProgramResult::Success => {}
+        ProgramResult::Failure(e) => {
+            panic!(
+                "Mollusk execution failed: {:?}. Compute units: {}",
+                e, result.compute_units_consumed
+            );
+        }
+        ProgramResult::UnknownError(e) => {
+            panic!(
+                "Mollusk unknown error: {:?}. Compute units: {}",
+                e, result.compute_units_consumed
+            );
+        }
+    }
 }
 
 // =============================================================================
@@ -243,7 +305,7 @@ pub fn send_transaction(
     svm: &mut LiteSVM,
     payer: &Keypair,
     instruction: Instruction,
-) -> Result<(), String> {
+) -> Result<u64, String> {
     let tx = Transaction::new_signed_with_payer(
         &[instruction],
         Some(&payer.pubkey()),
@@ -251,9 +313,21 @@ pub fn send_transaction(
         svm.latest_blockhash(),
     );
 
-    svm.send_transaction(tx)
-        .map(|_| ())
-        .map_err(|e| format!("{:?}", e))
+    match svm.send_transaction(tx) {
+        Ok(meta) => {
+            for log in &meta.logs {
+                println!("{}", log);
+            }
+            println!("Compute units consumed: {}", meta.compute_units_consumed);
+            Ok(meta.compute_units_consumed)
+        }
+        Err(e) => {
+            for log in &e.meta.logs {
+                println!("{}", log);
+            }
+            Err(format!("{:?}", e.err))
+        }
+    }
 }
 
 pub fn send_transaction_with_signers(
@@ -261,7 +335,7 @@ pub fn send_transaction_with_signers(
     payer: &Keypair,
     signers: &[&Keypair],
     instruction: Instruction,
-) -> Result<(), String> {
+) -> Result<u64, String> {
     let mut all_signers: Vec<&Keypair> = vec![payer];
     all_signers.extend(signers);
 
@@ -272,9 +346,21 @@ pub fn send_transaction_with_signers(
         svm.latest_blockhash(),
     );
 
-    svm.send_transaction(tx)
-        .map(|_| ())
-        .map_err(|e| format!("{:?}", e))
+    match svm.send_transaction(tx) {
+        Ok(meta) => {
+            for log in &meta.logs {
+                println!("{}", log);
+            }
+            println!("Compute units consumed: {}", meta.compute_units_consumed);
+            Ok(meta.compute_units_consumed)
+        }
+        Err(e) => {
+            for log in &e.meta.logs {
+                println!("{}", log);
+            }
+            Err(format!("{:?}", e.err))
+        }
+    }
 }
 
 // =============================================================================
@@ -299,11 +385,6 @@ pub fn load_fixture_account(path: &str, owner: &Address) -> Account {
 /// Load a JSON fixture exported by `solana account --output json-compact`
 /// Returns (pubkey, Account)
 pub fn load_json_fixture(path: &str) -> (Address, Account) {
-    use {
-        base64::{engine::general_purpose::STANDARD, Engine},
-        std::str::FromStr,
-    };
-
     let contents = std::fs::read_to_string(path)
         .unwrap_or_else(|_| panic!("Failed to read fixture: {}", path));
     let json: serde_json::Value = serde_json::from_str(&contents)

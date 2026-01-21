@@ -1,7 +1,14 @@
 use {
-    crate::helper::*, solana_address::Address, solana_instruction::AccountMeta,
-    solana_keypair::Keypair, solana_program_pack::Pack, solana_signer::Signer,
-    spl_token_interface::state::Account as TokenAccount, std::str::FromStr,
+    crate::helper::*,
+    solana_account::Account,
+    solana_address::Address,
+    solana_instruction::AccountMeta,
+    solana_keypair::Keypair,
+    solana_program_option::COption,
+    solana_program_pack::Pack,
+    solana_signer::Signer,
+    spl_token_interface::state::{Account as TokenAccount, AccountState},
+    std::str::FromStr,
 };
 
 // Known addresses from dumped fixtures
@@ -21,9 +28,18 @@ fn manifest_fixtures_dir() -> String {
     format!("{}/fixtures/swap/manifest", env!("CARGO_MANIFEST_DIR"))
 }
 
+#[cfg(feature = "upstream-bpf")]
 fn beethoven_program_path() -> String {
     format!(
         "{}/target/bpfel-unknown-none/release/libbeethoven_test.so",
+        env!("CARGO_MANIFEST_DIR")
+    )
+}
+
+#[cfg(not(feature = "upstream-bpf"))]
+fn beethoven_program_path() -> String {
+    format!(
+        "{}/target/deploy/beethoven_test.so",
         env!("CARGO_MANIFEST_DIR")
     )
 }
@@ -34,165 +50,6 @@ fn get_token_balance(svm: &litesvm::LiteSVM, token_account: &Address) -> u64 {
         .expect("Token account not found");
     let token_data = TokenAccount::unpack(&account.data).expect("Failed to unpack token account");
     token_data.amount
-}
-
-#[test]
-fn test_manifest_swap_loads_fixtures() {
-    let mut svm = setup_svm();
-
-    // Load Manifest program
-    load_program(
-        &mut svm,
-        MANIFEST_PROGRAM_ID,
-        &format!("{}/manifest_program.so", manifest_fixtures_dir()),
-    );
-
-    // Load market and vaults from manifest fixtures
-    let market = load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/manifest_usdc_sol_market.json", manifest_fixtures_dir()),
-    );
-    assert_eq!(market, Address::from_str(MARKET).unwrap());
-
-    // Load mints from common fixtures
-    let wsol_mint = load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/wsol_mint.json", common_fixtures_dir()),
-    );
-    assert_eq!(wsol_mint, Address::from_str(WSOL_MINT).unwrap());
-
-    let usdc_mint = load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/usdc_mint.json", common_fixtures_dir()),
-    );
-    assert_eq!(usdc_mint, Address::from_str(USDC_MINT).unwrap());
-
-    // Load vaults from manifest fixtures
-    let base_vault = load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/manifest_sol_usdc_base_vault.json",
-            manifest_fixtures_dir()
-        ),
-    );
-    assert_eq!(base_vault, Address::from_str(BASE_VAULT).unwrap());
-
-    let quote_vault = load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/manifest_sol_usdc_quote_vault.json",
-            manifest_fixtures_dir()
-        ),
-    );
-    assert_eq!(quote_vault, Address::from_str(QUOTE_VAULT).unwrap());
-
-    // Verify accounts are loaded
-    assert!(svm.get_account(&market).is_some());
-    assert!(svm.get_account(&wsol_mint).is_some());
-    assert!(svm.get_account(&usdc_mint).is_some());
-    assert!(svm.get_account(&base_vault).is_some());
-    assert!(svm.get_account(&quote_vault).is_some());
-}
-
-#[test]
-fn test_manifest_swap_account_structure() {
-    let mut svm = setup_svm();
-    let payer = Keypair::new();
-    svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
-
-    // Load Manifest program and fixtures
-    load_program(
-        &mut svm,
-        MANIFEST_PROGRAM_ID,
-        &format!("{}/manifest_program.so", manifest_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/manifest_usdc_sol_market.json", manifest_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/wsol_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/usdc_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/manifest_sol_usdc_base_vault.json",
-            manifest_fixtures_dir()
-        ),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/manifest_sol_usdc_quote_vault.json",
-            manifest_fixtures_dir()
-        ),
-    );
-
-    let wsol_mint = Address::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Address::from_str(USDC_MINT).unwrap();
-    let market = Address::from_str(MARKET).unwrap();
-    let base_vault = Address::from_str(BASE_VAULT).unwrap();
-    let quote_vault = Address::from_str(QUOTE_VAULT).unwrap();
-
-    // Create trader token accounts
-    let trader_base = create_token_account(&mut svm, &payer.pubkey(), &wsol_mint, 1_000_000_000); // 1 SOL
-    let trader_quote = create_token_account(&mut svm, &payer.pubkey(), &usdc_mint, 100_000_000); // 100 USDC
-
-    // Build account metas for Manifest SwapV2
-    // Account order from beethoven implementation:
-    // 0. manifest_program - for protocol detection
-    // 1. payer - writable, signer
-    // 2. owner - signer (same as payer for simple case)
-    // 3. market - writable
-    // 4. system_program
-    // 5. trader_base - writable
-    // 6. trader_quote - writable
-    // 7. base_vault - writable
-    // 8. quote_vault - writable
-    // 9. token_program_base
-    // 10. base_mint (optional, set to program ID for non-Token22)
-    // 11. token_program_quote (optional, same as token_program_base)
-    // 12. quote_mint (optional, set to program ID for non-Token22)
-    // 13. global (optional, set to program ID)
-    // 14. global_vault (optional, set to program ID)
-    let accounts = vec![
-        AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false), // manifest_program (for detection)
-        AccountMeta::new(payer.pubkey(), true),                // payer
-        AccountMeta::new_readonly(payer.pubkey(), true),       // owner (same as payer)
-        AccountMeta::new(market, false),                       // market
-        AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false),   // system_program
-        AccountMeta::new(trader_base, false),                  // trader_base
-        AccountMeta::new(trader_quote, false),                 // trader_quote
-        AccountMeta::new(base_vault, false),                   // base_vault
-        AccountMeta::new(quote_vault, false),                  // quote_vault
-        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),    // token_program_base
-        AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false), // base_mint (optional -> program ID)
-        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),    // token_program_quote
-        AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false), // quote_mint (optional -> program ID)
-        AccountMeta::new(MANIFEST_PROGRAM_ID, false),          // global (optional -> program ID)
-        AccountMeta::new(MANIFEST_PROGRAM_ID, false), // global_vault (optional -> program ID)
-    ];
-
-    // ManifestSwapData: is_base_in (sell SOL), is_exact_in (exact input amount)
-    let extra_data = [1u8, 1u8]; // is_base_in=true, is_exact_in=true
-
-    // Just verify instruction builds correctly (actual swap needs beethoven-test program)
-    let instruction = build_swap_instruction(
-        accounts,
-        100_000_000, // in_amount: 0.1 SOL
-        1_000_000,   // min_out_amount: 1 USDC (very loose slippage)
-        &extra_data,
-    );
-
-    assert_eq!(instruction.program_id, TEST_PROGRAM_ID);
-    assert_eq!(instruction.accounts.len(), 15);
-    // Data: discriminator(1) + in_amount(8) + min_out_amount(8) + extra_data(2) = 19 bytes
-    assert_eq!(instruction.data.len(), 19);
 }
 
 #[test]
@@ -319,7 +176,7 @@ fn test_manifest_swap_cpi() {
     let result = send_transaction(&mut svm, &payer, instruction);
 
     match result {
-        Ok(()) => {
+        Ok(_compute_units) => {
             // Verify balances changed
             let final_wsol = get_token_balance(&svm, &trader_base);
             let final_usdc = get_token_balance(&svm, &trader_quote);
@@ -346,4 +203,146 @@ fn test_manifest_swap_cpi() {
             panic!("Swap CPI failed: {}", e);
         }
     }
+}
+
+#[test]
+fn test_manifest_swap_cpi_mollusk() {
+    // Load program bytes
+    let beethoven_bytes = load_fixture_bytes(&beethoven_program_path());
+    let manifest_bytes = load_fixture_bytes(&format!("{}/manifest_program.so", manifest_fixtures_dir()));
+
+    // Set up mollusk with both programs
+    let mollusk = setup_mollusk_with_programs(
+        &beethoven_bytes,
+        &[(MANIFEST_PROGRAM_ID, &manifest_bytes)],
+    );
+
+    // Load fixtures
+    let (market_addr, market_account) =
+        load_json_fixture(&format!("{}/manifest_usdc_sol_market.json", manifest_fixtures_dir()));
+    let (wsol_mint_addr, wsol_mint_account) =
+        load_json_fixture(&format!("{}/wsol_mint.json", common_fixtures_dir()));
+    let (usdc_mint_addr, usdc_mint_account) =
+        load_json_fixture(&format!("{}/usdc_mint.json", common_fixtures_dir()));
+    let (base_vault_addr, base_vault_account) =
+        load_json_fixture(&format!("{}/manifest_sol_usdc_base_vault.json", manifest_fixtures_dir()));
+    let (quote_vault_addr, quote_vault_account) =
+        load_json_fixture(&format!("{}/manifest_sol_usdc_quote_vault.json", manifest_fixtures_dir()));
+    let (global_addr, global_account) =
+        load_json_fixture(&format!("{}/manifest_global.json", manifest_fixtures_dir()));
+    let (global_vault_addr, global_vault_account) =
+        load_json_fixture(&format!("{}/manifest_global_vault.json", manifest_fixtures_dir()));
+
+    // Verify addresses match expected
+    assert_eq!(market_addr, Address::from_str(MARKET).unwrap());
+    assert_eq!(wsol_mint_addr, Address::from_str(WSOL_MINT).unwrap());
+    assert_eq!(usdc_mint_addr, Address::from_str(USDC_MINT).unwrap());
+    assert_eq!(base_vault_addr, Address::from_str(BASE_VAULT).unwrap());
+    assert_eq!(quote_vault_addr, Address::from_str(QUOTE_VAULT).unwrap());
+    assert_eq!(global_addr, Address::from_str(GLOBAL).unwrap());
+    assert_eq!(global_vault_addr, Address::from_str(GLOBAL_VAULT).unwrap());
+
+    // Create payer/owner address
+    let payer = Address::new_from_array([0x02; 32]);
+    let payer_account = Account::new(10_000_000_000u64, 0, &Address::default());
+
+    // Create trader token accounts
+    let trader_base_addr = Address::new_from_array([0x03; 32]);
+    let initial_wsol = 1_000_000_000u64; // 1 SOL
+    let trader_base_account = create_account_for_token_account(TokenAccount {
+        mint: wsol_mint_addr,
+        owner: payer,
+        amount: initial_wsol,
+        delegate: COption::None,
+        state: AccountState::Initialized,
+        is_native: COption::None,
+        delegated_amount: 0,
+        close_authority: COption::None,
+    });
+
+    let trader_quote_addr = Address::new_from_array([0x04; 32]);
+    let initial_usdc = 0u64;
+    let trader_quote_account = create_account_for_token_account(TokenAccount {
+        mint: usdc_mint_addr,
+        owner: payer,
+        amount: initial_usdc,
+        delegate: COption::None,
+        state: AccountState::Initialized,
+        is_native: COption::None,
+        delegated_amount: 0,
+        close_authority: COption::None,
+    });
+
+    // Build swap instruction: sell 0.1 SOL for USDC
+    let in_amount = 100_000_000u64; // 0.1 SOL
+    let min_out_amount = 1u64; // Very loose slippage for test
+
+    let account_metas = vec![
+        AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false), // manifest_program (for detection)
+        AccountMeta::new(payer, true),                         // payer
+        AccountMeta::new_readonly(payer, true),                // owner
+        AccountMeta::new(market_addr, false),                  // market
+        AccountMeta::new_readonly(solana_sdk_ids::system_program::ID, false), // system_program
+        AccountMeta::new(trader_base_addr, false),             // trader_base (SOL)
+        AccountMeta::new(trader_quote_addr, false),            // trader_quote (USDC)
+        AccountMeta::new(base_vault_addr, false),              // base_vault
+        AccountMeta::new(quote_vault_addr, false),             // quote_vault
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),    // token_program_base
+        AccountMeta::new_readonly(wsol_mint_addr, false),      // base_mint
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),    // token_program_quote
+        AccountMeta::new_readonly(usdc_mint_addr, false),      // quote_mint
+        AccountMeta::new(global_addr, false),                  // global
+        AccountMeta::new(global_vault_addr, false),            // global_vault
+    ];
+
+    // is_base_in=true (selling base/SOL), is_exact_in=true (exact input amount)
+    let extra_data = [1u8, 1u8];
+    let instruction = build_swap_instruction(account_metas, in_amount, min_out_amount, &extra_data);
+
+    // Get system program and token program keyed accounts
+    let (system_program_id, system_program_account) = get_mollusk_system_program();
+    let (token_program_id, token_program_account) = get_mollusk_token_program();
+
+    // Manifest program account (needed for instruction account reference)
+    let manifest_program_account = create_mollusk_program_account(&manifest_bytes);
+
+    // Build accounts list for mollusk
+    let accounts = vec![
+        (payer, payer_account),
+        (market_addr, market_account),
+        (wsol_mint_addr, wsol_mint_account),
+        (usdc_mint_addr, usdc_mint_account),
+        (trader_base_addr, trader_base_account),
+        (trader_quote_addr, trader_quote_account),
+        (base_vault_addr, base_vault_account),
+        (quote_vault_addr, quote_vault_account),
+        (global_addr, global_account),
+        (global_vault_addr, global_vault_account),
+        (system_program_id, system_program_account),
+        (token_program_id, token_program_account),
+        (MANIFEST_PROGRAM_ID, manifest_program_account),
+    ];
+
+    // Execute the instruction
+    let result = mollusk.process_instruction(&instruction, &accounts);
+
+    // Verify success
+    assert_mollusk_success(&result);
+
+    // Check resulting account data
+    for (pubkey, account) in &result.resulting_accounts {
+        if *pubkey == trader_base_addr {
+            let token_data = TokenAccount::unpack(&account.data).expect("Failed to unpack trader_base");
+            assert!(token_data.amount < initial_wsol, "WSOL should have decreased");
+        }
+        if *pubkey == trader_quote_addr {
+            let token_data = TokenAccount::unpack(&account.data).expect("Failed to unpack trader_quote");
+            assert!(token_data.amount > initial_usdc, "USDC should have increased");
+        }
+    }
+
+    println!(
+        "Mollusk manifest swap CPI succeeded! Compute units: {}",
+        result.compute_units_consumed
+    );
 }
