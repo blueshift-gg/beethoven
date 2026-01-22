@@ -19,7 +19,7 @@ clippy-fix:
 	@cargo +$(NIGHTLY_TOOLCHAIN) clippy --all --all-features --all-targets --fix --allow-dirty --allow-staged -- -D warnings
 
 build-program:
-	@cd program-test && cargo build-sbpf
+	@cd program-test && cargo build-sbf
 
 build-program-upstream:
 	@cd program-test && cargo +$(NIGHTLY_TOOLCHAIN) build-bpf --features upstream-bpf
