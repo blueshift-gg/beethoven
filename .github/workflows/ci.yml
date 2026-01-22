@@ -11,6 +11,7 @@ env:
 
 jobs:
   rust_fmt:
+    name: Rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -47,6 +48,7 @@ jobs:
           components: clippy
       - name: Run clippy
         run: make clippy
+
   rust_test:
     name: Tests
     runs-on: ubuntu-latest
@@ -60,7 +62,30 @@ jobs:
             ~/.cargo/git/db/
           key: ${{ runner.os }}-cargo-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-tests-
+            ${{ runner.os }}-cargo-tests
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.7/install)"
+          echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Run tests
+        run: make test
+
+  rust_test_upstream:
+    name: Tests upstream
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-tests-upstream-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-tests-upstream
       - name: Get nightly toolchain version
         id: nightly
         run: echo "version=$(make nightly-version)" >> $GITHUB_OUTPUT
@@ -74,4 +99,4 @@ jobs:
         with:
           tool: sbpf-linker
       - name: Run tests
-        run: make test
+        run: make test-upstream

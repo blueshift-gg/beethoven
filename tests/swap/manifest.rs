@@ -209,29 +209,36 @@ fn test_manifest_swap_cpi() {
 fn test_manifest_swap_cpi_mollusk() {
     // Load program bytes
     let beethoven_bytes = load_fixture_bytes(&beethoven_program_path());
-    let manifest_bytes = load_fixture_bytes(&format!("{}/manifest_program.so", manifest_fixtures_dir()));
+    let manifest_bytes =
+        load_fixture_bytes(&format!("{}/manifest_program.so", manifest_fixtures_dir()));
 
     // Set up mollusk with both programs
-    let mollusk = setup_mollusk_with_programs(
-        &beethoven_bytes,
-        &[(MANIFEST_PROGRAM_ID, &manifest_bytes)],
-    );
+    let mollusk =
+        setup_mollusk_with_programs(&beethoven_bytes, &[(MANIFEST_PROGRAM_ID, &manifest_bytes)]);
 
     // Load fixtures
-    let (market_addr, market_account) =
-        load_json_fixture(&format!("{}/manifest_usdc_sol_market.json", manifest_fixtures_dir()));
+    let (market_addr, market_account) = load_json_fixture(&format!(
+        "{}/manifest_usdc_sol_market.json",
+        manifest_fixtures_dir()
+    ));
     let (wsol_mint_addr, wsol_mint_account) =
         load_json_fixture(&format!("{}/wsol_mint.json", common_fixtures_dir()));
     let (usdc_mint_addr, usdc_mint_account) =
         load_json_fixture(&format!("{}/usdc_mint.json", common_fixtures_dir()));
-    let (base_vault_addr, base_vault_account) =
-        load_json_fixture(&format!("{}/manifest_sol_usdc_base_vault.json", manifest_fixtures_dir()));
-    let (quote_vault_addr, quote_vault_account) =
-        load_json_fixture(&format!("{}/manifest_sol_usdc_quote_vault.json", manifest_fixtures_dir()));
+    let (base_vault_addr, base_vault_account) = load_json_fixture(&format!(
+        "{}/manifest_sol_usdc_base_vault.json",
+        manifest_fixtures_dir()
+    ));
+    let (quote_vault_addr, quote_vault_account) = load_json_fixture(&format!(
+        "{}/manifest_sol_usdc_quote_vault.json",
+        manifest_fixtures_dir()
+    ));
     let (global_addr, global_account) =
         load_json_fixture(&format!("{}/manifest_global.json", manifest_fixtures_dir()));
-    let (global_vault_addr, global_vault_account) =
-        load_json_fixture(&format!("{}/manifest_global_vault.json", manifest_fixtures_dir()));
+    let (global_vault_addr, global_vault_account) = load_json_fixture(&format!(
+        "{}/manifest_global_vault.json",
+        manifest_fixtures_dir()
+    ));
 
     // Verify addresses match expected
     assert_eq!(market_addr, Address::from_str(MARKET).unwrap());
@@ -332,12 +339,20 @@ fn test_manifest_swap_cpi_mollusk() {
     // Check resulting account data
     for (pubkey, account) in &result.resulting_accounts {
         if *pubkey == trader_base_addr {
-            let token_data = TokenAccount::unpack(&account.data).expect("Failed to unpack trader_base");
-            assert!(token_data.amount < initial_wsol, "WSOL should have decreased");
+            let token_data =
+                TokenAccount::unpack(&account.data).expect("Failed to unpack trader_base");
+            assert!(
+                token_data.amount < initial_wsol,
+                "WSOL should have decreased"
+            );
         }
         if *pubkey == trader_quote_addr {
-            let token_data = TokenAccount::unpack(&account.data).expect("Failed to unpack trader_quote");
-            assert!(token_data.amount > initial_usdc, "USDC should have increased");
+            let token_data =
+                TokenAccount::unpack(&account.data).expect("Failed to unpack trader_quote");
+            assert!(
+                token_data.amount > initial_usdc,
+                "USDC should have increased"
+            );
         }
     }
 

@@ -12,5 +12,9 @@ upstream-bpf = ["dep:solana-define-syscall"]
 
 [dependencies]
 beethoven = { path = "..", features = ["deposit", "swap"] }
-pinocchio = { version = "0.10.1", default-features = false, features = ["alloc"] }
-solana-define-syscall = { version = "4.0.1", features = ["unstable-static-syscalls"], optional = true }
+pinocchio = { version = "0.10.1", default-features = false, features = [
+    "alloc",
+] }
+solana-define-syscall = { version = "4.0.1", features = [
+    "unstable-static-syscalls",
+], optional = true }
