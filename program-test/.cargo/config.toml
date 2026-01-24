@@ -1,14 +1,16 @@
-[unstable]
-build-std = ["core", "alloc"]
-
 [target.bpfel-unknown-none]
 rustflags = [
-    "-C", "linker=sbpf-linker",
-    "-C", "panic=abort",
-    "-C", "save-temps",
-    "-C", "link-arg=--llvm-args=-bpf-stack-size=8192",
-    "-C", "relocation-model=static",
+    "-C",
+    "linker=sbpf-linker",
+    "-C",
+    "panic=abort",
+    "-C",
+    "save-temps",
+    "-C",
+    "link-arg=--llvm-args=-bpf-stack-size=4096",
+    "-C",
+    "relocation-model=static",
 ]
 
 [alias]
-build-bpf = "build --release --target bpfel-unknown-none"
+build-bpf = "build -Z build-std=core,alloc --release --target bpfel-unknown-none"
