@@ -3,3 +3,12 @@
 .DS_Store
 Thumbs.db
 test-ledger/
+
+# AI
+.apex
+.claude
+.codex
+.factory
+AGENTS.md
+CLAUDE.md
+

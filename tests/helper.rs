@@ -35,6 +35,7 @@ pub const BPF_LOADER: Address = address!("BPFLoader21111111111111111111111111111
 pub mod discriminator {
     pub const DEPOSIT: u8 = 0;
     pub const SWAP: u8 = 1;
+    pub const SWAP_WITH_PARAMETERS: u8 = 2;
 }
 
 // =============================================================================
@@ -286,6 +287,24 @@ pub fn build_swap_instruction(
     extra_data: &[u8],
 ) -> Instruction {
     let mut data = vec![discriminator::SWAP];
+    data.extend_from_slice(&in_amount.to_le_bytes());
+    data.extend_from_slice(&min_out_amount.to_le_bytes());
+    data.extend_from_slice(extra_data);
+
+    Instruction {
+        program_id: TEST_PROGRAM_ID,
+        accounts,
+        data,
+    }
+}
+
+pub fn build_swap_with_parameters_instruction(
+    accounts: Vec<AccountMeta>,
+    in_amount: u64,
+    min_out_amount: u64,
+    extra_data: &[u8],
+) -> Instruction {
+    let mut data = vec![discriminator::SWAP_WITH_PARAMETERS];
     data.extend_from_slice(&in_amount.to_le_bytes());
     data.extend_from_slice(&min_out_amount.to_le_bytes());
     data.extend_from_slice(extra_data);

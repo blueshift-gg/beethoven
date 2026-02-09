@@ -6,7 +6,7 @@ license = "MIT"
 edition = "2021"
 
 [features]
-default = ["deposit", "swap"]
+default = ["deposit", "swap", "swap-with-parameters"]
 
 # Test program selection (for dev-dependencies)
 upstream-bpf = []
@@ -39,6 +39,28 @@ aldrin-swap = ["dep:beethoven-swap-aldrin"]
 aldrin_v2-swap = ["dep:beethoven-swap-aldrin-v2"]
 futarchy-swap = ["dep:beethoven-swap-futarchy"]
 gamma-swap = ["dep:beethoven-swap-gamma"]
+
+# Swap with parameters
+swap-with-parameters = [
+    "perena-swap-with-parameters",
+    "solfi-swap-with-parameters",
+    "solfi_v2-swap-with-parameters",
+    "manifest-swap-with-parameters",
+    "heaven-swap-with-parameters",
+    "aldrin-swap-with-parameters",
+    "aldrin_v2-swap-with-parameters",
+    "futarchy-swap-with-parameters",
+    "gamma-swap-with-parameters",
+]
+perena-swap-with-parameters = ["perena-swap", "beethoven-swap-perena/swap-with-parameters"]
+solfi-swap-with-parameters = ["solfi-swap", "beethoven-swap-solfi/swap-with-parameters"]
+solfi_v2-swap-with-parameters = ["solfi_v2-swap", "beethoven-swap-solfi-v2/swap-with-parameters"]
+manifest-swap-with-parameters = ["manifest-swap", "beethoven-swap-manifest/swap-with-parameters"]
+heaven-swap-with-parameters = ["heaven-swap", "beethoven-swap-heaven/swap-with-parameters"]
+aldrin-swap-with-parameters = ["aldrin-swap", "beethoven-swap-aldrin/swap-with-parameters"]
+aldrin_v2-swap-with-parameters = ["aldrin_v2-swap", "beethoven-swap-aldrin-v2/swap-with-parameters"]
+futarchy-swap-with-parameters = ["futarchy-swap", "beethoven-swap-futarchy/swap-with-parameters"]
+gamma-swap-with-parameters = ["gamma-swap", "beethoven-swap-gamma/swap-with-parameters"]
 
 [dependencies]
 beethoven-core = { path = "crates/core" }

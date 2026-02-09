@@ -11,7 +11,7 @@ default = []
 upstream-bpf = ["dep:solana-define-syscall"]
 
 [dependencies]
-beethoven = { path = "..", features = ["deposit", "swap"] }
+beethoven = { path = "..", features = ["deposit", "swap", "swap-with-parameters"] }
 pinocchio = { version = "0.10.1", default-features = false, features = [
     "alloc",
 ] }

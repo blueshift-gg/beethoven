@@ -1,7 +1,7 @@
 #![no_std]
 
 // Re-export core traits
-pub use beethoven_core::{Deposit, Swap};
+pub use beethoven_core::{Deposit, Swap, SwapParameters, SwapWithParameters, SWAP_PARAMETERS_LEN};
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags

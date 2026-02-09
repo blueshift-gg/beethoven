@@ -5,6 +5,10 @@ version = "0.0.1"
 license = "MIT"
 edition = "2021"
 
+[features]
+default = ["swap-with-parameters"]
+swap-with-parameters = []
+
 [dependencies]
 beethoven-core = { path = "../../core" }
 solana-account-view = "1.0.0"

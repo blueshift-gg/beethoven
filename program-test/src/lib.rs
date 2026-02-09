@@ -5,6 +5,7 @@ use pinocchio::{error::ProgramError, AccountView, Address, ProgramResult};
 
 mod deposit;
 mod swap;
+mod swap_with_parameters;
 
 pinocchio::no_allocator!();
 pinocchio::nostd_panic_handler!();
@@ -23,6 +24,7 @@ pub fn process_instruction(
     match discriminator {
         0 => deposit::process(accounts, data),
         1 => swap::process(accounts, data),
+        2 => swap_with_parameters::process(accounts, data),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
