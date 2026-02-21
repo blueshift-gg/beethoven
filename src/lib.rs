@@ -21,6 +21,8 @@ pub use beethoven_swap_heaven as heaven;
 pub use beethoven_swap_manifest as manifest;
 #[cfg(feature = "perena-swap")]
 pub use beethoven_swap_perena as perena;
+#[cfg(feature = "scale_amm-swap")]
+pub use beethoven_swap_scale_amm as scale_amm;
 #[cfg(feature = "solfi-swap")]
 pub use beethoven_swap_solfi as solfi;
 #[cfg(feature = "solfi_v2-swap")]

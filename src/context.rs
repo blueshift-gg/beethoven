@@ -34,6 +34,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "gamma-swap")]
     Gamma(crate::gamma::GammaSwapAccounts<'info>),
+
+    #[cfg(feature = "scale_amm-swap")]
+    ScaleAmm(crate::scale_amm::ScaleAmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -64,6 +67,12 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "gamma-swap")]
     Gamma(()),
+
+    #[cfg(feature = "scale_amm-swap")]
+    ScaleAmm(crate::scale_amm::ScaleAmmSwapData),
+
+    #[cfg(not(feature = "heaven-swap"))]
+    __Lifetime(core::marker::PhantomData<&'a ()>),
 }
 
 impl<'a> SwapContext<'a> {
@@ -111,6 +120,11 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "gamma-swap")]
             SwapContext::Gamma(_) => Ok(SwapData::Gamma(())),
+
+            #[cfg(feature = "scale_amm-swap")]
+            SwapContext::ScaleAmm(_) => Ok(SwapData::ScaleAmm(
+                crate::scale_amm::ScaleAmmSwapData::try_from(data)?,
+            )),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -227,6 +241,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "scale_amm-swap")]
+            (SwapContext::ScaleAmm(accounts), SwapData::ScaleAmm(d)) => {
+                crate::scale_amm::ScaleAmm::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -322,6 +347,15 @@ pub fn try_from_swap_context<'info>(
         return Ok(SwapContext::Gamma(ctx));
     }
 
+    #[cfg(feature = "scale_amm-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::scale_amm::SCALE_AMM_PROGRAM_ID,
+    ) {
+        let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(accounts)?;
+        return Ok(SwapContext::ScaleAmm(ctx));
+    }
+
     Err(ProgramError::InvalidAccountData)
 }
 
@@ -354,21 +388,28 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(crate::jupiter::JupiterEarnDepositAccounts<'info>),
+
+    #[cfg(not(any(feature = "kamino-deposit", feature = "jupiter-deposit")))]
+    __Lifetime(core::marker::PhantomData<&'info ()>),
 }
 
 impl<'info> Deposit<'info> for DepositContext<'info> {
     type Accounts = Self;
 
-    fn deposit_signed(ctx: &Self::Accounts, amount: u64, signer_seeds: &[Signer]) -> ProgramResult {
+    fn deposit_signed(
+        ctx: &Self::Accounts,
+        _amount: u64,
+        _signer_seeds: &[Signer],
+    ) -> ProgramResult {
         match ctx {
             #[cfg(feature = "kamino-deposit")]
             DepositContext::Kamino(accounts) => {
-                crate::kamino::Kamino::deposit_signed(accounts, amount, signer_seeds)
+                crate::kamino::Kamino::deposit_signed(accounts, _amount, _signer_seeds)
             }
 
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(accounts) => {
-                crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, signer_seeds)
+                crate::jupiter::JupiterEarn::deposit_signed(accounts, _amount, _signer_seeds)
             }
 
             #[allow(unreachable_patterns)]
@@ -403,6 +444,9 @@ pub fn try_from_deposit_context<'info>(
         let ctx = crate::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Jupiter(ctx));
     }
+
+    #[cfg(not(any(feature = "kamino-deposit", feature = "jupiter-deposit")))]
+    let _ = detector_account;
 
     Err(ProgramError::InvalidAccountData)
 }
