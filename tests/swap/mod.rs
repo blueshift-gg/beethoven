@@ -5,5 +5,6 @@ mod gamma;
 mod heaven;
 mod manifest;
 mod perena;
+mod scale_vmm;
 mod solfi;
 mod solfi_v2;
