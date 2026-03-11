@@ -13,6 +13,7 @@ swap = [
     "aldrin",
     "futarchy",
     "gamma",
+    "omnipair",
 ]
 
 resolve = [
@@ -26,6 +27,7 @@ manifest = []
 aldrin = []
 futarchy = []
 gamma = []
+omnipair = []
 
 [dependencies]
 solana-pubkey = { version = "4", features = ["curve25519"] }
