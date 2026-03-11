@@ -19,6 +19,8 @@ pub use beethoven_swap_gamma as gamma;
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
 pub use beethoven_swap_manifest as manifest;
+#[cfg(feature = "omnipair-swap")]
+pub use beethoven_swap_omnipair as omnipair;
 #[cfg(feature = "perena-swap")]
 pub use beethoven_swap_perena as perena;
 #[cfg(feature = "scale_amm-swap")]
