@@ -77,10 +77,12 @@ impl<'info> TryFrom<&'info [AccountView]> for JupiterEarnDepositAccounts<'info> 
 
 impl<'info> Deposit<'info> for JupiterEarn {
     type Accounts = JupiterEarnDepositAccounts<'info>;
+    type Data = ();
 
     fn deposit_signed(
         ctx: &JupiterEarnDepositAccounts<'info>,
         amount: u64,
+        _data: &Self::Data,
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         let accounts = [
@@ -143,7 +145,11 @@ impl<'info> Deposit<'info> for JupiterEarn {
         Ok(())
     }
 
-    fn deposit(ctx: &JupiterEarnDepositAccounts<'info>, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(
+        ctx: &JupiterEarnDepositAccounts<'info>,
+        amount: u64,
+        data: &Self::Data,
+    ) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, data, &[])
     }
 }

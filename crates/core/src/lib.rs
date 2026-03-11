@@ -38,9 +38,17 @@ pub trait Deposit<'info> {
     /// Protocol-specific accounts required for the deposit CPI
     type Accounts;
 
+    /// Protocol-specific instruction data beyond amount
+    type Data;
+
     /// Execute a deposit with PDA signing capability
-    fn deposit_signed(ctx: &Self::Accounts, amount: u64, signer_seeds: &[Signer]) -> ProgramResult;
+    fn deposit_signed(
+        ctx: &Self::Accounts,
+        amount: u64,
+        data: &Self::Data,
+        signer_seeds: &[Signer],
+    ) -> ProgramResult;
 
     /// Execute a deposit without signing (user is direct signer)
-    fn deposit(ctx: &Self::Accounts, amount: u64) -> ProgramResult;
+    fn deposit(ctx: &Self::Accounts, amount: u64, data: &Self::Data) -> ProgramResult;
 }

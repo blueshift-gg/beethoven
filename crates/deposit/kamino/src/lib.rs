@@ -93,10 +93,12 @@ impl<'info> TryFrom<&'info [AccountView]> for KaminoDepositAccounts<'info> {
 
 impl<'info> Deposit<'info> for Kamino {
     type Accounts = KaminoDepositAccounts<'info>;
+    type Data = ();
 
     fn deposit_signed(
         ctx: &KaminoDepositAccounts<'info>,
         amount: u64,
+        _data: &Self::Data,
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         // Refresh reserves
@@ -260,7 +262,11 @@ impl<'info> Deposit<'info> for Kamino {
         Ok(())
     }
 
-    fn deposit(ctx: &KaminoDepositAccounts<'info>, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(
+        ctx: &KaminoDepositAccounts<'info>,
+        amount: u64,
+        data: &Self::Data,
+    ) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, data, &[])
     }
 }

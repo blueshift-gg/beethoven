@@ -556,19 +556,51 @@ pub enum DepositContext<'info> {
     Jupiter(crate::jupiter::JupiterEarnDepositAccounts<'info>),
 }
 
+/// Protocol-specific deposit data enum for use with DepositContext
+pub enum DepositData {
+    #[cfg(feature = "kamino-deposit")]
+    Kamino(()),
+    #[cfg(feature = "jupiter-deposit")]
+    Jupiter(()),
+}
+
+impl<'a> DepositContext<'a> {
+    pub fn try_from_deposit_data(
+        &self,
+        _data: &'a [u8],
+    ) -> Result<(DepositData, &'a [u8]), ProgramError> {
+        match self {
+            #[cfg(feature = "kamino-deposit")]
+            DepositContext::Kamino(_) => Ok((DepositData::Kamino(()), &[])),
+
+            #[cfg(feature = "jupiter-deposit")]
+            DepositContext::Jupiter(_) => Ok((DepositData::Jupiter(()), &[])),
+
+            #[allow(unreachable_patterns)]
+            _ => Err(ProgramError::InvalidAccountData),
+        }
+    }
+}
+
 impl<'info> Deposit<'info> for DepositContext<'info> {
     type Accounts = Self;
+    type Data = DepositData;
 
-    fn deposit_signed(ctx: &Self::Accounts, amount: u64, signer_seeds: &[Signer]) -> ProgramResult {
+    fn deposit_signed(
+        ctx: &Self::Accounts,
+        amount: u64,
+        _data: &Self::Data,
+        signer_seeds: &[Signer],
+    ) -> ProgramResult {
         match ctx {
             #[cfg(feature = "kamino-deposit")]
             DepositContext::Kamino(accounts) => {
-                crate::kamino::Kamino::deposit_signed(accounts, amount, signer_seeds)
+                crate::kamino::Kamino::deposit_signed(accounts, amount, &(), signer_seeds)
             }
 
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(accounts) => {
-                crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, signer_seeds)
+                crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, &(), signer_seeds)
             }
 
             #[allow(unreachable_patterns)]
@@ -576,8 +608,8 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
         }
     }
 
-    fn deposit(ctx: &Self::Accounts, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(ctx: &Self::Accounts, amount: u64, data: &Self::Data) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, data, &[])
     }
 }
 
