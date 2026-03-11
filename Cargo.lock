@@ -555,6 +555,7 @@ dependencies = [
  "base64 0.22.1",
  "beethoven-client",
  "beethoven-core",
+ "beethoven-deposit-drift",
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
  "beethoven-swap-aldrin",
@@ -611,6 +612,17 @@ dependencies = [
 name = "beethoven-core"
 version = "0.0.1"
 dependencies = [
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-deposit-drift"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.0.0",
  "solana-instruction-view",
  "solana-program-error",
 ]

@@ -2,6 +2,8 @@
 
 // Re-export core traits
 pub use beethoven_core::{Deposit, Swap};
+#[cfg(feature = "drift-deposit")]
+pub use beethoven_deposit_drift as drift;
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags

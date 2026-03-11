@@ -551,6 +551,9 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(crate::jupiter::JupiterEarnDepositAccounts<'info>),
+
+    #[cfg(feature = "drift-deposit")]
+    Drift(crate::drift::DriftDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -559,12 +562,14 @@ pub enum DepositData {
     Kamino(()),
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(()),
+    #[cfg(feature = "drift-deposit")]
+    Drift(crate::drift::DriftDepositData),
 }
 
 impl<'a> DepositContext<'a> {
     pub fn try_from_deposit_data(
         &self,
-        _data: &'a [u8],
+        data: &'a [u8],
     ) -> Result<(DepositData, &'a [u8]), ProgramError> {
         match self {
             #[cfg(feature = "kamino-deposit")]
@@ -572,6 +577,12 @@ impl<'a> DepositContext<'a> {
 
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(_) => Ok((DepositData::Jupiter(()), &[])),
+
+            #[cfg(feature = "drift-deposit")]
+            DepositContext::Drift(_) => Ok((
+                DepositData::Drift(crate::drift::DriftDepositData::try_from(data)?),
+                &[],
+            )),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -586,7 +597,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
     fn deposit_signed(
         ctx: &Self::Accounts,
         amount: u64,
-        _data: &Self::Data,
+        data: &Self::Data,
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         match ctx {
@@ -598,6 +609,15 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(accounts) => {
                 crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, &(), signer_seeds)
+            }
+
+            #[cfg(feature = "drift-deposit")]
+            DepositContext::Drift(accounts) => {
+                if let DepositData::Drift(data) = data {
+                    crate::drift::Drift::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
             }
 
             #[allow(unreachable_patterns)]
@@ -631,6 +651,12 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Jupiter(ctx));
+    }
+
+    #[cfg(feature = "drift-deposit")]
+    if address_eq(detector_account.address(), &crate::drift::DRIFT_PROGRAM_ID) {
+        let ctx = crate::drift::DriftDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::Drift(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)
