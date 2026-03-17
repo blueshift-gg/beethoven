@@ -18,7 +18,7 @@ use {
 /// a single token into a vault; traders swap between vaults using Pyth oracle
 /// prices to determine the exchange rate.
 pub const OXEDIUM_PROGRAM_ID: Address =
-    Address::from_str_const("oxe3zgfkaGph4X5bv4RZRFUcQXZcXxK9fxDizCtPZv7");
+    Address::from_str_const("oV3SkLhiXSG946FaqDf1yNocFMhE1ZvomGsoWF8Mzap");
 
 /// Anchor discriminator for the `swap` instruction (sha256("global:swap")[0..8]).
 const SWAP_DISCRIMINATOR: [u8; 8] = [248, 198, 158, 145, 225, 117, 135, 200];
