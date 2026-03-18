@@ -1,6 +1,6 @@
 [package]
 name = "beethoven"
-description = "A Trait-based client that let you compose program extremely easily"
+description = "A Trait-based client that lets you compose programs extremely easily"
 version = "0.0.1"
 license = "MIT"
 edition = "2021"
