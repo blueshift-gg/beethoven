@@ -135,9 +135,7 @@ impl<'info> Swap<'info> for Omnipair {
         let instruction = InstructionView {
             program_id: &OMNIPAIR_PROGRAM_ID,
             accounts: &accounts,
-            data: unsafe {
-                core::slice::from_raw_parts(instruction_data.as_ptr() as *const u8, 24)
-            },
+            data: unsafe { instruction_data.assume_init_ref() },
         };
 
         invoke_signed(&instruction, &account_infos, signer_seeds)
