@@ -29,7 +29,13 @@ pub const ROUTE_DISCRIMINATOR: [u8; 8] = [229, 23, 203, 151, 122, 227, 173, 42];
 pub const SHARED_ACCOUNTS_EXACT_OUT_ROUTE_DISCRIMINATOR: [u8; 8] =
     [176, 209, 105, 168, 154, 125, 69, 62];
 pub const SHARED_ACCOUNTS_ROUTE_DISCRIMINATOR: [u8; 8] = [193, 32, 155, 51, 65, 214, 156, 129];
+pub const EXACT_OUT_ROUTE_V2_DISCRIMINATOR: [u8; 8] = [157, 138, 184, 82, 21, 244, 243, 36];
+pub const ROUTE_V2_DISCRIMINATOR: [u8; 8] = [187, 100, 250, 204, 49, 196, 175, 20];
+pub const SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR: [u8; 8] =
+    [53, 96, 229, 202, 216, 187, 250, 24];
+pub const SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR: [u8; 8] = [209, 152, 83, 147, 124, 254, 216, 233];
 const MAX_TOTAL_ACCOUNTS: usize = 255;
+const DISCRIMINATOR_LEN: usize = 8;
 
 pub struct Metis;
 
@@ -85,31 +91,93 @@ impl<'info> Route<'info> for Metis {
     ) -> Result<(), ProgramError> {
         let swap_data_length = swap_data.len();
 
-        if swap_data.len() < 8 {
+        if swap_data.len() < DISCRIMINATOR_LEN {
             return Err(ProgramError::InvalidInstructionData);
         }
 
-        let bps_offset = swap_data_length - size_of::<u16>() - size_of::<u8>();
+        let discriminator = &swap_data[..DISCRIMINATOR_LEN];
 
-        if slippage_bps
-            != u16::from_le_bytes(
-                swap_data[bps_offset..bps_offset + size_of::<u16>()]
-                    .try_into()
-                    .unwrap(),
-            )
+        if discriminator == EXACT_OUT_ROUTE_DISCRIMINATOR
+            || discriminator == ROUTE_DISCRIMINATOR
+            || discriminator == SHARED_ACCOUNTS_EXACT_OUT_ROUTE_DISCRIMINATOR
+            || discriminator == SHARED_ACCOUNTS_ROUTE_DISCRIMINATOR
         {
-            return Err(ProgramError::InvalidInstructionData);
-        }
+            let bps_offset = swap_data_length - size_of::<u16>() - size_of::<u8>();
 
-        let amount_offset = bps_offset - size_of::<u64>() - size_of::<u64>();
+            if slippage_bps
+                != u16::from_le_bytes(
+                    swap_data[bps_offset..bps_offset + size_of::<u16>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
 
-        if amount
-            != u64::from_le_bytes(
-                swap_data[amount_offset..amount_offset + size_of::<u64>()]
-                    .try_into()
-                    .unwrap(),
-            )
+            let amount_offset = bps_offset - size_of::<u64>() - size_of::<u64>();
+
+            if amount
+                != u64::from_le_bytes(
+                    swap_data[amount_offset..amount_offset + size_of::<u64>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+        } else if discriminator == EXACT_OUT_ROUTE_V2_DISCRIMINATOR
+            || discriminator == ROUTE_V2_DISCRIMINATOR
         {
+            let amount_offset = DISCRIMINATOR_LEN;
+
+            if amount
+                != u64::from_le_bytes(
+                    swap_data[amount_offset..amount_offset + size_of::<u64>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+
+            let slippage_bps_offset = amount_offset + size_of::<u64>() + size_of::<u64>();
+
+            if slippage_bps
+                != u16::from_le_bytes(
+                    swap_data[slippage_bps_offset..slippage_bps_offset + size_of::<u16>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+        } else if discriminator == SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR
+            || discriminator == SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR
+        {
+            let amount_offset = DISCRIMINATOR_LEN + size_of::<u8>();
+
+            if amount
+                != u64::from_le_bytes(
+                    swap_data[amount_offset..amount_offset + size_of::<u64>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+
+            let slippage_bps_offset = amount_offset + size_of::<u64>() + size_of::<u64>();
+
+            if slippage_bps
+                != u16::from_le_bytes(
+                    swap_data[slippage_bps_offset..slippage_bps_offset + size_of::<u16>()]
+                        .try_into()
+                        .unwrap(),
+                )
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+        } else {
             return Err(ProgramError::InvalidInstructionData);
         }
 
@@ -309,6 +377,113 @@ impl<'info> Route<'info> for Metis {
                     let meta = InstructionAccount::from(account);
                     push!(account, meta);
                 }
+            }
+            data if data.starts_with(&EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
+                || data.starts_with(&ROUTE_V2_DISCRIMINATOR) =>
+            {
+                let [source_token_program, destination_token_program, ..] = remaining_accounts
+                else {
+                    return Err(ProgramError::NotEnoughAccountKeys);
+                };
+
+                push!(
+                    ctx.token_account_authority,
+                    InstructionAccount::readonly_signer(ctx.token_account_authority.address())
+                );
+                push!(
+                    ctx.source_token_account,
+                    InstructionAccount::writable(ctx.source_token_account.address())
+                );
+                push!(
+                    ctx.destination_token_account,
+                    InstructionAccount::writable(ctx.destination_token_account.address())
+                );
+                push!(
+                    ctx.source_mint,
+                    InstructionAccount::readonly(ctx.source_mint.address())
+                );
+                push!(
+                    ctx.destination_mint,
+                    InstructionAccount::readonly(ctx.destination_mint.address())
+                );
+                push!(
+                    source_token_program,
+                    InstructionAccount::readonly(source_token_program.address())
+                );
+                push!(
+                    destination_token_program,
+                    InstructionAccount::readonly(destination_token_program.address())
+                );
+                push!(
+                    ctx.destination_token_account,
+                    InstructionAccount::writable(ctx.destination_token_account.address())
+                );
+                push!(
+                    ctx.event_authority,
+                    InstructionAccount::readonly(ctx.event_authority.address())
+                );
+                push!(
+                    ctx.jupiter_program,
+                    InstructionAccount::readonly(ctx.jupiter_program.address())
+                );
+            }
+            data if data.starts_with(&SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
+                || data.starts_with(&SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR) =>
+            {
+                let [program_authority, program_source_token_account, program_destination_token_account, source_token_program, destination_token_program, ..] =
+                    remaining_accounts
+                else {
+                    return Err(ProgramError::NotEnoughAccountKeys);
+                };
+
+                push!(
+                    program_authority,
+                    InstructionAccount::readonly(program_authority.address())
+                );
+                push!(
+                    ctx.token_account_authority,
+                    InstructionAccount::readonly_signer(ctx.token_account_authority.address())
+                );
+                push!(
+                    ctx.source_token_account,
+                    InstructionAccount::writable(ctx.source_token_account.address())
+                );
+                push!(
+                    program_source_token_account,
+                    InstructionAccount::writable(program_source_token_account.address())
+                );
+                push!(
+                    program_destination_token_account,
+                    InstructionAccount::writable(program_destination_token_account.address())
+                );
+                push!(
+                    ctx.destination_token_account,
+                    InstructionAccount::writable(ctx.destination_token_account.address())
+                );
+                push!(
+                    ctx.source_mint,
+                    InstructionAccount::readonly(ctx.source_mint.address())
+                );
+                push!(
+                    ctx.destination_mint,
+                    InstructionAccount::readonly(ctx.destination_mint.address())
+                );
+                push!(
+                    source_token_program,
+                    InstructionAccount::readonly(source_token_program.address())
+                );
+                push!(
+                    destination_token_program,
+                    InstructionAccount::readonly(destination_token_program.address())
+                );
+                push!(
+                    ctx.event_authority,
+                    InstructionAccount::readonly(ctx.event_authority.address())
+                );
+                push!(
+                    ctx.jupiter_program,
+                    InstructionAccount::readonly(ctx.jupiter_program.address())
+                );
             }
             _ => return Err(ProgramError::InvalidInstructionData),
         }

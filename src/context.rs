@@ -660,6 +660,11 @@ impl<'info> Route<'info> for RouteContext<'info> {
             || swap_data.starts_with(&crate::metis::ROUTE_DISCRIMINATOR)
             || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_EXACT_OUT_ROUTE_DISCRIMINATOR)
             || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_ROUTE_DISCRIMINATOR)
+            || swap_data.starts_with(&crate::metis::EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
+            || swap_data.starts_with(&crate::metis::ROUTE_V2_DISCRIMINATOR)
+            || swap_data
+                .starts_with(&crate::metis::SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
+            || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR)
         {
             return crate::metis::Metis::check_amount_and_slippage(swap_data, amount, slippage_bps);
         }
