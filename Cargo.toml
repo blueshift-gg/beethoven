@@ -6,7 +6,7 @@ license = "MIT"
 edition = "2021"
 
 [features]
-default = ["deposit", "swap"]
+default = ["deposit", "swap", "route"]
 
 # Test program selection (for dev-dependencies)
 upstream-bpf = []

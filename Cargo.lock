@@ -611,6 +611,7 @@ dependencies = [
 name = "beethoven-core"
 version = "0.0.1"
 dependencies = [
+ "solana-account-view",
  "solana-instruction-view",
  "solana-program-error",
 ]
