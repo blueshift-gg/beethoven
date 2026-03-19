@@ -9,6 +9,8 @@ pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags
 #[cfg(feature = "kamino-deposit")]
 pub use beethoven_deposit_kamino as kamino;
+#[cfg(feature = "marginfi-deposit")]
+pub use beethoven_deposit_marginfi as marginfi;
 #[cfg(feature = "aldrin-swap")]
 pub use beethoven_swap_aldrin as aldrin;
 #[cfg(feature = "aldrin_v2-swap")]
