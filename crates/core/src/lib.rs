@@ -58,8 +58,12 @@ pub trait Route<'info> {
     type Accounts;
 
     /// Validate that swap_data encodes the expected amount and slippage_bps
-    fn check_amount_and_slippage(swap_data: &[u8], amount: u64, slippage_bps: u16)
-        -> ProgramResult;
+    fn check_amount_and_slippage(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        amount: u64,
+        slippage_bps: u16,
+    ) -> ProgramResult;
 
     /// Execute a route with PDA signing capability
     fn route_signed(

@@ -651,25 +651,23 @@ impl<'info> Route<'info> for RouteContext<'info> {
     type Accounts = Self;
 
     fn check_amount_and_slippage(
+        ctx: &Self::Accounts,
         swap_data: &[u8],
         amount: u64,
         slippage_bps: u16,
     ) -> ProgramResult {
-        #[cfg(feature = "metis-route")]
-        if swap_data.starts_with(&crate::metis::EXACT_OUT_ROUTE_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::ROUTE_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_EXACT_OUT_ROUTE_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_ROUTE_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::ROUTE_V2_DISCRIMINATOR)
-            || swap_data
-                .starts_with(&crate::metis::SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR)
-            || swap_data.starts_with(&crate::metis::SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR)
-        {
-            return crate::metis::Metis::check_amount_and_slippage(swap_data, amount, slippage_bps);
-        }
+        match ctx {
+            #[cfg(feature = "metis-route")]
+            RouteContext::Metis(accounts) => crate::metis::Metis::check_amount_and_slippage(
+                accounts,
+                swap_data,
+                amount,
+                slippage_bps,
+            ),
 
-        Err(ProgramError::InvalidInstructionData)
+            #[allow(unreachable_patterns)]
+            _ => Err(ProgramError::InvalidAccountData),
+        }
     }
 
     fn route_signed(

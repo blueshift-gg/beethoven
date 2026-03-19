@@ -85,6 +85,7 @@ impl<'info> Route<'info> for Metis {
     type Accounts = MetisRouteAccounts<'info>;
 
     fn check_amount_and_slippage(
+        _ctx: &Self::Accounts,
         swap_data: &[u8],
         amount: u64,
         slippage_bps: u16,
