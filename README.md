@@ -258,7 +258,7 @@ More actions (withdraw, borrow, repay) coming when needed.
 
 ## Built with Pinocchio
 
-Uses [pinocchio](https://github.com/fuzz-land/pinocchio) for zero-overhead abstractions. No anchor bloat.
+Uses [pinocchio](https://github.com/anza-xyz/pinocchio) for zero-overhead abstractions. No anchor bloat.
 
 ---
 

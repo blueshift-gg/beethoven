@@ -43,6 +43,8 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "oxedium-swap")]
     Oxedium(crate::oxedium::OxediumSwapAccounts<'info>),
+    #[cfg(feature = "omnipair-swap")]
+    Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -82,6 +84,8 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "oxedium-swap")]
     Oxedium(()),
+    #[cfg(feature = "omnipair-swap")]
+    Omnipair(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -224,6 +228,9 @@ impl<'a> SwapContext<'a> {
                 ))
             }
 
+            #[cfg(feature = "omnipair-swap")]
+            SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -364,6 +371,9 @@ impl<'a> Swap<'a> for SwapContext<'a> {
             #[cfg(feature = "oxedium-swap")]
             (SwapContext::Oxedium(accounts), SwapData::Oxedium(())) => {
                 crate::oxedium::Oxedium::swap_signed(
+            #[cfg(feature = "omnipair-swap")]
+            (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
+                crate::omnipair::Omnipair::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -548,12 +558,20 @@ pub fn try_from_swap_context<'info>(
         &crate::oxedium::OXEDIUM_PROGRAM_ID,
     ) {
         let n = crate::oxedium::OxediumSwapAccounts::NUM_ACCOUNTS;
+    #[cfg(feature = "omnipair-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::omnipair::OMNIPAIR_PROGRAM_ID,
+    ) {
+        let n = crate::omnipair::OmnipairSwapAccounts::NUM_ACCOUNTS;
         if accounts.len() < n {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
         let (mine, rest) = accounts.split_at(n);
         let ctx = crate::oxedium::OxediumSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Oxedium(ctx), rest));
+        let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::Omnipair(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)
