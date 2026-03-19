@@ -6,7 +6,7 @@ use {
     solana_account_view::AccountView,
     solana_address::Address,
     solana_instruction_view::{
-        cpi::{invoke_signed_with_bounds, Signer},
+        cpi::{invoke_signed_with_bounds, Signer, MAX_STATIC_CPI_ACCOUNTS},
         InstructionAccount, InstructionView,
     },
     solana_program_error::{ProgramError, ProgramResult},
@@ -34,7 +34,6 @@ pub const ROUTE_V2_DISCRIMINATOR: [u8; 8] = [187, 100, 250, 204, 49, 196, 175, 2
 pub const SHARED_ACCOUNTS_EXACT_OUT_ROUTE_V2_DISCRIMINATOR: [u8; 8] =
     [53, 96, 229, 202, 216, 187, 250, 24];
 pub const SHARED_ACCOUNTS_ROUTE_V2_DISCRIMINATOR: [u8; 8] = [209, 152, 83, 147, 124, 254, 216, 233];
-const MAX_TOTAL_ACCOUNTS: usize = 255;
 const DISCRIMINATOR_LEN: usize = 8;
 
 pub struct Metis;
@@ -199,9 +198,9 @@ impl<'info> Route<'info> for Metis {
             return Err(ProgramError::IncorrectAuthority);
         }
 
-        let mut accounts = MaybeUninit::<[InstructionAccount; MAX_TOTAL_ACCOUNTS]>::uninit();
+        let mut accounts = MaybeUninit::<[InstructionAccount; MAX_STATIC_CPI_ACCOUNTS]>::uninit();
         let accounts_ptr = accounts.as_mut_ptr() as *mut InstructionAccount;
-        let mut account_views = MaybeUninit::<[&AccountView; MAX_TOTAL_ACCOUNTS]>::uninit();
+        let mut account_views = MaybeUninit::<[&AccountView; MAX_STATIC_CPI_ACCOUNTS]>::uninit();
         let account_views_ptr = account_views.as_mut_ptr() as *mut &AccountView;
         let mut account_count = 0usize;
         let mut view_count = 0usize;
@@ -495,7 +494,7 @@ impl<'info> Route<'info> for Metis {
             data: swap_data,
         };
 
-        invoke_signed_with_bounds::<MAX_TOTAL_ACCOUNTS>(
+        invoke_signed_with_bounds::<MAX_STATIC_CPI_ACCOUNTS>(
             &instruction,
             unsafe { core::slice::from_raw_parts(account_views_ptr, view_count) },
             signer_seeds,
