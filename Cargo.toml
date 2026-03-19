@@ -25,6 +25,7 @@ swap = [
     "gamma-swap",
     "scale_amm-swap",
     "scale_vmm-swap",
+    "omnipair-swap",
 ]
 
 # Deposit protocols
@@ -43,6 +44,7 @@ futarchy-swap = ["dep:beethoven-swap-futarchy"]
 gamma-swap = ["dep:beethoven-swap-gamma"]
 scale_amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale_vmm-swap = ["dep:beethoven-swap-scale-vmm"]
+omnipair-swap = ["dep:beethoven-swap-omnipair"]
 
 [dependencies]
 beethoven-core = { path = "crates/core" }
@@ -65,6 +67,7 @@ beethoven-swap-futarchy = { path = "crates/swap/futarchy", optional = true }
 beethoven-swap-gamma = { path = "crates/swap/gamma", optional = true }
 beethoven-swap-scale-amm = { path = "crates/swap/scale-amm", optional = true }
 beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm", optional = true }
+beethoven-swap-omnipair = { path = "crates/swap/omnipair", optional = true }
 
 [workspace]
 members = [
@@ -82,6 +85,7 @@ members = [
     "crates/swap/gamma",
     "crates/swap/scale-amm",
     "crates/swap/scale-vmm",
+    "crates/swap/omnipair",
     "program-test",
     "crates/client",
 ]

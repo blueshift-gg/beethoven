@@ -40,6 +40,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "scale_vmm-swap")]
     ScaleVmm(crate::scale_vmm::ScaleVmmSwapAccounts<'info>),
+
+    #[cfg(feature = "omnipair-swap")]
+    Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -76,6 +79,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "scale_vmm-swap")]
     ScaleVmm(crate::scale_vmm::ScaleVmmSwapData),
+
+    #[cfg(feature = "omnipair-swap")]
+    Omnipair(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -215,6 +221,9 @@ impl<'a> SwapContext<'a> {
                 ))
             }
 
+            #[cfg(feature = "omnipair-swap")]
+            SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -348,6 +357,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     d,
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "omnipair-swap")]
+            (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
+                crate::omnipair::Omnipair::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
                     signer_seeds,
                 )
             }
@@ -520,6 +540,20 @@ pub fn try_from_swap_context<'info>(
         let (mine, rest) = accounts.split_at(n);
         let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::ScaleVmm(ctx), rest));
+    }
+
+    #[cfg(feature = "omnipair-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::omnipair::OMNIPAIR_PROGRAM_ID,
+    ) {
+        let n = crate::omnipair::OmnipairSwapAccounts::NUM_ACCOUNTS;
+        if accounts.len() < n {
+            return Err(ProgramError::NotEnoughAccountKeys);
+        }
+        let (mine, rest) = accounts.split_at(n);
+        let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::Omnipair(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)

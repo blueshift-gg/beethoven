@@ -10,6 +10,9 @@ pub mod futarchy;
 #[cfg(feature = "gamma")]
 pub mod gamma;
 
+#[cfg(feature = "omnipair")]
+pub mod omnipair;
+
 use solana_pubkey::Pubkey;
 #[cfg(feature = "resolve")]
 use {
@@ -37,6 +40,9 @@ pub enum SwapProtocol {
         market: Option<Pubkey>,
         is_exact_in: bool,
     },
+
+    #[cfg(feature = "omnipair")]
+    Omnipair { pair: Option<Pubkey> },
 }
 
 /// A single step in a multi-swap composition.
@@ -83,6 +89,11 @@ pub async fn resolve_swap(
             market,
             is_exact_in,
         } => manifest::resolve(rpc, market.as_ref(), *is_exact_in, mint_a, mint_b, user).await,
+
+        #[cfg(feature = "omnipair")]
+        SwapProtocol::Omnipair { pair } => {
+            omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
     }
 }
 
