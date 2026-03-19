@@ -57,6 +57,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
+
+    #[cfg(feature = "hadron-swap")]
+    Hadron(crate::hadron::HadronSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -96,6 +99,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "hadron-swap")]
+    Hadron(crate::hadron::HadronSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -210,6 +216,19 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
+            #[cfg(feature = "hadron-swap")]
+            SwapContext::Hadron(_) => {
+                let n = crate::hadron::HadronSwapData::DATA_LEN;
+                if data.len() < n {
+                    return Err(ProgramError::InvalidInstructionData);
+                }
+                let (mine, rest) = data.split_at(n);
+                Ok((
+                    SwapData::Hadron(crate::hadron::HadronSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -355,6 +374,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "hadron-swap")]
+            (SwapContext::Hadron(accounts), SwapData::Hadron(d)) => {
+                crate::hadron::Hadron::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
                     signer_seeds,
                 )
             }
@@ -517,6 +547,15 @@ pub fn try_from_swap_context<'info>(
         )?;
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
+    }
+
+    #[cfg(feature = "hadron-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::hadron::HADRON_PROGRAM_ID,
+    ) {
+        let ctx = crate::hadron::HadronSwapAccounts::try_from(accounts)?;
+        return Ok((SwapContext::Hadron(ctx), &[]));
     }
 
     Err(ProgramError::InvalidAccountData)

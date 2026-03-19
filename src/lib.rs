@@ -17,6 +17,8 @@ pub use beethoven_swap_aldrin_v2 as aldrin_v2;
 pub use beethoven_swap_futarchy as futarchy;
 #[cfg(feature = "gamma-swap")]
 pub use beethoven_swap_gamma as gamma;
+#[cfg(feature = "hadron-swap")]
+pub use beethoven_swap_hadron as hadron;
 #[cfg(feature = "heaven-swap")]
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
