@@ -551,6 +551,9 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(crate::jupiter::JupiterEarnDepositAccounts<'info>),
+
+    #[cfg(feature = "carrot-deposit")]
+    Carrot(crate::carrot::CarrotLendDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -559,12 +562,14 @@ pub enum DepositData {
     Kamino(()),
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(()),
+    #[cfg(feature = "carrot-deposit")]
+    Carrot(crate::carrot::CarrotDepositData),
 }
 
 impl<'a> DepositContext<'a> {
     pub fn try_from_deposit_data(
         &self,
-        _data: &'a [u8],
+        data: &'a [u8],
     ) -> Result<(DepositData, &'a [u8]), ProgramError> {
         match self {
             #[cfg(feature = "kamino-deposit")]
@@ -572,6 +577,12 @@ impl<'a> DepositContext<'a> {
 
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(_) => Ok((DepositData::Jupiter(()), &[])),
+
+            #[cfg(feature = "carrot-deposit")]
+            DepositContext::Carrot(_) => Ok((
+                DepositData::Carrot(crate::carrot::CarrotDepositData::try_from(data)?),
+                &[],
+            )),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -586,7 +597,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
     fn deposit_signed(
         ctx: &Self::Accounts,
         amount: u64,
-        _data: &Self::Data,
+        data: &Self::Data,
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         match ctx {
@@ -598,6 +609,15 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(accounts) => {
                 crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, &(), signer_seeds)
+            }
+
+            #[cfg(feature = "carrot-deposit")]
+            DepositContext::Carrot(accounts) => {
+                if let DepositData::Carrot(data) = data {
+                    crate::carrot::CarrotLend::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
             }
 
             #[allow(unreachable_patterns)]
@@ -631,6 +651,15 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Jupiter(ctx));
+    }
+
+    #[cfg(feature = "carrot-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::carrot::CARROT_LEND_PROGRAM_ID,
+    ) {
+        let ctx = crate::carrot::CarrotLendDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::Carrot(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)
