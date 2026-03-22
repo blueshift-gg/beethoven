@@ -593,31 +593,46 @@ pub enum DepositContext<'info> {
 impl<'info> Deposit<'info> for DepositContext<'info> {
     type Accounts = Self;
 
-    fn deposit_signed(ctx: &Self::Accounts, amount: u64, signer_seeds: &[Signer]) -> ProgramResult {
+    fn deposit_signed(
+        ctx: &Self::Accounts,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+        signer_seeds: &[Signer],
+    ) -> ProgramResult {
         match ctx {
             #[cfg(feature = "kamino-deposit")]
-            DepositContext::Kamino(accounts) => {
-                crate::kamino::Kamino::deposit_signed(accounts, amount, signer_seeds)
-            }
+            DepositContext::Kamino(accounts) => crate::kamino::Kamino::deposit_signed(
+                accounts,
+                amount,
+                remaining_accounts,
+                signer_seeds,
+            ),
 
             #[cfg(feature = "jupiter-deposit")]
-            DepositContext::Jupiter(accounts) => {
-                crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, signer_seeds)
-            }
+            DepositContext::Jupiter(accounts) => crate::jupiter::JupiterEarn::deposit_signed(
+                accounts,
+                amount,
+                remaining_accounts,
+                signer_seeds,
+            ),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
     }
 
-    fn deposit(ctx: &Self::Accounts, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(
+        ctx: &Self::Accounts,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, remaining_accounts, &[])
     }
 }
 
 pub fn try_from_deposit_context<'info>(
     accounts: &'info [AccountView],
-) -> Result<DepositContext<'info>, ProgramError> {
+) -> Result<(DepositContext<'info>, &'info [AccountView]), ProgramError> {
     let detector_account = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     #[cfg(feature = "kamino-deposit")]
@@ -625,8 +640,17 @@ pub fn try_from_deposit_context<'info>(
         detector_account.address(),
         &crate::kamino::KAMINO_LEND_PROGRAM_ID,
     ) {
-        let ctx = crate::kamino::KaminoDepositAccounts::try_from(accounts)?;
-        return Ok(DepositContext::Kamino(ctx));
+        use crate::kamino::KaminoDepositAccounts;
+
+        let n = KaminoDepositAccounts::NUM_ACCOUNTS;
+
+        if accounts.len() < n {
+            return Err(ProgramError::NotEnoughAccountKeys);
+        }
+
+        let (mine, rest) = accounts.split_at(n);
+        let ctx = KaminoDepositAccounts::try_from(mine)?;
+        return Ok((DepositContext::Kamino(ctx), rest));
     }
 
     #[cfg(feature = "jupiter-deposit")]
@@ -634,8 +658,17 @@ pub fn try_from_deposit_context<'info>(
         detector_account.address(),
         &crate::jupiter::JUPITER_EARN_PROGRAM_ID,
     ) {
-        let ctx = crate::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
-        return Ok(DepositContext::Jupiter(ctx));
+        use crate::jupiter::JupiterEarnDepositAccounts;
+
+        let n = JupiterEarnDepositAccounts::NUM_ACCOUNTS;
+
+        if accounts.len() < n {
+            return Err(ProgramError::NotEnoughAccountKeys);
+        }
+
+        let (mine, rest) = accounts.split_at(n);
+        let ctx = JupiterEarnDepositAccounts::try_from(mine)?;
+        return Ok((DepositContext::Jupiter(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)

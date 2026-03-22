@@ -38,11 +38,15 @@ pub struct JupiterEarnDepositAccounts<'info> {
     pub system_program: &'info AccountView,
 }
 
+impl<'info> JupiterEarnDepositAccounts<'info> {
+    pub const NUM_ACCOUNTS: usize = 18;
+}
+
 impl<'info> TryFrom<&'info [AccountView]> for JupiterEarnDepositAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 18 {
+        if accounts.len() < Self::NUM_ACCOUNTS {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
@@ -81,6 +85,7 @@ impl<'info> Deposit<'info> for JupiterEarn {
     fn deposit_signed(
         ctx: &JupiterEarnDepositAccounts<'info>,
         amount: u64,
+        _remaining_accounts: &[AccountView],
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         let accounts = [
@@ -143,7 +148,11 @@ impl<'info> Deposit<'info> for JupiterEarn {
         Ok(())
     }
 
-    fn deposit(ctx: &JupiterEarnDepositAccounts<'info>, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(
+        ctx: &JupiterEarnDepositAccounts<'info>,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, remaining_accounts, &[])
     }
 }

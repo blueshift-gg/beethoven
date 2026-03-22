@@ -27,22 +27,25 @@ impl TryFrom<&[u8]> for DepositInstructionData {
 pub struct DepositInstruction<'a> {
     pub accounts: DepositContext<'a>,
     pub data: DepositInstructionData,
+    pub remaining_accounts: &'a [AccountView],
 }
 
 impl<'a> TryFrom<(&'a [AccountView], &[u8])> for DepositInstruction<'a> {
     type Error = ProgramError;
 
     fn try_from((accounts, data): (&'a [AccountView], &[u8])) -> Result<Self, Self::Error> {
+        let (ctx, remaining_accounts) = try_from_deposit_context(accounts)?;
         Ok(Self {
-            accounts: try_from_deposit_context(accounts)?,
+            accounts: ctx,
             data: DepositInstructionData::try_from(data)?,
+            remaining_accounts,
         })
     }
 }
 
 impl<'a> DepositInstruction<'a> {
     pub fn process(&self) -> ProgramResult {
-        DepositContext::deposit(&self.accounts, self.data.amount)
+        DepositContext::deposit(&self.accounts, self.data.amount, self.remaining_accounts)
     }
 }
 

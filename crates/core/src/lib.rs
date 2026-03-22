@@ -1,6 +1,9 @@
 #![no_std]
 
-use {solana_instruction_view::cpi::Signer, solana_program_error::ProgramResult};
+use {
+    solana_account_view::AccountView, solana_instruction_view::cpi::Signer,
+    solana_program_error::ProgramResult,
+};
 
 /// Core trait for swap operations across different DEX protocols.
 ///
@@ -39,8 +42,17 @@ pub trait Deposit<'info> {
     type Accounts;
 
     /// Execute a deposit with PDA signing capability
-    fn deposit_signed(ctx: &Self::Accounts, amount: u64, signer_seeds: &[Signer]) -> ProgramResult;
+    fn deposit_signed(
+        ctx: &Self::Accounts,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+        signer_seeds: &[Signer],
+    ) -> ProgramResult;
 
     /// Execute a deposit without signing (user is direct signer)
-    fn deposit(ctx: &Self::Accounts, amount: u64) -> ProgramResult;
+    fn deposit(
+        ctx: &Self::Accounts,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult;
 }

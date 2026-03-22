@@ -43,11 +43,15 @@ pub struct KaminoDepositAccounts<'info> {
     pub reserve_accounts: &'info [AccountView],
 }
 
+impl<'info> KaminoDepositAccounts<'info> {
+    pub const NUM_ACCOUNTS: usize = 19;
+}
+
 impl<'info> TryFrom<&'info [AccountView]> for KaminoDepositAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 19 {
+        if accounts.len() < Self::NUM_ACCOUNTS {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
@@ -97,6 +101,7 @@ impl<'info> Deposit<'info> for Kamino {
     fn deposit_signed(
         ctx: &KaminoDepositAccounts<'info>,
         amount: u64,
+        _remaining_accounts: &[AccountView],
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         // Refresh reserves
@@ -260,7 +265,11 @@ impl<'info> Deposit<'info> for Kamino {
         Ok(())
     }
 
-    fn deposit(ctx: &KaminoDepositAccounts<'info>, amount: u64) -> ProgramResult {
-        Self::deposit_signed(ctx, amount, &[])
+    fn deposit(
+        ctx: &KaminoDepositAccounts<'info>,
+        amount: u64,
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult {
+        Self::deposit_signed(ctx, amount, remaining_accounts, &[])
     }
 }
