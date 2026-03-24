@@ -13,6 +13,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "oxedium")]
+pub mod oxedium;
+
 use solana_pubkey::Pubkey;
 #[cfg(feature = "resolve")]
 use {
@@ -43,6 +46,9 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Pubkey> },
+
+    #[cfg(feature = "oxedium")]
+    Oxedium,
 }
 
 /// A single step in a multi-swap composition.
@@ -94,6 +100,9 @@ pub async fn resolve_swap(
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
         }
+
+        #[cfg(feature = "oxedium")]
+        SwapProtocol::Oxedium => oxedium::resolve(rpc, mint_a, mint_b, user).await,
     }
 }
 

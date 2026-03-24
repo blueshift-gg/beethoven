@@ -31,6 +31,7 @@ pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLV
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const OXEDIUM_PROGRAM_ID: Address = address!("oV3SkLhiXSG946FaqDf1yNocFMhE1ZvomGsoWF8Mzap");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
@@ -489,6 +490,10 @@ pub fn manifest_fixtures_dir() -> String {
 
 pub fn omnipair_fixtures_dir() -> String {
     format!("{}/fixtures/swap/omnipair", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn oxedium_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/oxedium", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]

@@ -371,6 +371,14 @@ impl<'a> Swap<'a> for SwapContext<'a> {
             #[cfg(feature = "oxedium-swap")]
             (SwapContext::Oxedium(accounts), SwapData::Oxedium(())) => {
                 crate::oxedium::Oxedium::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
             #[cfg(feature = "omnipair-swap")]
             (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
                 crate::omnipair::Omnipair::swap_signed(
@@ -558,6 +566,14 @@ pub fn try_from_swap_context<'info>(
         &crate::oxedium::OXEDIUM_PROGRAM_ID,
     ) {
         let n = crate::oxedium::OxediumSwapAccounts::NUM_ACCOUNTS;
+        if accounts.len() < n {
+            return Err(ProgramError::NotEnoughAccountKeys);
+        }
+        let (mine, rest) = accounts.split_at(n);
+        let ctx = crate::oxedium::OxediumSwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::Oxedium(ctx), rest));
+    }
+
     #[cfg(feature = "omnipair-swap")]
     if address_eq(
         detector_account.address(),
@@ -568,8 +584,6 @@ pub fn try_from_swap_context<'info>(
             return Err(ProgramError::NotEnoughAccountKeys);
         }
         let (mine, rest) = accounts.split_at(n);
-        let ctx = crate::oxedium::OxediumSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Oxedium(ctx), rest));
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
     }
