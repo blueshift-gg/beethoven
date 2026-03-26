@@ -1,5 +1,6 @@
 use {
     crate::helper::*,
+    beethoven::SwapProtocolTag,
     solana_address::{address, Address},
     solana_clock::Clock,
     solana_instruction::AccountMeta,
@@ -107,7 +108,13 @@ fn test_gamma_swap_cpi() {
     // Gamma has no extra data
     let extra_data: &[u8] = &[];
 
-    let instruction = build_swap_instruction(accounts, in_amount, min_out_amount, extra_data);
+    let instruction = build_swap_instruction(
+        accounts,
+        in_amount,
+        min_out_amount,
+        SwapProtocolTag::Gamma,
+        extra_data,
+    );
 
     // Execute the swap via CPI through beethoven-test program
     let result = send_transaction(&mut svm, &payer, instruction);

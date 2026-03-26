@@ -1,7 +1,7 @@
 #![no_std]
 
 // Re-export core traits
-pub use beethoven_core::{Deposit, Swap};
+pub use beethoven_core::{Deposit, Swap, SwapTokenAccounts};
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags
@@ -19,6 +19,8 @@ pub use beethoven_swap_gamma as gamma;
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
 pub use beethoven_swap_manifest as manifest;
+#[cfg(feature = "meteora_dlmm-swap")]
+pub use beethoven_swap_meteora_dlmm as meteora_dlmm;
 #[cfg(feature = "omnipair-swap")]
 pub use beethoven_swap_omnipair as omnipair;
 #[cfg(feature = "perena-swap")]

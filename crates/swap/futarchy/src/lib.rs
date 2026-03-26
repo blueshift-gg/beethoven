@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    beethoven_core::Swap,
+    beethoven_core::{Swap, SwapTokenAccounts},
     core::mem::MaybeUninit,
     solana_account_view::AccountView,
     solana_address::Address,
@@ -165,5 +165,20 @@ impl<'info> Swap<'info> for Futarchy {
         data: &Self::Data,
     ) -> ProgramResult {
         Self::swap_signed(ctx, in_amount, minimum_out_amount, data, &[])
+    }
+}
+
+impl<'info> SwapTokenAccounts<'info> for Futarchy {
+    type Accounts = FutarchySwapAccounts<'info>;
+    type Data = FutarchySwapData;
+
+    fn token_accounts(
+        ctx: &Self::Accounts,
+        data: &Self::Data,
+    ) -> (&'info AccountView, &'info AccountView) {
+        match data.swap_type {
+            SwapType::Buy => (ctx.user_quote_account, ctx.user_base_account),
+            SwapType::Sell => (ctx.user_base_account, ctx.user_quote_account),
+        }
     }
 }

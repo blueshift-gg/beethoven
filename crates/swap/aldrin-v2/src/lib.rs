@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    beethoven_core::Swap,
+    beethoven_core::{Swap, SwapTokenAccounts},
     core::mem::MaybeUninit,
     solana_account_view::AccountView,
     solana_address::Address,
@@ -173,5 +173,20 @@ impl<'info> Swap<'info> for AldrinV2 {
         data: &Self::Data,
     ) -> ProgramResult {
         Self::swap_signed(ctx, in_amount, minimum_out_amount, data, &[])
+    }
+}
+
+impl<'info> SwapTokenAccounts<'info> for AldrinV2 {
+    type Accounts = AldrinV2SwapAccounts<'info>;
+    type Data = AldrinV2SwapData;
+
+    fn token_accounts(
+        ctx: &Self::Accounts,
+        data: &Self::Data,
+    ) -> (&'info AccountView, &'info AccountView) {
+        match data.side {
+            Side::Bid => (ctx.user_quote_token_account, ctx.user_base_token_account),
+            Side::Ask => (ctx.user_base_token_account, ctx.user_quote_token_account),
+        }
     }
 }

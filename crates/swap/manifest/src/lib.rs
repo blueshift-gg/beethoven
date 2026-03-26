@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    beethoven_core::Swap,
+    beethoven_core::{Swap, SwapTokenAccounts},
     core::mem::MaybeUninit,
     solana_account_view::AccountView,
     solana_address::Address,
@@ -175,5 +175,21 @@ impl<'info> Swap<'info> for Manifest {
         data: &Self::Data,
     ) -> ProgramResult {
         Self::swap_signed(ctx, in_amount, minimum_out_amount, data, &[])
+    }
+}
+
+impl<'info> SwapTokenAccounts<'info> for Manifest {
+    type Accounts = ManifestSwapAccounts<'info>;
+    type Data = ManifestSwapData;
+
+    fn token_accounts(
+        ctx: &Self::Accounts,
+        data: &Self::Data,
+    ) -> (&'info AccountView, &'info AccountView) {
+        if data.is_base_in {
+            (ctx.trader_base, ctx.trader_quote)
+        } else {
+            (ctx.trader_quote, ctx.trader_base)
+        }
     }
 }

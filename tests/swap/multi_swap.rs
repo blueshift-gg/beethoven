@@ -1,5 +1,6 @@
 use {
     crate::helper::*,
+    beethoven::SwapProtocolTag,
     beethoven_client::swap::{gamma as gamma_client, manifest as manifest_client},
     solana_address::{address, Address},
     solana_clock::Clock,
@@ -160,6 +161,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         accounts: manifest_accounts,
         in_amount: swap_amount,
         min_out_amount: 1,
+        protocol_tag: SwapProtocolTag::Manifest,
         extra_data: manifest_extra_data,
     };
 
@@ -167,6 +169,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         accounts: gamma_accounts,
         in_amount: swap_amount,
         min_out_amount: 1,
+        protocol_tag: SwapProtocolTag::Gamma,
         extra_data: gamma_extra_data,
     };
 

@@ -1,5 +1,6 @@
 use {
     crate::helper::*,
+    beethoven::SwapProtocolTag,
     solana_account::Account,
     solana_address::Address,
     solana_instruction::AccountMeta,
@@ -170,7 +171,13 @@ fn test_manifest_swap_cpi() {
     // is_base_in=true (selling base/SOL), is_exact_in=true (exact input amount)
     let extra_data = [1u8, 1u8];
 
-    let instruction = build_swap_instruction(accounts, in_amount, min_out_amount, &extra_data);
+    let instruction = build_swap_instruction(
+        accounts,
+        in_amount,
+        min_out_amount,
+        SwapProtocolTag::Manifest,
+        &extra_data,
+    );
 
     // Execute the swap via CPI through beethoven-test program
     let result = send_transaction(&mut svm, &payer, instruction);
@@ -304,7 +311,13 @@ fn test_manifest_swap_cpi_mollusk() {
 
     // is_base_in=true (selling base/SOL), is_exact_in=true (exact input amount)
     let extra_data = [1u8, 1u8];
-    let instruction = build_swap_instruction(account_metas, in_amount, min_out_amount, &extra_data);
+    let instruction = build_swap_instruction(
+        account_metas,
+        in_amount,
+        min_out_amount,
+        SwapProtocolTag::Manifest,
+        &extra_data,
+    );
 
     // Get system program and token program keyed accounts
     let (system_program_id, system_program_account) = get_mollusk_system_program();

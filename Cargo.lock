@@ -563,6 +563,7 @@ dependencies = [
  "beethoven-swap-gamma",
  "beethoven-swap-heaven",
  "beethoven-swap-manifest",
+ "beethoven-swap-meteora-dlmm",
  "beethoven-swap-omnipair",
  "beethoven-swap-perena",
  "beethoven-swap-scale-amm",
@@ -603,6 +604,7 @@ dependencies = [
  "solana-pubkey 4.0.0",
  "solana-rpc-client",
  "solana-rpc-client-api",
+ "spl-token-2022-interface",
  "thiserror 2.0.17",
  "tokio",
 ]
@@ -611,6 +613,7 @@ dependencies = [
 name = "beethoven-core"
 version = "0.0.1"
 dependencies = [
+ "solana-account-view",
  "solana-instruction-view",
  "solana-program-error",
 ]
@@ -694,6 +697,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-manifest"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.0.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-meteora-dlmm"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

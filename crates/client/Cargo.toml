@@ -14,6 +14,7 @@ swap = [
     "futarchy",
     "gamma",
     "omnipair",
+    "meteora_dlmm",
 ]
 
 resolve = [
@@ -21,6 +22,7 @@ resolve = [
     "dep:solana-rpc-client-api",
     "dep:solana-account",
     "dep:solana-account-decoder-client-types",
+    "dep:spl-token-2022-interface",
 ]
 
 manifest = []
@@ -28,6 +30,7 @@ aldrin = []
 futarchy = []
 gamma = []
 omnipair = []
+meteora_dlmm = []
 
 [dependencies]
 solana-pubkey = { version = "4", features = ["curve25519"] }
@@ -36,6 +39,7 @@ solana-rpc-client = { version = "3", optional = true }
 solana-rpc-client-api = { version = "3", optional = true }
 solana-account = { version = "3", optional = true }
 solana-account-decoder-client-types = { version = "3", optional = true }
+spl-token-2022-interface = { version = "2", optional = true }
 thiserror = "2"
 
 [dev-dependencies]

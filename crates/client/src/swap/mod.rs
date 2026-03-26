@@ -13,6 +13,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "meteora_dlmm")]
+pub mod meteora_dlmm;
+
 use solana_pubkey::Pubkey;
 #[cfg(feature = "resolve")]
 use {
@@ -43,6 +46,9 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Pubkey> },
+
+    #[cfg(feature = "meteora_dlmm")]
+    MeteoraDlmm { lb_pair: Pubkey },
 }
 
 /// A single step in a multi-swap composition.
@@ -93,6 +99,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "meteora_dlmm")]
+        SwapProtocol::MeteoraDlmm { lb_pair } => {
+            meteora_dlmm::resolve(rpc, lb_pair, mint_a, mint_b, user).await
         }
     }
 }

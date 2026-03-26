@@ -1,10 +1,83 @@
 use {
-    crate::Swap,
+    crate::{Swap, SwapTokenAccounts},
     solana_account_view::AccountView,
     solana_address::address_eq,
     solana_instruction_view::cpi::Signer,
     solana_program_error::{ProgramError, ProgramResult},
 };
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
+pub enum SwapProtocolTag {
+    Perena = 0,
+    SolFi = 1,
+    SolFiV2 = 2,
+    Manifest = 3,
+    Heaven = 4,
+    Aldrin = 5,
+    AldrinV2 = 6,
+    Futarchy = 7,
+    Gamma = 8,
+    ScaleAmm = 9,
+    ScaleVmm = 10,
+    Omnipair = 11,
+    MeteoraDlmm = 12,
+}
+
+impl SwapProtocolTag {
+    pub fn from_byte(value: u8) -> Result<Self, ProgramError> {
+        match value {
+            0 => Ok(Self::Perena),
+            1 => Ok(Self::SolFi),
+            2 => Ok(Self::SolFiV2),
+            3 => Ok(Self::Manifest),
+            4 => Ok(Self::Heaven),
+            5 => Ok(Self::Aldrin),
+            6 => Ok(Self::AldrinV2),
+            7 => Ok(Self::Futarchy),
+            8 => Ok(Self::Gamma),
+            9 => Ok(Self::ScaleAmm),
+            10 => Ok(Self::ScaleVmm),
+            11 => Ok(Self::Omnipair),
+            12 => Ok(Self::MeteoraDlmm),
+            _ => Err(ProgramError::InvalidInstructionData),
+        }
+    }
+
+    pub const fn fixed_account_count(self) -> usize {
+        match self {
+            Self::Perena => 12,
+            Self::SolFi => 9,
+            Self::SolFiV2 => 14,
+            Self::Manifest => 15,
+            Self::Heaven => 17,
+            Self::Aldrin => 11,
+            Self::AldrinV2 => 12,
+            Self::Futarchy => 10,
+            Self::Gamma => 14,
+            Self::ScaleAmm => 15,
+            Self::ScaleVmm => 22,
+            Self::Omnipair => 15,
+            Self::MeteoraDlmm => 17,
+        }
+    }
+
+    pub const fn uses_remaining_accounts_len(self) -> bool {
+        matches!(self, Self::ScaleAmm | Self::ScaleVmm | Self::MeteoraDlmm)
+    }
+
+    pub const fn consumes_all_remaining_data(self) -> bool {
+        matches!(self, Self::Heaven)
+    }
+}
+
+impl TryFrom<u8> for SwapProtocolTag {
+    type Error = ProgramError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        Self::from_byte(value)
+    }
+}
 
 /// Typed context for swap operations, discriminated by protocol.
 pub enum SwapContext<'info> {
@@ -43,6 +116,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
+
+    #[cfg(feature = "meteora_dlmm-swap")]
+    MeteoraDlmm(crate::meteora_dlmm::MeteoraDlmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -82,6 +158,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "meteora_dlmm-swap")]
+    MeteoraDlmm(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -224,6 +303,84 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
 
+            #[cfg(feature = "meteora_dlmm-swap")]
+            SwapContext::MeteoraDlmm(_) => Ok((SwapData::MeteoraDlmm(()), data)),
+
+            #[allow(unreachable_patterns)]
+            _ => Err(ProgramError::InvalidAccountData),
+        }
+    }
+
+    pub fn token_accounts(
+        &self,
+        data: &SwapData<'a>,
+    ) -> Result<(&'a AccountView, &'a AccountView), ProgramError> {
+        match (self, data) {
+            #[cfg(feature = "perena-swap")]
+            (SwapContext::Perena(accounts), SwapData::Perena(d)) => {
+                Ok(crate::perena::Perena::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "solfi-swap")]
+            (SwapContext::SolFi(accounts), SwapData::SolFi(d)) => {
+                Ok(crate::solfi::SolFi::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "solfi_v2-swap")]
+            (SwapContext::SolFiV2(accounts), SwapData::SolFiV2(d)) => {
+                Ok(crate::solfi_v2::SolFiV2::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "manifest-swap")]
+            (SwapContext::Manifest(accounts), SwapData::Manifest(d)) => {
+                Ok(crate::manifest::Manifest::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "heaven-swap")]
+            (SwapContext::Heaven(accounts), SwapData::Heaven(d)) => {
+                Ok(crate::heaven::Heaven::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "aldrin-swap")]
+            (SwapContext::Aldrin(accounts), SwapData::Aldrin(d)) => {
+                Ok(crate::aldrin::Aldrin::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "aldrin_v2-swap")]
+            (SwapContext::AldrinV2(accounts), SwapData::AldrinV2(d)) => {
+                Ok(crate::aldrin_v2::AldrinV2::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "futarchy-swap")]
+            (SwapContext::Futarchy(accounts), SwapData::Futarchy(d)) => {
+                Ok(crate::futarchy::Futarchy::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "gamma-swap")]
+            (SwapContext::Gamma(accounts), SwapData::Gamma(())) => {
+                Ok(crate::gamma::Gamma::token_accounts(accounts, &()))
+            }
+
+            #[cfg(feature = "scale_amm-swap")]
+            (SwapContext::ScaleAmm(accounts), SwapData::ScaleAmm(d)) => {
+                Ok(crate::scale_amm::ScaleAmm::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "scale_vmm-swap")]
+            (SwapContext::ScaleVmm(accounts), SwapData::ScaleVmm(d)) => {
+                Ok(crate::scale_vmm::ScaleVmm::token_accounts(accounts, d))
+            }
+
+            #[cfg(feature = "omnipair-swap")]
+            (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
+                Ok(crate::omnipair::Omnipair::token_accounts(accounts, &()))
+            }
+
+            #[cfg(feature = "meteora_dlmm-swap")]
+            (SwapContext::MeteoraDlmm(accounts), SwapData::MeteoraDlmm(())) => Ok(
+                crate::meteora_dlmm::MeteoraDlmm::token_accounts(accounts, &()),
+            ),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -364,6 +521,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
                 crate::omnipair::Omnipair::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "meteora_dlmm-swap")]
+            (SwapContext::MeteoraDlmm(accounts), SwapData::MeteoraDlmm(())) => {
+                crate::meteora_dlmm::MeteoraDlmm::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -556,7 +724,203 @@ pub fn try_from_swap_context<'info>(
         return Ok((SwapContext::Omnipair(ctx), rest));
     }
 
+    #[cfg(feature = "meteora_dlmm-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
+    ) {
+        let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(accounts)?;
+        let consumed_accounts = ctx.consumed_accounts_len();
+        return Ok((
+            SwapContext::MeteoraDlmm(ctx),
+            &accounts[consumed_accounts..],
+        ));
+    }
+
     Err(ProgramError::InvalidAccountData)
+}
+
+pub fn try_from_tagged_swap_context<'info>(
+    tag: SwapProtocolTag,
+    accounts: &'info [AccountView],
+    remaining_accounts_len: usize,
+) -> Result<(SwapContext<'info>, &'info [AccountView]), ProgramError> {
+    if !tag.uses_remaining_accounts_len() && remaining_accounts_len != 0 {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let consumed_accounts = tag
+        .fixed_account_count()
+        .checked_add(remaining_accounts_len)
+        .ok_or(ProgramError::InvalidInstructionData)?;
+
+    if accounts.len() < consumed_accounts {
+        return Err(ProgramError::NotEnoughAccountKeys);
+    }
+
+    let (mine, rest) = accounts.split_at(consumed_accounts);
+
+    match tag {
+        SwapProtocolTag::Perena => {
+            #[cfg(feature = "perena-swap")]
+            {
+                let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Perena(ctx), rest))
+            }
+            #[cfg(not(feature = "perena-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::SolFi => {
+            #[cfg(feature = "solfi-swap")]
+            {
+                let ctx = crate::solfi::SolFiSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::SolFi(ctx), rest))
+            }
+            #[cfg(not(feature = "solfi-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::SolFiV2 => {
+            #[cfg(feature = "solfi_v2-swap")]
+            {
+                let ctx = crate::solfi_v2::SolFiV2SwapAccounts::try_from(mine)?;
+                Ok((SwapContext::SolFiV2(ctx), rest))
+            }
+            #[cfg(not(feature = "solfi_v2-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Manifest => {
+            #[cfg(feature = "manifest-swap")]
+            {
+                let ctx = crate::manifest::ManifestSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Manifest(ctx), rest))
+            }
+            #[cfg(not(feature = "manifest-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Heaven => {
+            #[cfg(feature = "heaven-swap")]
+            {
+                let ctx = crate::heaven::HeavenSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Heaven(ctx), rest))
+            }
+            #[cfg(not(feature = "heaven-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Aldrin => {
+            #[cfg(feature = "aldrin-swap")]
+            {
+                let ctx = crate::aldrin::AldrinSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Aldrin(ctx), rest))
+            }
+            #[cfg(not(feature = "aldrin-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::AldrinV2 => {
+            #[cfg(feature = "aldrin_v2-swap")]
+            {
+                let ctx = crate::aldrin_v2::AldrinV2SwapAccounts::try_from(mine)?;
+                Ok((SwapContext::AldrinV2(ctx), rest))
+            }
+            #[cfg(not(feature = "aldrin_v2-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Futarchy => {
+            #[cfg(feature = "futarchy-swap")]
+            {
+                let ctx = crate::futarchy::FutarchySwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Futarchy(ctx), rest))
+            }
+            #[cfg(not(feature = "futarchy-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Gamma => {
+            #[cfg(feature = "gamma-swap")]
+            {
+                let ctx = crate::gamma::GammaSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Gamma(ctx), rest))
+            }
+            #[cfg(not(feature = "gamma-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::ScaleAmm => {
+            #[cfg(feature = "scale_amm-swap")]
+            {
+                let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::ScaleAmm(ctx), rest))
+            }
+            #[cfg(not(feature = "scale_amm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::ScaleVmm => {
+            #[cfg(feature = "scale_vmm-swap")]
+            {
+                let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::ScaleVmm(ctx), rest))
+            }
+            #[cfg(not(feature = "scale_vmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Omnipair => {
+            #[cfg(feature = "omnipair-swap")]
+            {
+                let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Omnipair(ctx), rest))
+            }
+            #[cfg(not(feature = "omnipair-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::MeteoraDlmm => {
+            #[cfg(feature = "meteora_dlmm-swap")]
+            {
+                let ctx =
+                    crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from_with_bin_array_len(
+                        mine,
+                        remaining_accounts_len,
+                    )?;
+                Ok((SwapContext::MeteoraDlmm(ctx), rest))
+            }
+            #[cfg(not(feature = "meteora_dlmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+    }
 }
 
 pub fn swap_signed(

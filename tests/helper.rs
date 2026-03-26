@@ -1,5 +1,6 @@
 use {
     base64::{engine::general_purpose::STANDARD, Engine as _},
+    beethoven::SwapProtocolTag,
     litesvm::LiteSVM,
     mollusk_svm::{program::keyed_account_for_system_program, result::ProgramResult, Mollusk},
     solana_account::Account,
@@ -38,6 +39,7 @@ pub mod discriminator {
     pub const DEPOSIT: u8 = 0;
     pub const SWAP: u8 = 1;
     pub const MULTI_SWAP: u8 = 2;
+    pub const ROUTE: u8 = 3;
 }
 
 // =============================================================================
@@ -271,6 +273,30 @@ pub fn create_mock_account_at(svm: &mut LiteSVM, pubkey: Address, owner: &Addres
 // Instruction Builders
 // =============================================================================
 
+fn append_tagged_protocol_data(
+    data: &mut Vec<u8>,
+    protocol_tag: SwapProtocolTag,
+    accounts_len: usize,
+) {
+    data.push(protocol_tag as u8);
+
+    if protocol_tag.uses_remaining_accounts_len() {
+        let fixed_account_count = protocol_tag.fixed_account_count();
+        assert!(
+            accounts_len >= fixed_account_count,
+            "protocol account list is shorter than its fixed prefix",
+        );
+
+        let remaining_accounts_len = accounts_len - fixed_account_count;
+        assert!(
+            remaining_accounts_len <= u8::MAX as usize,
+            "remaining account count does not fit in u8",
+        );
+
+        data.push(remaining_accounts_len as u8);
+    }
+}
+
 pub fn build_deposit_instruction(accounts: Vec<AccountMeta>, amount: u64) -> Instruction {
     let mut data = vec![discriminator::DEPOSIT];
     data.extend_from_slice(&amount.to_le_bytes());
@@ -286,11 +312,13 @@ pub fn build_swap_instruction(
     accounts: Vec<AccountMeta>,
     in_amount: u64,
     min_out_amount: u64,
+    protocol_tag: SwapProtocolTag,
     extra_data: &[u8],
 ) -> Instruction {
     let mut data = vec![discriminator::SWAP];
     data.extend_from_slice(&in_amount.to_le_bytes());
     data.extend_from_slice(&min_out_amount.to_le_bytes());
+    append_tagged_protocol_data(&mut data, protocol_tag, accounts.len());
     data.extend_from_slice(extra_data);
 
     Instruction {
@@ -304,6 +332,7 @@ pub struct SwapLeg {
     pub accounts: Vec<AccountMeta>,
     pub in_amount: u64,
     pub min_out_amount: u64,
+    pub protocol_tag: SwapProtocolTag,
     pub extra_data: Vec<u8>,
 }
 
@@ -314,6 +343,38 @@ pub fn build_multi_swap_instruction(legs: Vec<SwapLeg>) -> Instruction {
     for leg in &legs {
         data.extend_from_slice(&leg.in_amount.to_le_bytes());
         data.extend_from_slice(&leg.min_out_amount.to_le_bytes());
+        append_tagged_protocol_data(&mut data, leg.protocol_tag, leg.accounts.len());
+        data.extend_from_slice(&leg.extra_data);
+        all_accounts.extend(leg.accounts.clone());
+    }
+
+    Instruction {
+        program_id: TEST_PROGRAM_ID,
+        accounts: all_accounts,
+        data,
+    }
+}
+
+pub struct RouteLeg {
+    pub accounts: Vec<AccountMeta>,
+    pub protocol_tag: SwapProtocolTag,
+    pub extra_data: Vec<u8>,
+}
+
+pub fn build_route_instruction(
+    initial_in_amount: u64,
+    minimum_final_out_amount: u64,
+    legs: Vec<RouteLeg>,
+) -> Instruction {
+    let mut data = vec![discriminator::ROUTE];
+    data.extend_from_slice(&initial_in_amount.to_le_bytes());
+    data.extend_from_slice(&minimum_final_out_amount.to_le_bytes());
+    data.push(legs.len() as u8);
+
+    let mut all_accounts = Vec::new();
+
+    for leg in &legs {
+        append_tagged_protocol_data(&mut data, leg.protocol_tag, leg.accounts.len());
         data.extend_from_slice(&leg.extra_data);
         all_accounts.extend(leg.accounts.clone());
     }
@@ -334,8 +395,16 @@ pub fn send_transaction(
     payer: &Keypair,
     instruction: Instruction,
 ) -> Result<u64, String> {
+    send_transaction_with_instructions(svm, payer, &[instruction])
+}
+
+pub fn send_transaction_with_instructions(
+    svm: &mut LiteSVM,
+    payer: &Keypair,
+    instructions: &[Instruction],
+) -> Result<u64, String> {
     let tx = Transaction::new_signed_with_payer(
-        &[instruction],
+        instructions,
         Some(&payer.pubkey()),
         &[payer],
         svm.latest_blockhash(),
