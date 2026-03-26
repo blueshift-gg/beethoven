@@ -25,8 +25,6 @@ const SWAP_DISCRIMINATOR: [u8; 8] = [248, 198, 158, 145, 225, 117, 135, 200];
 
 pub struct Oxedium;
 
-/// No protocol-specific extra data is required for an Oxedium swap.
-/// `in_amount` and `minimum_out_amount` map directly to the instruction args.
 impl OxediumSwapAccounts<'_> {
     /// Total number of accounts in `remainingAccounts` including the leading
     /// program-ID sentinel account used for protocol detection.
@@ -128,7 +126,8 @@ impl<'info> TryFrom<&'info [AccountView]> for OxediumSwapAccounts<'info> {
 
 impl<'info> Swap<'info> for Oxedium {
     type Accounts = OxediumSwapAccounts<'info>;
-    /// No extra data — `in_amount` and `minimum_out_amount` are the only args.
+    /// No protocol-specific extra data is required — `in_amount` and `minimum_out_amount`
+    /// map directly to the instruction args.
     type Data = ();
 
     fn swap_signed(

@@ -43,6 +43,7 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "oxedium-swap")]
     Oxedium(crate::oxedium::OxediumSwapAccounts<'info>),
+
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 }
@@ -84,6 +85,7 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "oxedium-swap")]
     Oxedium(()),
+
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
 }
@@ -199,9 +201,6 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "gamma-swap")]
             SwapContext::Gamma(_) => Ok((SwapData::Gamma(()), data)),
 
-            #[cfg(feature = "oxedium-swap")]
-            SwapContext::Oxedium(_) => Ok((SwapData::Oxedium(()), data)),
-
             #[cfg(feature = "scale_amm-swap")]
             SwapContext::ScaleAmm(_) => {
                 let n = crate::scale_amm::ScaleAmmSwapData::DATA_LEN;
@@ -227,6 +226,9 @@ impl<'a> SwapContext<'a> {
                     rest,
                 ))
             }
+
+            #[cfg(feature = "oxedium-swap")]
+            SwapContext::Oxedium(_) => Ok((SwapData::Oxedium(()), data)),
 
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
