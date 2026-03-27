@@ -57,6 +57,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
+
+    #[cfg(feature = "meteora-damm-v2")]
+    MeteoraDammV2(crate::meteora_damm_v2::MeteoraDammV2SwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -96,6 +99,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "meteora-damm-v2")]
+    MeteoraDammV2(crate::meteora_damm_v2::MeteoraDammV2SwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -210,6 +216,18 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
+            #[cfg(feature = "meteora-damm-v2")]
+            SwapContext::MeteoraDammV2(_) => {
+                let n = crate::meteora_damm_v2::MeteoraDammV2SwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::MeteoraDammV2(
+                        crate::meteora_damm_v2::MeteoraDammV2SwapData::try_from(mine)?,
+                    ),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -355,6 +373,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "meteora-damm-v2")]
+            (SwapContext::MeteoraDammV2(accounts), SwapData::MeteoraDammV2(d)) => {
+                crate::meteora_damm_v2::MeteoraDammV2::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
                     signer_seeds,
                 )
             }
@@ -517,6 +546,19 @@ pub fn try_from_swap_context<'info>(
         )?;
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
+    }
+
+    #[cfg(feature = "meteora-damm-v2")]
+    if address_eq(
+        detector_account.address(),
+        &crate::meteora_damm_v2::METEORA_DAMM_V2_PROGRAM_ID,
+    ) {
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::meteora_damm_v2::MeteoraDammV2SwapAccounts::NUM_ACCOUNTS,
+        )?;
+        let ctx = crate::meteora_damm_v2::MeteoraDammV2SwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::MeteoraDammV2(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)

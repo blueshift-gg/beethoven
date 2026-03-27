@@ -13,6 +13,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "meteora_damm_v2")]
+pub mod meteora_damm_v2;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -43,6 +46,9 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Address> },
+
+    #[cfg(feature = "meteora_damm_v2")]
+    MeteoraDammV2 { pool: Option<Address> },
 }
 
 /// A single step in a multi-swap composition.
@@ -93,6 +99,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "meteora_damm_v2")]
+        SwapProtocol::MeteoraDammV2 { pool } => {
+            meteora_damm_v2::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
     }
 }

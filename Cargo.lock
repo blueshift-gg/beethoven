@@ -564,6 +564,7 @@ dependencies = [
  "beethoven-swap-gamma",
  "beethoven-swap-heaven",
  "beethoven-swap-manifest",
+ "beethoven-swap-meteora-damm-v2",
  "beethoven-swap-omnipair",
  "beethoven-swap-perena",
  "beethoven-swap-scale-amm",
@@ -706,6 +707,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-manifest"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.0.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-meteora-damm-v2"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

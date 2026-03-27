@@ -26,6 +26,7 @@ swap = [
     "scale_amm-swap",
     "scale_vmm-swap",
     "omnipair-swap",
+    "meteora-damm-v2",
 ]
 
 # Deposit protocols
@@ -46,6 +47,7 @@ gamma-swap = ["dep:beethoven-swap-gamma"]
 scale_amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale_vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
+meteora-damm-v2 = ["dep:beethoven-swap-meteora-damm-v2"]
 
 [dependencies]
 beethoven-core = { path = "crates/core" }
@@ -70,6 +72,7 @@ beethoven-swap-gamma = { path = "crates/swap/gamma", optional = true }
 beethoven-swap-scale-amm = { path = "crates/swap/scale-amm", optional = true }
 beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm", optional = true }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair", optional = true }
+beethoven-swap-meteora-damm-v2 = { path = "crates/swap/meteora_damm_v2", optional = true }
 
 [workspace]
 members = [
@@ -89,6 +92,7 @@ members = [
     "crates/swap/scale-amm",
     "crates/swap/scale-vmm",
     "crates/swap/omnipair",
+    "crates/swap/meteora_damm_v2",
     "program-test",
     "crates/client",
 ]
