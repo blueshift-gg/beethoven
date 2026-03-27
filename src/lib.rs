@@ -1,12 +1,14 @@
 #![no_std]
 
 // Re-export core traits
-pub use beethoven_core::{Deposit, Swap};
+pub use beethoven_core::{Deposit, Route, Swap};
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags
 #[cfg(feature = "kamino-deposit")]
 pub use beethoven_deposit_kamino as kamino;
+#[cfg(feature = "metis-route")]
+pub use beethoven_route_metis as metis;
 #[cfg(feature = "aldrin-swap")]
 pub use beethoven_swap_aldrin as aldrin;
 #[cfg(feature = "aldrin_v2-swap")]

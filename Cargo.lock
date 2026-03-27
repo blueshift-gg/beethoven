@@ -557,6 +557,7 @@ dependencies = [
  "beethoven-core",
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
+ "beethoven-route-metis",
  "beethoven-swap-aldrin",
  "beethoven-swap-aldrin-v2",
  "beethoven-swap-futarchy",
@@ -611,6 +612,7 @@ dependencies = [
 name = "beethoven-core"
 version = "0.0.1"
 dependencies = [
+ "solana-account-view",
  "solana-instruction-view",
  "solana-program-error",
 ]
@@ -628,6 +630,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-deposit-kamino"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.0.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-route-metis"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

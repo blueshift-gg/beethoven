@@ -1,5 +1,5 @@
 use {
-    crate::Swap,
+    crate::{Route, Swap},
     solana_account_view::AccountView,
     solana_address::address_eq,
     solana_instruction_view::cpi::Signer,
@@ -634,4 +634,101 @@ pub fn try_from_deposit_context<'info>(
     }
 
     Err(ProgramError::InvalidAccountData)
+}
+
+// Typed context for route operations, discriminated by protocol
+pub enum RouteContext<'info> {
+    #[cfg(feature = "metis-route")]
+    Metis(crate::metis::MetisRouteAccounts<'info>),
+}
+
+impl<'info> Route<'info> for RouteContext<'info> {
+    type Accounts = Self;
+
+    fn check_amount_and_slippage(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        amount: u64,
+        slippage_bps: u16,
+    ) -> ProgramResult {
+        match ctx {
+            #[cfg(feature = "metis-route")]
+            RouteContext::Metis(accounts) => crate::metis::Metis::check_amount_and_slippage(
+                accounts,
+                swap_data,
+                amount,
+                slippage_bps,
+            ),
+
+            #[allow(unreachable_patterns)]
+            _ => Err(ProgramError::InvalidAccountData),
+        }
+    }
+
+    fn route_signed(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        remaining_accounts: &[AccountView],
+        signer_seeds: &[Signer],
+    ) -> ProgramResult {
+        match ctx {
+            #[cfg(feature = "metis-route")]
+            RouteContext::Metis(accounts) => crate::metis::Metis::route_signed(
+                accounts,
+                swap_data,
+                remaining_accounts,
+                signer_seeds,
+            ),
+
+            #[allow(unreachable_patterns)]
+            _ => Err(ProgramError::InvalidAccountData),
+        }
+    }
+
+    fn route(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult {
+        Self::route_signed(ctx, swap_data, remaining_accounts, &[])
+    }
+}
+
+/// Detect the protocol from the first account, parse the route context,
+/// and return both the context and the remaining (unconsumed) accounts.
+pub fn try_from_route_context<'info>(
+    accounts: &'info [AccountView],
+) -> Result<(RouteContext<'info>, &'info [AccountView]), ProgramError> {
+    let detector_account = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
+
+    #[cfg(feature = "metis-route")]
+    {
+        let n = crate::metis::MetisRouteAccounts::NUM_ACCOUNTS;
+        if address_eq(
+            detector_account.address(),
+            &crate::metis::JUPITER_PROGRAM_ID,
+        ) {
+            if accounts.len() < n {
+                return Err(ProgramError::NotEnoughAccountKeys);
+            }
+            let (mine, rest) = accounts.split_at(n);
+            let ctx = crate::metis::MetisRouteAccounts::try_from(mine)?;
+            return Ok((RouteContext::Metis(ctx), rest));
+        }
+    }
+
+    Err(ProgramError::InvalidAccountData)
+}
+
+pub fn route_signed(
+    accounts: &[AccountView],
+    swap_data: &[u8],
+    signer_seeds: &[Signer],
+) -> ProgramResult {
+    let (ctx, remaining) = try_from_route_context(accounts)?;
+    RouteContext::route_signed(&ctx, swap_data, remaining, signer_seeds)
+}
+
+pub fn route(accounts: &[AccountView], swap_data: &[u8]) -> ProgramResult {
+    route_signed(accounts, swap_data, &[])
 }

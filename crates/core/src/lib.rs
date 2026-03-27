@@ -1,6 +1,9 @@
 #![no_std]
 
-use {solana_instruction_view::cpi::Signer, solana_program_error::ProgramResult};
+use {
+    solana_account_view::AccountView, solana_instruction_view::cpi::Signer,
+    solana_program_error::ProgramResult,
+};
 
 /// Core trait for swap operations across different DEX protocols.
 ///
@@ -51,4 +54,37 @@ pub trait Deposit<'info> {
 
     /// Execute a deposit without signing (user is direct signer)
     fn deposit(ctx: &Self::Accounts, amount: u64, data: &Self::Data) -> ProgramResult;
+}
+
+/// Core trait for aggregator route operations (Jupiter, Titan, OKX, etc.).
+///
+/// Each aggregator implements this trait with its specific account requirements,
+/// instruction data validation, and CPI logic. Unlike `Swap`, route operations
+/// receive raw instruction data.
+pub trait Route<'info> {
+    /// Protocol-specific accounts required for the route CPI
+    type Accounts;
+
+    /// Validate that swap_data encodes the expected amount and slippage_bps
+    fn check_amount_and_slippage(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        amount: u64,
+        slippage_bps: u16,
+    ) -> ProgramResult;
+
+    /// Execute a route with PDA signing capability
+    fn route_signed(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        remaining_accounts: &[AccountView],
+        signer_seeds: &[Signer],
+    ) -> ProgramResult;
+
+    /// Execute a route without signing (user is direct signer)
+    fn route(
+        ctx: &Self::Accounts,
+        swap_data: &[u8],
+        remaining_accounts: &[AccountView],
+    ) -> ProgramResult;
 }
