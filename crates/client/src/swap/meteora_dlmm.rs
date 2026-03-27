@@ -47,7 +47,7 @@ const EXT_BITMAP_SEGMENTS: usize = 12;
 #[cfg(feature = "resolve")]
 const EXT_BITMAP_WORDS: usize = 8;
 #[cfg(feature = "resolve")]
-const MAX_BIN_ARRAY_ACCOUNTS: usize = 3;
+const MAX_BIN_ARRAY_ACCOUNTS: usize = 5;
 
 pub struct MeteoraDlmmSwapInput {
     pub lb_pair: Pubkey,

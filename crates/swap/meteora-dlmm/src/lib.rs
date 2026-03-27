@@ -2,11 +2,11 @@
 
 use {
     beethoven_core::{Swap, SwapTokenAccounts},
-    core::mem::MaybeUninit,
+    core::{array, mem::MaybeUninit},
     solana_account_view::AccountView,
     solana_address::Address,
     solana_instruction_view::{
-        cpi::{invoke_signed, Signer},
+        cpi::{invoke_signed_with_bounds, Signer},
         InstructionAccount, InstructionView,
     },
     solana_program_error::{ProgramError, ProgramResult},
@@ -17,7 +17,9 @@ pub const METEORA_DLMM_PROGRAM_ID: Address =
 
 const SWAP2_DISCRIMINATOR: [u8; 8] = [65, 75, 63, 76, 235, 91, 91, 136];
 const FIXED_ACCOUNT_COUNT: usize = 17;
-const MAX_BIN_ARRAY_ACCOUNTS: usize = 3;
+const CPI_FIXED_ACCOUNT_COUNT: usize = 16;
+const MAX_BIN_ARRAY_ACCOUNTS: usize = 5;
+const MAX_CPI_ACCOUNTS: usize = CPI_FIXED_ACCOUNT_COUNT + MAX_BIN_ARRAY_ACCOUNTS;
 const SWAP2_DATA_LEN: usize = 28;
 const EMPTY_REMAINING_ACCOUNTS_INFO_LEN: [u8; 4] = 0u32.to_le_bytes();
 
@@ -52,35 +54,23 @@ impl MeteoraDlmmSwapAccounts<'_> {
     }
 }
 
-fn is_valid_bin_array_account(account: &AccountView) -> bool {
-    account.owned_by(&METEORA_DLMM_PROGRAM_ID) && account.is_writable() && !account.executable()
+fn optional_instruction_account(account: &AccountView) -> InstructionAccount<'_> {
+    InstructionAccount::new(account.address(), account.is_writable(), false)
 }
 
-impl<'info> MeteoraDlmmSwapAccounts<'info> {
-    fn try_from_parts(
-        accounts: &'info [AccountView],
-        bin_array_accounts: &'info [AccountView],
-    ) -> Result<Self, ProgramError> {
-        if bin_array_accounts.len() > MAX_BIN_ARRAY_ACCOUNTS {
-            return Err(ProgramError::InvalidAccountData);
-        }
+impl<'info> TryFrom<&'info [AccountView]> for MeteoraDlmmSwapAccounts<'info> {
+    type Error = ProgramError;
 
-        if bin_array_accounts
-            .iter()
-            .any(|account| !is_valid_bin_array_account(account))
-        {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        let fixed_accounts = accounts
-            .get(..FIXED_ACCOUNT_COUNT)
-            .ok_or(ProgramError::NotEnoughAccountKeys)?;
-
-        let [meteora_dlmm_program, lb_pair, bin_array_bitmap_extension, reserve_x, reserve_y, user_token_in, user_token_out, token_x_mint, token_y_mint, oracle, host_fee_in, user, token_x_program, token_y_program, memo_program, event_authority, program] =
-            fixed_accounts
+    fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
+        let [meteora_dlmm_program, lb_pair, bin_array_bitmap_extension, reserve_x, reserve_y, user_token_in, user_token_out, token_x_mint, token_y_mint, oracle, host_fee_in, user, token_x_program, token_y_program, memo_program, event_authority, program, bin_array_accounts @ ..] =
+            accounts
         else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
+
+        if bin_array_accounts.len() > MAX_BIN_ARRAY_ACCOUNTS {
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         Ok(Self {
             meteora_dlmm_program,
@@ -103,48 +93,6 @@ impl<'info> MeteoraDlmmSwapAccounts<'info> {
             bin_array_accounts,
         })
     }
-
-    pub fn try_from_with_bin_array_len(
-        accounts: &'info [AccountView],
-        bin_array_accounts_len: usize,
-    ) -> Result<Self, ProgramError> {
-        if bin_array_accounts_len > MAX_BIN_ARRAY_ACCOUNTS {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        let total_accounts = FIXED_ACCOUNT_COUNT
-            .checked_add(bin_array_accounts_len)
-            .ok_or(ProgramError::InvalidInstructionData)?;
-
-        if accounts.len() < total_accounts {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
-        let bin_array_accounts = &accounts[FIXED_ACCOUNT_COUNT..total_accounts];
-        Self::try_from_parts(accounts, bin_array_accounts)
-    }
-}
-
-impl<'info> TryFrom<&'info [AccountView]> for MeteoraDlmmSwapAccounts<'info> {
-    type Error = ProgramError;
-
-    fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < FIXED_ACCOUNT_COUNT {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
-        let trailing_accounts = &accounts[FIXED_ACCOUNT_COUNT..];
-        let bin_array_accounts_len = trailing_accounts
-            .iter()
-            .take(MAX_BIN_ARRAY_ACCOUNTS)
-            .take_while(|account| is_valid_bin_array_account(account))
-            .count();
-
-        let bin_array_accounts =
-            &accounts[FIXED_ACCOUNT_COUNT..FIXED_ACCOUNT_COUNT + bin_array_accounts_len];
-
-        Self::try_from_parts(accounts, bin_array_accounts)
-    }
 }
 
 impl<'info> Swap<'info> for MeteoraDlmm {
@@ -159,182 +107,36 @@ impl<'info> Swap<'info> for MeteoraDlmm {
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         let instruction_data = build_swap_instruction_data(in_amount, minimum_out_amount);
-
-        match ctx.bin_array_accounts {
-            [] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.lb_pair.address()),
-                    InstructionAccount::readonly(ctx.bin_array_bitmap_extension.address()),
-                    InstructionAccount::writable(ctx.reserve_x.address()),
-                    InstructionAccount::writable(ctx.reserve_y.address()),
-                    InstructionAccount::writable(ctx.user_token_in.address()),
-                    InstructionAccount::writable(ctx.user_token_out.address()),
-                    InstructionAccount::readonly(ctx.token_x_mint.address()),
-                    InstructionAccount::readonly(ctx.token_y_mint.address()),
-                    InstructionAccount::writable(ctx.oracle.address()),
-                    InstructionAccount::writable(ctx.host_fee_in.address()),
-                    InstructionAccount::readonly_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.token_x_program.address()),
-                    InstructionAccount::readonly(ctx.token_y_program.address()),
-                    InstructionAccount::readonly(ctx.memo_program.address()),
-                    InstructionAccount::readonly(ctx.event_authority.address()),
-                    InstructionAccount::readonly(ctx.program.address()),
-                ],
-                [
-                    ctx.lb_pair,
-                    ctx.bin_array_bitmap_extension,
-                    ctx.reserve_x,
-                    ctx.reserve_y,
-                    ctx.user_token_in,
-                    ctx.user_token_out,
-                    ctx.token_x_mint,
-                    ctx.token_y_mint,
-                    ctx.oracle,
-                    ctx.host_fee_in,
-                    ctx.user,
-                    ctx.token_x_program,
-                    ctx.token_y_program,
-                    ctx.memo_program,
-                    ctx.event_authority,
-                    ctx.program,
-                ],
-                unsafe { instruction_data.assume_init_ref() },
-                signer_seeds,
-            ),
-            [bin_array_0] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.lb_pair.address()),
-                    InstructionAccount::readonly(ctx.bin_array_bitmap_extension.address()),
-                    InstructionAccount::writable(ctx.reserve_x.address()),
-                    InstructionAccount::writable(ctx.reserve_y.address()),
-                    InstructionAccount::writable(ctx.user_token_in.address()),
-                    InstructionAccount::writable(ctx.user_token_out.address()),
-                    InstructionAccount::readonly(ctx.token_x_mint.address()),
-                    InstructionAccount::readonly(ctx.token_y_mint.address()),
-                    InstructionAccount::writable(ctx.oracle.address()),
-                    InstructionAccount::writable(ctx.host_fee_in.address()),
-                    InstructionAccount::readonly_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.token_x_program.address()),
-                    InstructionAccount::readonly(ctx.token_y_program.address()),
-                    InstructionAccount::readonly(ctx.memo_program.address()),
-                    InstructionAccount::readonly(ctx.event_authority.address()),
-                    InstructionAccount::readonly(ctx.program.address()),
-                    InstructionAccount::writable(bin_array_0.address()),
-                ],
-                [
-                    ctx.lb_pair,
-                    ctx.bin_array_bitmap_extension,
-                    ctx.reserve_x,
-                    ctx.reserve_y,
-                    ctx.user_token_in,
-                    ctx.user_token_out,
-                    ctx.token_x_mint,
-                    ctx.token_y_mint,
-                    ctx.oracle,
-                    ctx.host_fee_in,
-                    ctx.user,
-                    ctx.token_x_program,
-                    ctx.token_y_program,
-                    ctx.memo_program,
-                    ctx.event_authority,
-                    ctx.program,
-                    bin_array_0,
-                ],
-                unsafe { instruction_data.assume_init_ref() },
-                signer_seeds,
-            ),
-            [bin_array_0, bin_array_1] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.lb_pair.address()),
-                    InstructionAccount::readonly(ctx.bin_array_bitmap_extension.address()),
-                    InstructionAccount::writable(ctx.reserve_x.address()),
-                    InstructionAccount::writable(ctx.reserve_y.address()),
-                    InstructionAccount::writable(ctx.user_token_in.address()),
-                    InstructionAccount::writable(ctx.user_token_out.address()),
-                    InstructionAccount::readonly(ctx.token_x_mint.address()),
-                    InstructionAccount::readonly(ctx.token_y_mint.address()),
-                    InstructionAccount::writable(ctx.oracle.address()),
-                    InstructionAccount::writable(ctx.host_fee_in.address()),
-                    InstructionAccount::readonly_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.token_x_program.address()),
-                    InstructionAccount::readonly(ctx.token_y_program.address()),
-                    InstructionAccount::readonly(ctx.memo_program.address()),
-                    InstructionAccount::readonly(ctx.event_authority.address()),
-                    InstructionAccount::readonly(ctx.program.address()),
-                    InstructionAccount::writable(bin_array_0.address()),
-                    InstructionAccount::writable(bin_array_1.address()),
-                ],
-                [
-                    ctx.lb_pair,
-                    ctx.bin_array_bitmap_extension,
-                    ctx.reserve_x,
-                    ctx.reserve_y,
-                    ctx.user_token_in,
-                    ctx.user_token_out,
-                    ctx.token_x_mint,
-                    ctx.token_y_mint,
-                    ctx.oracle,
-                    ctx.host_fee_in,
-                    ctx.user,
-                    ctx.token_x_program,
-                    ctx.token_y_program,
-                    ctx.memo_program,
-                    ctx.event_authority,
-                    ctx.program,
-                    bin_array_0,
-                    bin_array_1,
-                ],
-                unsafe { instruction_data.assume_init_ref() },
-                signer_seeds,
-            ),
-            [bin_array_0, bin_array_1, bin_array_2] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.lb_pair.address()),
-                    InstructionAccount::readonly(ctx.bin_array_bitmap_extension.address()),
-                    InstructionAccount::writable(ctx.reserve_x.address()),
-                    InstructionAccount::writable(ctx.reserve_y.address()),
-                    InstructionAccount::writable(ctx.user_token_in.address()),
-                    InstructionAccount::writable(ctx.user_token_out.address()),
-                    InstructionAccount::readonly(ctx.token_x_mint.address()),
-                    InstructionAccount::readonly(ctx.token_y_mint.address()),
-                    InstructionAccount::writable(ctx.oracle.address()),
-                    InstructionAccount::writable(ctx.host_fee_in.address()),
-                    InstructionAccount::readonly_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.token_x_program.address()),
-                    InstructionAccount::readonly(ctx.token_y_program.address()),
-                    InstructionAccount::readonly(ctx.memo_program.address()),
-                    InstructionAccount::readonly(ctx.event_authority.address()),
-                    InstructionAccount::readonly(ctx.program.address()),
-                    InstructionAccount::writable(bin_array_0.address()),
-                    InstructionAccount::writable(bin_array_1.address()),
-                    InstructionAccount::writable(bin_array_2.address()),
-                ],
-                [
-                    ctx.lb_pair,
-                    ctx.bin_array_bitmap_extension,
-                    ctx.reserve_x,
-                    ctx.reserve_y,
-                    ctx.user_token_in,
-                    ctx.user_token_out,
-                    ctx.token_x_mint,
-                    ctx.token_y_mint,
-                    ctx.oracle,
-                    ctx.host_fee_in,
-                    ctx.user,
-                    ctx.token_x_program,
-                    ctx.token_y_program,
-                    ctx.memo_program,
-                    ctx.event_authority,
-                    ctx.program,
-                    bin_array_0,
-                    bin_array_1,
-                    bin_array_2,
-                ],
-                unsafe { instruction_data.assume_init_ref() },
-                signer_seeds,
-            ),
-            _ => Err(ProgramError::InvalidAccountData),
+        if ctx.bin_array_accounts.len() > MAX_BIN_ARRAY_ACCOUNTS {
+            return Err(ProgramError::InvalidAccountData);
         }
+
+        let mut instruction_accounts: [InstructionAccount<'_>; MAX_CPI_ACCOUNTS] =
+            array::from_fn(|_| InstructionAccount::readonly(ctx.lb_pair.address()));
+        instruction_accounts[..CPI_FIXED_ACCOUNT_COUNT]
+            .clone_from_slice(&fixed_instruction_accounts(ctx));
+
+        let mut account_views = [ctx.lb_pair; MAX_CPI_ACCOUNTS];
+        account_views[..CPI_FIXED_ACCOUNT_COUNT].copy_from_slice(&fixed_account_views(ctx));
+
+        for (index, account) in ctx.bin_array_accounts.iter().enumerate() {
+            let slot = CPI_FIXED_ACCOUNT_COUNT + index;
+            instruction_accounts[slot] = InstructionAccount::writable(account.address());
+            account_views[slot] = account;
+        }
+
+        let instruction_account_count = CPI_FIXED_ACCOUNT_COUNT + ctx.bin_array_accounts.len();
+        let instruction = InstructionView {
+            program_id: &METEORA_DLMM_PROGRAM_ID,
+            accounts: &instruction_accounts[..instruction_account_count],
+            data: unsafe { instruction_data.assume_init_ref() },
+        };
+
+        invoke_signed_with_bounds::<MAX_CPI_ACCOUNTS>(
+            &instruction,
+            &account_views[..instruction_account_count],
+            signer_seeds,
+        )
     }
 
     fn swap(
@@ -376,17 +178,48 @@ impl<'info> SwapTokenAccounts<'info> for MeteoraDlmm {
     }
 }
 
-fn invoke_with_accounts<const N: usize>(
-    accounts: [InstructionAccount; N],
-    account_infos: [&AccountView; N],
-    instruction_data: &[u8; SWAP2_DATA_LEN],
-    signer_seeds: &[Signer],
-) -> ProgramResult {
-    let instruction = InstructionView {
-        program_id: &METEORA_DLMM_PROGRAM_ID,
-        accounts: &accounts,
-        data: instruction_data,
-    };
+fn fixed_instruction_accounts<'a>(
+    ctx: &'a MeteoraDlmmSwapAccounts<'a>,
+) -> [InstructionAccount<'a>; CPI_FIXED_ACCOUNT_COUNT] {
+    [
+        InstructionAccount::writable(ctx.lb_pair.address()),
+        optional_instruction_account(ctx.bin_array_bitmap_extension),
+        InstructionAccount::writable(ctx.reserve_x.address()),
+        InstructionAccount::writable(ctx.reserve_y.address()),
+        InstructionAccount::writable(ctx.user_token_in.address()),
+        InstructionAccount::writable(ctx.user_token_out.address()),
+        InstructionAccount::readonly(ctx.token_x_mint.address()),
+        InstructionAccount::readonly(ctx.token_y_mint.address()),
+        InstructionAccount::writable(ctx.oracle.address()),
+        optional_instruction_account(ctx.host_fee_in),
+        InstructionAccount::readonly_signer(ctx.user.address()),
+        InstructionAccount::readonly(ctx.token_x_program.address()),
+        InstructionAccount::readonly(ctx.token_y_program.address()),
+        InstructionAccount::readonly(ctx.memo_program.address()),
+        InstructionAccount::readonly(ctx.event_authority.address()),
+        InstructionAccount::readonly(ctx.program.address()),
+    ]
+}
 
-    invoke_signed(&instruction, &account_infos, signer_seeds)
+fn fixed_account_views<'a>(
+    ctx: &'a MeteoraDlmmSwapAccounts<'a>,
+) -> [&'a AccountView; CPI_FIXED_ACCOUNT_COUNT] {
+    [
+        ctx.lb_pair,
+        ctx.bin_array_bitmap_extension,
+        ctx.reserve_x,
+        ctx.reserve_y,
+        ctx.user_token_in,
+        ctx.user_token_out,
+        ctx.token_x_mint,
+        ctx.token_y_mint,
+        ctx.oracle,
+        ctx.host_fee_in,
+        ctx.user,
+        ctx.token_x_program,
+        ctx.token_y_program,
+        ctx.memo_program,
+        ctx.event_authority,
+        ctx.program,
+    ]
 }

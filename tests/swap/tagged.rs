@@ -107,21 +107,32 @@ fn test_try_from_tagged_swap_context_consumes_explicit_dynamic_tail() {
 }
 
 #[test]
-fn test_try_from_tagged_swap_context_rejects_fixed_protocol_remaining_len() {
+fn test_try_from_tagged_swap_context_fixed_protocol_consumes_explicit_extra_accounts() {
     let (_storage, accounts) = build_accounts(15, beethoven::gamma::GAMMA_PROGRAM_ID);
 
-    let err = match try_from_tagged_swap_context(SwapProtocolTag::Gamma, accounts.as_slice(), 1) {
-        Ok(_) => panic!("expected InvalidInstructionData"),
+    let (ctx, rest) =
+        try_from_tagged_swap_context(SwapProtocolTag::Gamma, accounts.as_slice(), 1).unwrap();
+
+    assert!(matches!(ctx, SwapContext::Gamma(_)));
+    assert!(rest.is_empty());
+}
+
+#[test]
+fn test_try_from_tagged_swap_context_rejects_mismatched_first_account() {
+    let (_storage, accounts) = build_accounts(15, beethoven::manifest::MANIFEST_PROGRAM_ID);
+
+    let err = match try_from_tagged_swap_context(SwapProtocolTag::Gamma, accounts.as_slice(), 0) {
+        Ok(_) => panic!("expected InvalidAccountData"),
         Err(err) => err,
     };
 
-    assert_eq!(err, ProgramError::InvalidInstructionData);
+    assert_eq!(err, ProgramError::InvalidAccountData);
 }
 
 #[test]
 fn test_try_from_tagged_swap_context_consumes_dlmm_dynamic_tail() {
     let (mut storage, accounts) =
-        build_accounts(20, beethoven::meteora_dlmm::METEORA_DLMM_PROGRAM_ID);
+        build_accounts(23, beethoven::meteora_dlmm::METEORA_DLMM_PROGRAM_ID);
 
     set_account_owner_and_flags(
         &mut storage[17],
@@ -135,17 +146,40 @@ fn test_try_from_tagged_swap_context_consumes_dlmm_dynamic_tail() {
         true,
         false,
     );
+    set_account_owner_and_flags(
+        &mut storage[19],
+        beethoven::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
+        true,
+        false,
+    );
+    set_account_owner_and_flags(
+        &mut storage[20],
+        beethoven::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
+        true,
+        false,
+    );
+    set_account_owner_and_flags(
+        &mut storage[21],
+        beethoven::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
+        true,
+        false,
+    );
 
     let (ctx, rest) =
-        try_from_tagged_swap_context(SwapProtocolTag::MeteoraDlmm, accounts.as_slice(), 2).unwrap();
+        try_from_tagged_swap_context(SwapProtocolTag::MeteoraDlmm, accounts.as_slice(), 5).unwrap();
 
     match ctx {
         SwapContext::MeteoraDlmm(meteora_dlmm) => {
-            assert_eq!(meteora_dlmm.bin_array_accounts.len(), 2);
+            assert_eq!(meteora_dlmm.bin_array_accounts.len(), 5);
             assert_eq!(
                 meteora_dlmm.bin_array_accounts[0].address(),
                 accounts[17].address(),
             );
+            assert_eq!(
+                meteora_dlmm.bin_array_accounts[4].address(),
+                accounts[21].address(),
+            );
+            assert_eq!(meteora_dlmm.consumed_accounts_len(), 22,);
             assert_eq!(
                 meteora_dlmm.bin_array_accounts[1].address(),
                 accounts[18].address(),
@@ -155,5 +189,5 @@ fn test_try_from_tagged_swap_context_consumes_dlmm_dynamic_tail() {
     }
 
     assert_eq!(rest.len(), 1);
-    assert_eq!(rest[0].address(), accounts[19].address());
+    assert_eq!(rest[0].address(), accounts[22].address());
 }

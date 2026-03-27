@@ -1,7 +1,7 @@
 use {
     crate::{Swap, SwapTokenAccounts},
     solana_account_view::AccountView,
-    solana_address::address_eq,
+    solana_address::{address_eq, Address},
     solana_instruction_view::cpi::Signer,
     solana_program_error::{ProgramError, ProgramResult},
 };
@@ -76,6 +76,17 @@ impl TryFrom<u8> for SwapProtocolTag {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         Self::from_byte(value)
+    }
+}
+
+fn validate_tagged_program_account(
+    detector_account: &AccountView,
+    expected_program_id: &Address,
+) -> Result<(), ProgramError> {
+    if address_eq(detector_account.address(), expected_program_id) {
+        Ok(())
+    } else {
+        Err(ProgramError::InvalidAccountData)
     }
 }
 
@@ -745,10 +756,6 @@ pub fn try_from_tagged_swap_context<'info>(
     accounts: &'info [AccountView],
     remaining_accounts_len: usize,
 ) -> Result<(SwapContext<'info>, &'info [AccountView]), ProgramError> {
-    if !tag.uses_remaining_accounts_len() && remaining_accounts_len != 0 {
-        return Err(ProgramError::InvalidInstructionData);
-    }
-
     let consumed_accounts = tag
         .fixed_account_count()
         .checked_add(remaining_accounts_len)
@@ -759,11 +766,16 @@ pub fn try_from_tagged_swap_context<'info>(
     }
 
     let (mine, rest) = accounts.split_at(consumed_accounts);
+    let detector_account = mine.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     match tag {
         SwapProtocolTag::Perena => {
             #[cfg(feature = "perena-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::perena::PERENA_PROGRAM_ID,
+                )?;
                 let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Perena(ctx), rest))
             }
@@ -776,6 +788,7 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::SolFi => {
             #[cfg(feature = "solfi-swap")]
             {
+                validate_tagged_program_account(detector_account, &crate::solfi::SOLFI_PROGRAM_ID)?;
                 let ctx = crate::solfi::SolFiSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::SolFi(ctx), rest))
             }
@@ -788,6 +801,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::SolFiV2 => {
             #[cfg(feature = "solfi_v2-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::solfi_v2::SOLFI_V2_PROGRAM_ID,
+                )?;
                 let ctx = crate::solfi_v2::SolFiV2SwapAccounts::try_from(mine)?;
                 Ok((SwapContext::SolFiV2(ctx), rest))
             }
@@ -800,6 +817,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Manifest => {
             #[cfg(feature = "manifest-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::manifest::MANIFEST_PROGRAM_ID,
+                )?;
                 let ctx = crate::manifest::ManifestSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Manifest(ctx), rest))
             }
@@ -812,6 +833,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Heaven => {
             #[cfg(feature = "heaven-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::heaven::HEAVEN_PROGRAM_ID,
+                )?;
                 let ctx = crate::heaven::HeavenSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Heaven(ctx), rest))
             }
@@ -824,6 +849,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Aldrin => {
             #[cfg(feature = "aldrin-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::aldrin::ALDRIN_PROGRAM_ID,
+                )?;
                 let ctx = crate::aldrin::AldrinSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Aldrin(ctx), rest))
             }
@@ -836,6 +865,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::AldrinV2 => {
             #[cfg(feature = "aldrin_v2-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::aldrin_v2::ALDRIN_V2_PROGRAM_ID,
+                )?;
                 let ctx = crate::aldrin_v2::AldrinV2SwapAccounts::try_from(mine)?;
                 Ok((SwapContext::AldrinV2(ctx), rest))
             }
@@ -848,6 +881,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Futarchy => {
             #[cfg(feature = "futarchy-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::futarchy::FUTARCHY_PROGRAM_ID,
+                )?;
                 let ctx = crate::futarchy::FutarchySwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Futarchy(ctx), rest))
             }
@@ -860,6 +897,7 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Gamma => {
             #[cfg(feature = "gamma-swap")]
             {
+                validate_tagged_program_account(detector_account, &crate::gamma::GAMMA_PROGRAM_ID)?;
                 let ctx = crate::gamma::GammaSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Gamma(ctx), rest))
             }
@@ -872,6 +910,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::ScaleAmm => {
             #[cfg(feature = "scale_amm-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::scale_amm::SCALE_AMM_PROGRAM_ID,
+                )?;
                 let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::ScaleAmm(ctx), rest))
             }
@@ -884,6 +926,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::ScaleVmm => {
             #[cfg(feature = "scale_vmm-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::scale_vmm::SCALE_VMM_PROGRAM_ID,
+                )?;
                 let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::ScaleVmm(ctx), rest))
             }
@@ -896,6 +942,10 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Omnipair => {
             #[cfg(feature = "omnipair-swap")]
             {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::omnipair::OMNIPAIR_PROGRAM_ID,
+                )?;
                 let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Omnipair(ctx), rest))
             }
@@ -908,11 +958,11 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::MeteoraDlmm => {
             #[cfg(feature = "meteora_dlmm-swap")]
             {
-                let ctx =
-                    crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from_with_bin_array_len(
-                        mine,
-                        remaining_accounts_len,
-                    )?;
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
+                )?;
+                let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::MeteoraDlmm(ctx), rest))
             }
             #[cfg(not(feature = "meteora_dlmm-swap"))]
