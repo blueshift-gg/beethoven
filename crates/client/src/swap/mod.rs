@@ -13,7 +13,7 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
-use solana_pubkey::Pubkey;
+use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
     crate::error::ClientError, solana_instruction::AccountMeta,
@@ -27,22 +27,22 @@ use {
 /// discovers it via `getProgramAccounts` with memcmp filters on the mints.
 pub enum SwapProtocol {
     #[cfg(feature = "gamma")]
-    Gamma { pool: Option<Pubkey> },
+    Gamma { pool: Option<Address> },
 
     #[cfg(feature = "aldrin")]
-    Aldrin { pool: Option<Pubkey>, side: u8 },
+    Aldrin { pool: Option<Address>, side: u8 },
 
     #[cfg(feature = "futarchy")]
-    Futarchy { dao: Option<Pubkey>, swap_type: u8 },
+    Futarchy { dao: Option<Address>, swap_type: u8 },
 
     #[cfg(feature = "manifest")]
     Manifest {
-        market: Option<Pubkey>,
+        market: Option<Address>,
         is_exact_in: bool,
     },
 
     #[cfg(feature = "omnipair")]
-    Omnipair { pair: Option<Pubkey> },
+    Omnipair { pair: Option<Address> },
 }
 
 /// A single step in a multi-swap composition.
@@ -52,8 +52,8 @@ pub enum SwapProtocol {
 /// different protocols) and multi-hop routing (A→B, B→C, C→D).
 pub struct SwapStep {
     pub protocol: SwapProtocol,
-    pub mint_a: Pubkey,
-    pub mint_b: Pubkey,
+    pub mint_a: Address,
+    pub mint_b: Address,
 }
 
 /// Resolve accounts and data for a swap protocol.
@@ -64,9 +64,9 @@ pub struct SwapStep {
 pub async fn resolve_swap(
     rpc: &RpcClient,
     protocol: &SwapProtocol,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     match protocol {
         #[cfg(feature = "gamma")]
@@ -128,7 +128,7 @@ pub async fn resolve_swap(
 pub async fn resolve_swaps(
     rpc: &RpcClient,
     steps: &[SwapStep],
-    user: &Pubkey,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let mut all_accounts = Vec::new();
     let mut all_data = Vec::new();

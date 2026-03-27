@@ -1,9 +1,9 @@
 #[cfg(feature = "resolve")]
 use crate::error::ClientError;
-use solana_pubkey::Pubkey;
+use solana_address::Address;
 
-pub const FUTARCHY_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
+pub const FUTARCHY_PROGRAM_ID: Address =
+    Address::from_str_const("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 
 // Futarchy Dao layout (from on-chain IDL: amm_v0.3.json)
 //
@@ -55,11 +55,11 @@ fn compute_amm_field_offsets(
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    dao: Option<&Pubkey>,
+    dao: Option<&Address>,
     swap_type: u8,
-    _mint_a: &Pubkey,
-    _mint_b: &Pubkey,
-    user: &Pubkey,
+    _mint_a: &Address,
+    _mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<solana_instruction::AccountMeta>, Vec<u8>), ClientError> {
     use solana_instruction::AccountMeta;
 
@@ -93,7 +93,7 @@ pub async fn resolve(
         crate::get_associated_token_address(user, &quote_mint, &crate::TOKEN_PROGRAM_ID);
 
     let (event_authority, _) =
-        Pubkey::find_program_address(&[b"__event_authority"], &FUTARCHY_PROGRAM_ID);
+        Address::find_program_address(&[b"__event_authority"], &FUTARCHY_PROGRAM_ID);
 
     let accounts = vec![
         AccountMeta::new_readonly(FUTARCHY_PROGRAM_ID, false),

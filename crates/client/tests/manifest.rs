@@ -1,20 +1,21 @@
 use {
     beethoven_client::{resolve_swap, SwapProtocol},
-    solana_pubkey::Pubkey,
+    solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
 
-const WSOL_MINT: Pubkey = Pubkey::from_str_const("So11111111111111111111111111111111111111112");
-const USDC_MINT: Pubkey = Pubkey::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const MARKET: Pubkey = Pubkey::from_str_const("ENhU8LsaR7vDD2G1CsWcsuSGNrih9Cv5WZEk7q9kPapQ");
-const BASE_VAULT: Pubkey = Pubkey::from_str_const("AKjfJDv4ywdpCDrj7AURuNkGA3696GTVFgrMwk4TjkKs");
-const QUOTE_VAULT: Pubkey = Pubkey::from_str_const("FN9K6rTdWtRDUPmLTN2FnGvLZpHVNRN2MeRghKknSGDs");
+const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
+const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const MARKET: Address = Address::from_str_const("ENhU8LsaR7vDD2G1CsWcsuSGNrih9Cv5WZEk7q9kPapQ");
+const BASE_VAULT: Address = Address::from_str_const("AKjfJDv4ywdpCDrj7AURuNkGA3696GTVFgrMwk4TjkKs");
+const QUOTE_VAULT: Address =
+    Address::from_str_const("FN9K6rTdWtRDUPmLTN2FnGvLZpHVNRN2MeRghKknSGDs");
 
-const MANIFEST_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
-const TOKEN_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const SYSTEM_PROGRAM_ID: Pubkey = Pubkey::from_str_const("11111111111111111111111111111111");
+const MANIFEST_PROGRAM_ID: Address =
+    Address::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
+const TOKEN_PROGRAM_ID: Address =
+    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const SYSTEM_PROGRAM_ID: Address = Address::from_str_const("11111111111111111111111111111111");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -23,7 +24,7 @@ fn get_rpc_url() -> String {
 #[tokio::test]
 async fn test_manifest_resolve_with_known_market() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     let (accounts, data) = resolve_swap(
         &rpc,
@@ -80,9 +81,9 @@ async fn test_manifest_resolve_with_known_market() {
     assert_eq!(accounts[12].pubkey, USDC_MINT, "quote_mint");
 
     // Global PDAs (deterministic from program ID)
-    let (expected_global, _) = Pubkey::find_program_address(&[b"global"], &MANIFEST_PROGRAM_ID);
+    let (expected_global, _) = Address::find_program_address(&[b"global"], &MANIFEST_PROGRAM_ID);
     let (expected_global_vault, _) =
-        Pubkey::find_program_address(&[b"global-vault"], &MANIFEST_PROGRAM_ID);
+        Address::find_program_address(&[b"global-vault"], &MANIFEST_PROGRAM_ID);
     assert_eq!(accounts[13].pubkey, expected_global, "global");
     assert_eq!(accounts[14].pubkey, expected_global_vault, "global_vault");
 
@@ -94,7 +95,7 @@ async fn test_manifest_resolve_with_known_market() {
 #[tokio::test]
 async fn test_manifest_resolve_quote_in() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     // Selling USDC for WSOL — mint_a=USDC means is_base_in should be inferred as false
     let (accounts, data) = resolve_swap(

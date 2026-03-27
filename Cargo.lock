@@ -599,8 +599,8 @@ version = "0.0.1"
 dependencies = [
  "solana-account",
  "solana-account-decoder-client-types",
+ "solana-address 2.0.0",
  "solana-instruction",
- "solana-pubkey 4.0.0",
  "solana-rpc-client",
  "solana-rpc-client-api",
  "thiserror 2.0.17",
