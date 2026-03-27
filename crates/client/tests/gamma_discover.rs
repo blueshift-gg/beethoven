@@ -1,25 +1,25 @@
 use {
     beethoven_client::{resolve_swap, SwapProtocol},
-    solana_pubkey::Pubkey,
+    solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
 
-const WSOL_MINT: Pubkey = Pubkey::from_str_const("So11111111111111111111111111111111111111112");
-const USDC_MINT: Pubkey = Pubkey::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const GAMMA_POOL: Pubkey = Pubkey::from_str_const("Hjm1F98vgVdN7Y9L46KLqcZZWyTKS9tj9ybYKJcXnSng");
-const GAMMA_AMM_CONFIG: Pubkey =
-    Pubkey::from_str_const("68yDnv1sDzU3L2cek5kNEszKFPaK9yUJaC4ghV5LAXW6");
-const GAMMA_VAULT_0: Pubkey =
-    Pubkey::from_str_const("61Xc2EKCL6SnqyMjWujTmcsFvBbRh5717MwrD3EMwaaw");
-const GAMMA_VAULT_1: Pubkey =
-    Pubkey::from_str_const("7Aihr5kSURKgUtvnAEAkQyZzfJ7vq5WiYLeCd4o78xLW");
-const GAMMA_OBSERVATION: Pubkey =
-    Pubkey::from_str_const("6qFaCY5Ws9bcagcvJoZnUpH9qLv8MkKWmUszvhX9QW3V");
+const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
+const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const GAMMA_POOL: Address = Address::from_str_const("Hjm1F98vgVdN7Y9L46KLqcZZWyTKS9tj9ybYKJcXnSng");
+const GAMMA_AMM_CONFIG: Address =
+    Address::from_str_const("68yDnv1sDzU3L2cek5kNEszKFPaK9yUJaC4ghV5LAXW6");
+const GAMMA_VAULT_0: Address =
+    Address::from_str_const("61Xc2EKCL6SnqyMjWujTmcsFvBbRh5717MwrD3EMwaaw");
+const GAMMA_VAULT_1: Address =
+    Address::from_str_const("7Aihr5kSURKgUtvnAEAkQyZzfJ7vq5WiYLeCd4o78xLW");
+const GAMMA_OBSERVATION: Address =
+    Address::from_str_const("6qFaCY5Ws9bcagcvJoZnUpH9qLv8MkKWmUszvhX9QW3V");
 
-const GAMMA_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
-const TOKEN_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const GAMMA_PROGRAM_ID: Address =
+    Address::from_str_const("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
+const TOKEN_PROGRAM_ID: Address =
+    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -28,7 +28,7 @@ fn get_rpc_url() -> String {
 #[tokio::test]
 async fn test_gamma_resolve_with_known_pool() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     let (accounts, data) = resolve_swap(
         &rpc,
@@ -53,7 +53,7 @@ async fn test_gamma_resolve_with_known_pool() {
 
     // Authority PDA
     let (expected_authority, _) =
-        Pubkey::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &GAMMA_PROGRAM_ID);
+        Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &GAMMA_PROGRAM_ID);
     assert_eq!(accounts[2].pubkey, expected_authority, "authority PDA");
 
     // Pool accounts from on-chain state
@@ -93,7 +93,7 @@ async fn test_gamma_resolve_with_known_pool() {
 #[tokio::test]
 async fn test_gamma_resolve_flipped_mints() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     // Selling USDC for WSOL — vaults should be flipped vs the canonical pool order
     let (accounts, data) = resolve_swap(

@@ -1,7 +1,7 @@
-use {solana_instruction::AccountMeta, solana_pubkey::Pubkey};
+use {solana_address::Address, solana_instruction::AccountMeta};
 
-pub const OMNIPAIR_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const OMNIPAIR_PROGRAM_ID: Address =
+    Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 
 // Pair account layout offsets (after 8-byte discriminator)
 // Layout: [8-byte discriminator] [32 token0] [32 token1] [32 lp_mint] [32 rate_model] ...
@@ -14,17 +14,17 @@ const OFFSET_RATE_MODEL: usize = 104;
 
 /// Pre-resolved addresses for building an Omnipair swap instruction offline.
 pub struct OmnipairSwapInput {
-    pub pair: Pubkey,
-    pub rate_model: Pubkey,
-    pub futarchy_authority: Pubkey,
-    pub token_in_vault: Pubkey,
-    pub token_out_vault: Pubkey,
-    pub user_token_in_account: Pubkey,
-    pub user_token_out_account: Pubkey,
-    pub token_in_mint: Pubkey,
-    pub token_out_mint: Pubkey,
-    pub user: Pubkey,
-    pub event_authority: Pubkey,
+    pub pair: Address,
+    pub rate_model: Address,
+    pub futarchy_authority: Address,
+    pub token_in_vault: Address,
+    pub token_out_vault: Address,
+    pub user_token_in_account: Address,
+    pub user_token_out_account: Address,
+    pub token_in_mint: Address,
+    pub token_out_mint: Address,
+    pub user: Address,
+    pub event_authority: Address,
 }
 
 /// Build Omnipair swap AccountMeta list from pre-resolved addresses (no RPC needed).
@@ -55,10 +55,10 @@ pub fn build_accounts(input: &OmnipairSwapInput) -> Vec<AccountMeta> {
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    pair: Option<&Pubkey>,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    pair: Option<&Address>,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
     let (pair_pubkey, pair_data) = match pair {
         Some(addr) => {
@@ -95,7 +95,7 @@ pub async fn resolve(
     };
 
     // Vaults are PDAs derived from ["reserve_vault", pair, mint]
-    let (token_in_vault, _) = Pubkey::find_program_address(
+    let (token_in_vault, _) = Address::find_program_address(
         &[
             b"reserve_vault",
             pair_pubkey.as_ref(),
@@ -103,7 +103,7 @@ pub async fn resolve(
         ],
         &OMNIPAIR_PROGRAM_ID,
     );
-    let (token_out_vault, _) = Pubkey::find_program_address(
+    let (token_out_vault, _) = Address::find_program_address(
         &[
             b"reserve_vault",
             pair_pubkey.as_ref(),
@@ -113,9 +113,9 @@ pub async fn resolve(
     );
 
     let (futarchy_authority, _) =
-        Pubkey::find_program_address(&[b"futarchy_authority"], &OMNIPAIR_PROGRAM_ID);
+        Address::find_program_address(&[b"futarchy_authority"], &OMNIPAIR_PROGRAM_ID);
     let (event_authority, _) =
-        Pubkey::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
+        Address::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
 
     let token_in_program = crate::get_token_program_for_mint(rpc, &token_in_mint).await?;
     let token_out_program = crate::get_token_program_for_mint(rpc, &token_out_mint).await?;

@@ -65,10 +65,6 @@ impl<'info> TryFrom<&'info [AccountView]> for PerenaSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 12 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [perena_program, pool, in_mint, out_mint, in_trader, out_trader, in_vault, out_vault, numeraire_config, payer, token_program, token_2022_program, ..] =
             accounts
         else {

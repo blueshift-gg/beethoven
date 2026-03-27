@@ -12,7 +12,10 @@ use {
     solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const KAMINO_LEND_PROGRAM_ID: Address = Address::new_from_array([0; 32]);
+pub const KAMINO_LEND_PROGRAM_ID: Address = Address::new_from_array([
+    4, 178, 172, 177, 18, 88, 204, 227, 104, 44, 65, 139, 168, 114, 255, 61, 249, 17, 2, 113, 47,
+    21, 175, 18, 182, 190, 105, 179, 67, 91, 0, 8,
+]);
 const REFRESH_RESERVE_DISCRIMINATOR: [u8; 8] = [2, 218, 138, 235, 79, 201, 25, 102];
 const REFRESH_OBLIGATION_DISCRIMINATOR: [u8; 8] = [33, 132, 147, 228, 151, 192, 72, 89];
 const DEPOSIT_RESERVE_LIQUIDITY_AND_OBLIGATION_COLLATERAL_V2_DISCRIMINATOR: [u8; 8] =
@@ -47,10 +50,6 @@ impl<'info> TryFrom<&'info [AccountView]> for KaminoDepositAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 19 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [kamino_lending_program, owner, obligation, lending_market, lending_market_authority, reserve, reserve_liquidity_mint, reserve_liquidity_supply, reserve_collateral_mint, reserve_destination_deposit_collateral, user_source_liquidity, placeholder_user_destination_collateral, collateral_token_program, liquidity_token_program, instruction_sysvar_account, obligation_farm_user_state, reserve_farm_state, farms_program, scope_oracle, remaining_accounts @ ..] =
             accounts
         else {
@@ -136,7 +135,7 @@ impl<'info> Deposit<'info> for Kamino {
             ];
 
             let account_infos = [
-                ctx.reserve,
+                reserve,
                 ctx.kamino_lending_program,
                 ctx.kamino_lending_program,
                 ctx.kamino_lending_program,

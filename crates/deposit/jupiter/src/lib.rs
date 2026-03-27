@@ -12,7 +12,10 @@ use {
     solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const JUPITER_EARN_PROGRAM_ID: Address = Address::new_from_array([0u8; 32]);
+pub const JUPITER_EARN_PROGRAM_ID: Address = Address::new_from_array([
+    10, 254, 27, 145, 46, 72, 94, 149, 253, 21, 235, 41, 55, 223, 252, 75, 55, 163, 22, 208, 166,
+    56, 18, 255, 2, 186, 73, 180, 198, 193, 141, 30,
+]);
 pub const DEPOSIT_DISCRIMINATOR: [u8; 8] = [242, 35, 198, 137, 82, 225, 242, 182];
 
 pub struct JupiterEarn;
@@ -42,10 +45,6 @@ impl<'info> TryFrom<&'info [AccountView]> for JupiterEarnDepositAccounts<'info> 
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 18 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [lending_program, signer, depositor_token_account, recipient_token_account, mint, lending_admin, lending, f_token_mint, supply_token_reserves_liquidity, lending_supply_position_on_liquidity, rate_model, vault, liquidity, liquidity_program, rewards_rate_model, token_program, associated_token_program, system_program, ..] =
             accounts
         else {

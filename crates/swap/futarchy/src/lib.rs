@@ -70,10 +70,6 @@ impl<'info> TryFrom<&'info [AccountView]> for FutarchySwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 10 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [futarchy_program, dao, user_base_account, user_quote_account, amm_base_vault, amm_quote_vault, user, token_program, event_authority, program, ..] =
             accounts
         else {

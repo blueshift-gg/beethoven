@@ -1,7 +1,7 @@
-use {solana_instruction::AccountMeta, solana_pubkey::Pubkey};
+use {solana_address::Address, solana_instruction::AccountMeta};
 
-pub const MANIFEST_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
+pub const MANIFEST_PROGRAM_ID: Address =
+    Address::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 
 // Manifest MarketFixed layout offsets (from market.rs source)
 // Layout: [8-byte discriminant] [1-byte version] [1-byte base_mint_decimals]
@@ -19,18 +19,18 @@ const OFFSET_QUOTE_VAULT: usize = 112;
 
 /// Pre-resolved addresses for building a Manifest swap instruction offline.
 pub struct ManifestSwapInput {
-    pub user: Pubkey,
-    pub market: Pubkey,
-    pub trader_base: Pubkey,
-    pub trader_quote: Pubkey,
-    pub base_vault: Pubkey,
-    pub quote_vault: Pubkey,
-    pub base_token_program: Pubkey,
-    pub base_mint: Pubkey,
-    pub quote_token_program: Pubkey,
-    pub quote_mint: Pubkey,
-    pub global: Pubkey,
-    pub global_vault: Pubkey,
+    pub user: Address,
+    pub market: Address,
+    pub trader_base: Address,
+    pub trader_quote: Address,
+    pub base_vault: Address,
+    pub quote_vault: Address,
+    pub base_token_program: Address,
+    pub base_mint: Address,
+    pub quote_token_program: Address,
+    pub quote_mint: Address,
+    pub global: Address,
+    pub global_vault: Address,
 }
 
 /// Build Manifest swap AccountMeta list from pre-resolved addresses (no RPC needed).
@@ -66,11 +66,11 @@ pub fn build_extra_data(is_base_in: bool, is_exact_in: bool) -> Vec<u8> {
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    market: Option<&Pubkey>,
+    market: Option<&Address>,
     is_exact_in: bool,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
     let (market_pubkey, market_data) = match market {
         Some(addr) => {
@@ -104,8 +104,8 @@ pub async fn resolve(
     let trader_base = crate::get_associated_token_address(user, &base_mint, &base_token_program);
     let trader_quote = crate::get_associated_token_address(user, &quote_mint, &quote_token_program);
 
-    let (global, _) = Pubkey::find_program_address(&[b"global"], &MANIFEST_PROGRAM_ID);
-    let (global_vault, _) = Pubkey::find_program_address(&[b"global-vault"], &MANIFEST_PROGRAM_ID);
+    let (global, _) = Address::find_program_address(&[b"global"], &MANIFEST_PROGRAM_ID);
+    let (global_vault, _) = Address::find_program_address(&[b"global-vault"], &MANIFEST_PROGRAM_ID);
 
     let input = ManifestSwapInput {
         user: *user,

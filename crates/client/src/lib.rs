@@ -1,3 +1,5 @@
+use solana_address::Address;
+
 pub mod error;
 pub mod swap;
 
@@ -10,46 +12,44 @@ pub use {
 
 /// Helper to get the associated token account address.
 pub fn get_associated_token_address(
-    wallet: &solana_pubkey::Pubkey,
-    mint: &solana_pubkey::Pubkey,
-    token_program: &solana_pubkey::Pubkey,
-) -> solana_pubkey::Pubkey {
+    wallet: &Address,
+    mint: &Address,
+    token_program: &Address,
+) -> Address {
     let seeds = &[wallet.as_ref(), token_program.as_ref(), mint.as_ref()];
-    let (address, _bump) =
-        solana_pubkey::Pubkey::find_program_address(seeds, &spl_associated_token_address());
+    let (address, _bump) = Address::find_program_address(seeds, &spl_associated_token_address());
     address
 }
 
-fn spl_associated_token_address() -> solana_pubkey::Pubkey {
-    solana_pubkey::Pubkey::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+fn spl_associated_token_address() -> Address {
+    Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
 }
 
 /// Token Program ID
-pub const TOKEN_PROGRAM_ID: solana_pubkey::Pubkey =
-    solana_pubkey::Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+pub const TOKEN_PROGRAM_ID: Address =
+    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 /// Token 2022 Program ID
-pub const TOKEN_2022_PROGRAM_ID: solana_pubkey::Pubkey =
-    solana_pubkey::Pubkey::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+pub const TOKEN_2022_PROGRAM_ID: Address =
+    Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 /// System Program ID
-pub const SYSTEM_PROGRAM_ID: solana_pubkey::Pubkey =
-    solana_pubkey::Pubkey::from_str_const("11111111111111111111111111111111");
+pub const SYSTEM_PROGRAM_ID: Address = Address::from_str_const("11111111111111111111111111111111");
 
 /// Sysvar Instructions ID
-pub const SYSVAR_INSTRUCTIONS_ID: solana_pubkey::Pubkey =
-    solana_pubkey::Pubkey::from_str_const("Sysvar1nstructions1111111111111111111111111");
+pub const SYSVAR_INSTRUCTIONS_ID: Address =
+    Address::from_str_const("Sysvar1nstructions1111111111111111111111111");
 
 /// Associated Token Program ID
-pub const ASSOCIATED_TOKEN_PROGRAM_ID: solana_pubkey::Pubkey =
-    solana_pubkey::Pubkey::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
+    Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 /// Determine which token program owns a mint by checking the account owner.
 #[cfg(feature = "resolve")]
 pub async fn get_token_program_for_mint(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    mint: &solana_pubkey::Pubkey,
-) -> Result<solana_pubkey::Pubkey, ClientError> {
+    mint: &Address,
+) -> Result<Address, ClientError> {
     let account = rpc.get_account(mint).await.map_err(ClientError::from)?;
     let owner = account.owner;
     if owner == TOKEN_PROGRAM_ID || owner == TOKEN_2022_PROGRAM_ID {
@@ -71,9 +71,9 @@ pub async fn get_token_program_for_mint(
 #[cfg(feature = "resolve")]
 pub async fn discover_pool(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    program_id: &solana_pubkey::Pubkey,
-    filters: &[(usize, &solana_pubkey::Pubkey)],
-) -> Result<(solana_pubkey::Pubkey, solana_account::Account), ClientError> {
+    program_id: &Address,
+    filters: &[(usize, &Address)],
+) -> Result<(Address, solana_account::Account), ClientError> {
     use {
         solana_account_decoder_client_types::UiAccountEncoding,
         solana_rpc_client_api::{
@@ -122,12 +122,12 @@ pub async fn discover_pool(
 #[cfg(feature = "resolve")]
 pub async fn discover_pool_with_flip(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    program_id: &solana_pubkey::Pubkey,
+    program_id: &Address,
     offset_a: usize,
     offset_b: usize,
-    mint_a: &solana_pubkey::Pubkey,
-    mint_b: &solana_pubkey::Pubkey,
-) -> Result<(solana_pubkey::Pubkey, solana_account::Account), ClientError> {
+    mint_a: &Address,
+    mint_b: &Address,
+) -> Result<(Address, solana_account::Account), ClientError> {
     match discover_pool(rpc, program_id, &[(offset_a, mint_a), (offset_b, mint_b)]).await {
         Ok(r) => Ok(r),
         Err(ClientError::PoolNotFound) => {
@@ -138,7 +138,7 @@ pub async fn discover_pool_with_flip(
 }
 
 /// Read a 32-byte pubkey from a byte slice at a given offset.
-pub fn read_pubkey(data: &[u8], offset: usize) -> Result<solana_pubkey::Pubkey, ClientError> {
+pub fn read_pubkey(data: &[u8], offset: usize) -> Result<Address, ClientError> {
     if data.len() < offset + 32 {
         return Err(ClientError::InvalidAccountData(format!(
             "Account data too short: {} bytes, need at least {}",
@@ -146,7 +146,7 @@ pub fn read_pubkey(data: &[u8], offset: usize) -> Result<solana_pubkey::Pubkey, 
             offset + 32
         )));
     }
-    Ok(solana_pubkey::Pubkey::from(
+    Ok(Address::from(
         <[u8; 32]>::try_from(&data[offset..offset + 32]).unwrap(),
     ))
 }

@@ -1,7 +1,7 @@
-use solana_pubkey::Pubkey;
+use solana_address::Address;
 
-pub const ALDRIN_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
+pub const ALDRIN_PROGRAM_ID: Address =
+    Address::from_str_const("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
 
 // Aldrin Pool V1 layout offsets (from poolsV1.json IDL)
 // Layout: [8-byte discriminator] [32-byte lpTokenFreezeVault] [32-byte poolMint]
@@ -27,11 +27,11 @@ const OFFSET_FEE_POOL_TOKEN_ACCOUNT: usize = 361;
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    pool: Option<&Pubkey>,
+    pool: Option<&Address>,
     side: u8,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<solana_instruction::AccountMeta>, Vec<u8>), crate::error::ClientError> {
     use solana_instruction::AccountMeta;
 

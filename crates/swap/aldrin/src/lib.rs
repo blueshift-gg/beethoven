@@ -71,10 +71,6 @@ impl<'info> TryFrom<&'info [AccountView]> for AldrinSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 11 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [aldrin_program, pool, pool_signer, pool_mint, base_token_vault, quote_token_vault, fee_pool_token_account, wallet_authority, user_base_token_account, user_quote_token_account, token_program, ..] =
             accounts
         else {
