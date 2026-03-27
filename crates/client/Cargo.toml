@@ -14,6 +14,7 @@ swap = [
     "futarchy",
     "gamma",
     "omnipair",
+    "oxedium",
 ]
 
 resolve = [
@@ -28,6 +29,7 @@ aldrin = []
 futarchy = []
 gamma = []
 omnipair = []
+oxedium = []
 
 [dependencies]
 solana-address = { version = "2", features = ["curve25519"] }
