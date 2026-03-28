@@ -29,6 +29,8 @@ pub use beethoven_swap_manifest as manifest;
 pub use beethoven_swap_omnipair as omnipair;
 #[cfg(feature = "perena-swap")]
 pub use beethoven_swap_perena as perena;
+#[cfg(feature = "raydium-cpmm-swap")]
+pub use beethoven_swap_raydium_cpmm as raydium_cpmm;
 #[cfg(feature = "scale_amm-swap")]
 pub use beethoven_swap_scale_amm as scale_amm;
 #[cfg(feature = "scale_vmm-swap")]

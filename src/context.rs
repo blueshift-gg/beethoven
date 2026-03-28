@@ -60,6 +60,8 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapAccounts<'info>),
+    #[cfg(feature = "raydium-cpmm-swap")]
+    RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -102,6 +104,8 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapData),
+    #[cfg(feature = "raydium-cpmm-swap")]
+    RaydiumCpmm(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -229,6 +233,9 @@ impl<'a> SwapContext<'a> {
                     rest,
                 ))
             }
+
+            #[cfg(feature = "raydium-cpmm-swap")]
+            SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -385,6 +392,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     d,
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "raydium-cpmm-swap")]
+            (SwapContext::RaydiumCpmm(accounts), SwapData::RaydiumCpmm(())) => {
+                crate::raydium_cpmm::RaydiumCpmm::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
                     signer_seeds,
                 )
             }
@@ -556,6 +574,19 @@ pub fn try_from_swap_context<'info>(
     ) {
         let ctx = crate::hadron::HadronSwapAccounts::try_from(accounts)?;
         return Ok((SwapContext::Hadron(ctx), &[]));
+    }
+
+    #[cfg(feature = "raydium-cpmm-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID,
+    ) {
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::raydium_cpmm::RaydiumCpmmSwapAccounts::NUM_ACCOUNTS,
+        )?;
+        let ctx = crate::raydium_cpmm::RaydiumCpmmSwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::RaydiumCpmm(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)

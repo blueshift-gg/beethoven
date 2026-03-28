@@ -15,6 +15,8 @@ pub mod omnipair;
 
 #[cfg(feature = "hadron")]
 pub mod hadron;
+#[cfg(feature = "raydium_cpmm")]
+pub mod raydium_cpmm;
 
 use solana_address::Address;
 #[cfg(feature = "resolve")]
@@ -53,6 +55,8 @@ pub enum SwapProtocol {
         fee_recipient: Address,
         expiration: i64,
     },
+    #[cfg(feature = "raydium_cpmm")]
+    RaydiumCpmm { pool: Option<Address> },
 }
 
 /// A single step in a multi-swap composition.
@@ -121,6 +125,11 @@ pub async fn resolve_swap(
                 *expiration,
             )
             .await
+        }
+
+        #[cfg(feature = "raydium_cpmm")]
+        SwapProtocol::RaydiumCpmm { pool } => {
+            raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
     }
 }

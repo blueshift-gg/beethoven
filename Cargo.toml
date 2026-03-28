@@ -27,6 +27,7 @@ swap = [
     "scale_vmm-swap",
     "omnipair-swap",
     "hadron-swap",
+    "raydium-cpmm-swap",
 ]
 
 # Deposit protocols
@@ -49,6 +50,7 @@ scale_amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale_vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
+raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
 
 [dependencies]
 beethoven-core = { path = "crates/core" }
@@ -75,6 +77,7 @@ beethoven-swap-scale-amm = { path = "crates/swap/scale-amm", optional = true }
 beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm", optional = true }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair", optional = true }
 beethoven-swap-hadron = { path = "crates/swap/hadron", optional = true }
+beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm", optional = true }
 
 [workspace]
 members = [
@@ -96,6 +99,7 @@ members = [
     "crates/swap/scale-vmm",
     "crates/swap/omnipair",
     "crates/swap/hadron",
+    "crates/swap/raydium-cpmm",
     "program-test",
     "crates/client",
 ]
@@ -122,6 +126,7 @@ beethoven-client = { path = "crates/client", features = [
     "manifest",
     "gamma",
     "hadron",
+    "raydium_cpmm",
     "resolve",
 ] }
 solana-rpc-client = "3"

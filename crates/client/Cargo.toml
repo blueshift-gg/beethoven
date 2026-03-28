@@ -15,6 +15,7 @@ swap = [
     "gamma",
     "omnipair",
     "hadron",
+    "raydium_cpmm",
 ]
 
 resolve = [
@@ -30,6 +31,7 @@ futarchy = []
 gamma = []
 omnipair = []
 hadron = []
+raydium_cpmm = []
 
 [dependencies]
 solana-address = { version = "2", features = ["curve25519"] }
