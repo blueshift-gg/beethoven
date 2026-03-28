@@ -1,7 +1,7 @@
-use {solana_instruction::AccountMeta, solana_pubkey::Pubkey};
+use {solana_address::Address, solana_instruction::AccountMeta};
 
-pub const GAMMA_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
+pub const GAMMA_PROGRAM_ID: Address =
+    Address::from_str_const("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
 
 // Raydium CPMM PoolState layout offsets (raydium-cp-swap, #[repr(C, packed)])
 // Layout: [8-byte discriminator] [32 amm_config] [32 pool_creator]
@@ -23,19 +23,19 @@ const OFFSET_OBSERVATION_KEY: usize = 296;
 
 /// Pre-resolved addresses for building a Gamma swap instruction offline.
 pub struct GammaSwapInput {
-    pub user: Pubkey,
-    pub authority: Pubkey,
-    pub amm_config: Pubkey,
-    pub pool: Pubkey,
-    pub user_input_ata: Pubkey,
-    pub user_output_ata: Pubkey,
-    pub input_vault: Pubkey,
-    pub output_vault: Pubkey,
-    pub input_token_program: Pubkey,
-    pub output_token_program: Pubkey,
-    pub input_mint: Pubkey,
-    pub output_mint: Pubkey,
-    pub observation_key: Pubkey,
+    pub user: Address,
+    pub authority: Address,
+    pub amm_config: Address,
+    pub pool: Address,
+    pub user_input_ata: Address,
+    pub user_output_ata: Address,
+    pub input_vault: Address,
+    pub output_vault: Address,
+    pub input_token_program: Address,
+    pub output_token_program: Address,
+    pub input_mint: Address,
+    pub output_mint: Address,
+    pub observation_key: Address,
 }
 
 /// Build Gamma swap AccountMeta list from pre-resolved addresses (no RPC needed).
@@ -67,10 +67,10 @@ pub fn build_extra_data() -> Vec<u8> {
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    pool: Option<&Pubkey>,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    pool: Option<&Address>,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
     let (pool_pubkey, pool_data) = match pool {
         Some(addr) => {
@@ -113,7 +113,7 @@ pub async fn resolve(
     let output_token_program = crate::get_token_program_for_mint(rpc, &output_mint).await?;
 
     let (authority, _) =
-        Pubkey::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &GAMMA_PROGRAM_ID);
+        Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &GAMMA_PROGRAM_ID);
 
     let user_input_ata =
         crate::get_associated_token_address(user, &input_mint, &input_token_program);

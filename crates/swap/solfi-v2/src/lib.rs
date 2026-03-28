@@ -65,10 +65,6 @@ impl<'info> TryFrom<&'info [AccountView]> for SolFiV2SwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 14 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [solfi_v2_program, token_transfer_authority, market_account, oracle_account, config_account, base_vault, quote_vault, user_base_ata, user_quote_ata, base_mint, quote_mint, base_token_program, quote_token_program, instructions_sysvar, ..] =
             accounts
         else {

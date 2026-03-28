@@ -1,18 +1,18 @@
 use {
     beethoven_client::{resolve_swap, SwapProtocol},
-    solana_pubkey::Pubkey,
+    solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
 
-const WSOL_MINT: Pubkey = Pubkey::from_str_const("So11111111111111111111111111111111111111112");
-const USDC_MINT: Pubkey = Pubkey::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
+const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
-const OMNIPAIR_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
-const TOKEN_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const TOKEN_2022_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+const OMNIPAIR_PROGRAM_ID: Address =
+    Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+const TOKEN_PROGRAM_ID: Address =
+    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const TOKEN_2022_PROGRAM_ID: Address =
+    Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -21,7 +21,7 @@ fn get_rpc_url() -> String {
 #[tokio::test]
 async fn test_omnipair_resolve_with_known_pair() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     let (accounts, data) = resolve_swap(
         &rpc,
@@ -50,7 +50,7 @@ async fn test_omnipair_resolve_with_known_pair() {
 
     // Futarchy authority
     let (expected_futarchy_authority, _) =
-        Pubkey::find_program_address(&[b"futarchy_authority"], &OMNIPAIR_PROGRAM_ID);
+        Address::find_program_address(&[b"futarchy_authority"], &OMNIPAIR_PROGRAM_ID);
     assert_eq!(
         accounts[3].pubkey, expected_futarchy_authority,
         "futarchy_authority PDA"
@@ -70,12 +70,12 @@ async fn test_omnipair_resolve_with_known_pair() {
     let token_in_mint = accounts[8].pubkey;
     let token_out_mint = accounts[9].pubkey;
 
-    let expected_token_in_vault = Pubkey::find_program_address(
+    let expected_token_in_vault = Address::find_program_address(
         &[b"reserve_vault", pair.as_ref(), token_in_mint.as_ref()],
         &OMNIPAIR_PROGRAM_ID,
     )
     .0;
-    let expected_token_out_vault = Pubkey::find_program_address(
+    let expected_token_out_vault = Address::find_program_address(
         &[b"reserve_vault", pair.as_ref(), token_out_mint.as_ref()],
         &OMNIPAIR_PROGRAM_ID,
     )
@@ -129,7 +129,7 @@ async fn test_omnipair_resolve_with_known_pair() {
 
     // Event authority
     let (expected_event_authority, _) =
-        Pubkey::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
+        Address::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
     assert_eq!(
         accounts[13].pubkey, expected_event_authority,
         "event_authority PDA"
@@ -152,7 +152,7 @@ async fn test_omnipair_resolve_with_known_pair() {
 #[tokio::test]
 async fn test_omnipair_resolve_flipped_mints() {
     let rpc = RpcClient::new(get_rpc_url());
-    let user = Pubkey::from_str_const("11111111111111111111111111111112");
+    let user = Address::from_str_const("11111111111111111111111111111112");
 
     // Selling USDC for WSOL — vaults and mints should be flipped
     let (accounts, data) = resolve_swap(
@@ -174,12 +174,12 @@ async fn test_omnipair_resolve_flipped_mints() {
 
     // Vaults should be derived for the flipped direction
     let pair = accounts[1].pubkey;
-    let expected_token_in_vault = Pubkey::find_program_address(
+    let expected_token_in_vault = Address::find_program_address(
         &[b"reserve_vault", pair.as_ref(), USDC_MINT.as_ref()],
         &OMNIPAIR_PROGRAM_ID,
     )
     .0;
-    let expected_token_out_vault = Pubkey::find_program_address(
+    let expected_token_out_vault = Address::find_program_address(
         &[b"reserve_vault", pair.as_ref(), WSOL_MINT.as_ref()],
         &OMNIPAIR_PROGRAM_ID,
     )

@@ -44,10 +44,6 @@ impl<'info> TryFrom<&'info [AccountView]> for GammaSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 14 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [gamma_program, payer, authority, amm_config, pool_state, input_token_account, output_token_account, input_vault, output_vault, input_token_program, output_token_program, input_token_mint, output_token_mint, observation_state, ..] =
             accounts
         else {

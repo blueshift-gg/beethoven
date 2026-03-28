@@ -90,6 +90,20 @@ fn validate_tagged_program_account(
     }
 }
 
+fn split_accounts_checked(
+    accounts: &[AccountView],
+    count: usize,
+) -> Result<(&[AccountView], &[AccountView]), ProgramError> {
+    accounts
+        .split_at_checked(count)
+        .ok_or(ProgramError::NotEnoughAccountKeys)
+}
+
+fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), ProgramError> {
+    data.split_at_checked(count)
+        .ok_or(ProgramError::InvalidInstructionData)
+}
+
 /// Typed context for swap operations, discriminated by protocol.
 pub enum SwapContext<'info> {
     #[cfg(feature = "perena-swap")]
@@ -184,10 +198,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "perena-swap")]
             SwapContext::Perena(_) => {
                 let n = crate::perena::PerenaSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Perena(crate::perena::PerenaSwapData::try_from(mine)?),
                     rest,
@@ -197,10 +208,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "solfi-swap")]
             SwapContext::SolFi(_) => {
                 let n = crate::solfi::SolFiSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::SolFi(crate::solfi::SolFiSwapData::try_from(mine)?),
                     rest,
@@ -210,10 +218,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "solfi_v2-swap")]
             SwapContext::SolFiV2(_) => {
                 let n = crate::solfi_v2::SolFiV2SwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::SolFiV2(crate::solfi_v2::SolFiV2SwapData::try_from(mine)?),
                     rest,
@@ -223,10 +228,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "manifest-swap")]
             SwapContext::Manifest(_) => {
                 let n = crate::manifest::ManifestSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Manifest(crate::manifest::ManifestSwapData::try_from(mine)?),
                     rest,
@@ -246,10 +248,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "aldrin-swap")]
             SwapContext::Aldrin(_) => {
                 let n = crate::aldrin::AldrinSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Aldrin(crate::aldrin::AldrinSwapData::try_from(mine)?),
                     rest,
@@ -259,10 +258,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "aldrin_v2-swap")]
             SwapContext::AldrinV2(_) => {
                 let n = crate::aldrin_v2::AldrinV2SwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::AldrinV2(crate::aldrin_v2::AldrinV2SwapData::try_from(mine)?),
                     rest,
@@ -272,10 +268,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "futarchy-swap")]
             SwapContext::Futarchy(_) => {
                 let n = crate::futarchy::FutarchySwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Futarchy(crate::futarchy::FutarchySwapData::try_from(mine)?),
                     rest,
@@ -288,10 +281,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "scale_amm-swap")]
             SwapContext::ScaleAmm(_) => {
                 let n = crate::scale_amm::ScaleAmmSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::ScaleAmm(crate::scale_amm::ScaleAmmSwapData::try_from(mine)?),
                     rest,
@@ -301,10 +291,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "scale_vmm-swap")]
             SwapContext::ScaleVmm(_) => {
                 let n = crate::scale_vmm::ScaleVmmSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::ScaleVmm(crate::scale_vmm::ScaleVmmSwapData::try_from(mine)?),
                     rest,
@@ -578,22 +565,16 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::perena::PERENA_PROGRAM_ID,
     ) {
-        let n = crate::perena::PerenaSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::perena::PerenaSwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Perena(ctx), rest));
     }
 
     #[cfg(feature = "solfi-swap")]
     if address_eq(detector_account.address(), &crate::solfi::SOLFI_PROGRAM_ID) {
-        let n = crate::solfi::SolFiSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::solfi::SolFiSwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::solfi::SolFiSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::SolFi(ctx), rest));
     }
@@ -603,11 +584,8 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::solfi_v2::SOLFI_V2_PROGRAM_ID,
     ) {
-        let n = crate::solfi_v2::SolFiV2SwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::solfi_v2::SolFiV2SwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::solfi_v2::SolFiV2SwapAccounts::try_from(mine)?;
         return Ok((SwapContext::SolFiV2(ctx), rest));
     }
@@ -617,11 +595,10 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::manifest::MANIFEST_PROGRAM_ID,
     ) {
-        let n = crate::manifest::ManifestSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::manifest::ManifestSwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::manifest::ManifestSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Manifest(ctx), rest));
     }
@@ -631,11 +608,8 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::heaven::HEAVEN_PROGRAM_ID,
     ) {
-        let n = crate::heaven::HeavenSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::heaven::HeavenSwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::heaven::HeavenSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Heaven(ctx), rest));
     }
@@ -645,11 +619,8 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::aldrin::ALDRIN_PROGRAM_ID,
     ) {
-        let n = crate::aldrin::AldrinSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::aldrin::AldrinSwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::aldrin::AldrinSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Aldrin(ctx), rest));
     }
@@ -659,11 +630,10 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::aldrin_v2::ALDRIN_V2_PROGRAM_ID,
     ) {
-        let n = crate::aldrin_v2::AldrinV2SwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::aldrin_v2::AldrinV2SwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::aldrin_v2::AldrinV2SwapAccounts::try_from(mine)?;
         return Ok((SwapContext::AldrinV2(ctx), rest));
     }
@@ -673,22 +643,18 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::futarchy::FUTARCHY_PROGRAM_ID,
     ) {
-        let n = crate::futarchy::FutarchySwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::futarchy::FutarchySwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::futarchy::FutarchySwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Futarchy(ctx), rest));
     }
 
     #[cfg(feature = "gamma-swap")]
     if address_eq(detector_account.address(), &crate::gamma::GAMMA_PROGRAM_ID) {
-        let n = crate::gamma::GammaSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) =
+            split_accounts_checked(accounts, crate::gamma::GammaSwapAccounts::NUM_ACCOUNTS)?;
         let ctx = crate::gamma::GammaSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Gamma(ctx), rest));
     }
@@ -698,11 +664,10 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::scale_amm::SCALE_AMM_PROGRAM_ID,
     ) {
-        let n = crate::scale_amm::ScaleAmmSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::scale_amm::ScaleAmmSwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::ScaleAmm(ctx), rest));
     }
@@ -712,11 +677,10 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::scale_vmm::SCALE_VMM_PROGRAM_ID,
     ) {
-        let n = crate::scale_vmm::ScaleVmmSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::scale_vmm::ScaleVmmSwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::ScaleVmm(ctx), rest));
     }
@@ -726,11 +690,10 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::omnipair::OMNIPAIR_PROGRAM_ID,
     ) {
-        let n = crate::omnipair::OmnipairSwapAccounts::NUM_ACCOUNTS;
-        if accounts.len() < n {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-        let (mine, rest) = accounts.split_at(n);
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::omnipair::OmnipairSwapAccounts::NUM_ACCOUNTS,
+        )?;
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
     }
@@ -761,11 +724,7 @@ pub fn try_from_tagged_swap_context<'info>(
         .checked_add(remaining_accounts_len)
         .ok_or(ProgramError::InvalidInstructionData)?;
 
-    if accounts.len() < consumed_accounts {
-        return Err(ProgramError::NotEnoughAccountKeys);
-    }
-
-    let (mine, rest) = accounts.split_at(consumed_accounts);
+    let (mine, rest) = split_accounts_checked(accounts, consumed_accounts)?;
     let detector_account = mine.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     match tag {

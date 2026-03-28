@@ -45,10 +45,6 @@ impl<'info> TryFrom<&'info [AccountView]> for JupiterEarnDepositAccounts<'info> 
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 18 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [lending_program, signer, depositor_token_account, recipient_token_account, mint, lending_admin, lending, f_token_mint, supply_token_reserves_liquidity, lending_supply_position_on_liquidity, rate_model, vault, liquidity, liquidity_program, rewards_rate_model, token_program, associated_token_program, system_program, ..] =
             accounts
         else {

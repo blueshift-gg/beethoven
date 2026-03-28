@@ -45,10 +45,6 @@ impl<'info> TryFrom<&'info [AccountView]> for OmnipairSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < OmnipairSwapAccounts::NUM_ACCOUNTS {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [omnipair_program, pair, rate_model, futarchy_authority, token_in_vault, token_out_vault, user_token_in_account, user_token_out_account, token_in_mint, token_out_mint, user, token_program, token_2022_program, event_authority, program, ..] =
             accounts
         else {

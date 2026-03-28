@@ -84,10 +84,6 @@ impl<'info> TryFrom<&'info [AccountView]> for ScaleAmmSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < FIXED_ACCOUNT_COUNT {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [scale_amm_program, pool, user, owner, mint_a, mint_b, user_ta_a, user_ta_b, vault_a, vault_b, platform_fee_ta_a, token_program_a, token_program_b, system_program, config, beneficiary_accounts @ ..] =
             accounts
         else {

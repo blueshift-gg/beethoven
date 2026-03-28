@@ -68,10 +68,6 @@ impl<'info> TryFrom<&'info [AccountView]> for ManifestSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 15 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [manifest_program, payer, owner, market, system_program, trader_base, trader_quote, base_vault, quote_vault, token_program_base, base_mint, token_program_quote, quote_mint, global, global_vault, ..] =
             accounts
         else {

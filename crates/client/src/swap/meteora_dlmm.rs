@@ -1,10 +1,10 @@
-use {solana_instruction::AccountMeta, solana_pubkey::Pubkey};
+use {solana_address::Address, solana_instruction::AccountMeta};
 
-pub const METEORA_DLMM_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo");
+pub const METEORA_DLMM_PROGRAM_ID: Address =
+    Address::from_str_const("LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo");
 
-const MEMO_PROGRAM_ID: Pubkey =
-    Pubkey::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+const MEMO_PROGRAM_ID: Address =
+    Address::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
 #[cfg(feature = "resolve")]
 const OFFSET_ACTIVE_ID: usize = 76;
@@ -50,21 +50,21 @@ const EXT_BITMAP_WORDS: usize = 8;
 const MAX_BIN_ARRAY_ACCOUNTS: usize = 5;
 
 pub struct MeteoraDlmmSwapInput {
-    pub lb_pair: Pubkey,
-    pub bin_array_bitmap_extension: Pubkey,
-    pub reserve_x: Pubkey,
-    pub reserve_y: Pubkey,
-    pub user_token_in: Pubkey,
-    pub user_token_out: Pubkey,
-    pub token_x_mint: Pubkey,
-    pub token_y_mint: Pubkey,
-    pub oracle: Pubkey,
-    pub host_fee_in: Pubkey,
-    pub user: Pubkey,
-    pub token_x_program: Pubkey,
-    pub token_y_program: Pubkey,
-    pub event_authority: Pubkey,
-    pub bin_array_accounts: Vec<Pubkey>,
+    pub lb_pair: Address,
+    pub bin_array_bitmap_extension: Address,
+    pub reserve_x: Address,
+    pub reserve_y: Address,
+    pub user_token_in: Address,
+    pub user_token_out: Address,
+    pub token_x_mint: Address,
+    pub token_y_mint: Address,
+    pub oracle: Address,
+    pub host_fee_in: Address,
+    pub user: Address,
+    pub token_x_program: Address,
+    pub token_y_program: Address,
+    pub event_authority: Address,
+    pub bin_array_accounts: Vec<Address>,
 }
 
 pub fn build_accounts(input: &MeteoraDlmmSwapInput) -> Vec<AccountMeta> {
@@ -92,7 +92,7 @@ pub fn build_accounts(input: &MeteoraDlmmSwapInput) -> Vec<AccountMeta> {
         input
             .bin_array_accounts
             .iter()
-            .map(|pubkey| AccountMeta::new(*pubkey, false)),
+            .map(|address| AccountMeta::new(*address, false)),
     );
 
     accounts
@@ -106,11 +106,11 @@ pub fn build_extra_data() -> Vec<u8> {
 #[derive(Clone, Debug)]
 struct LbPairState {
     active_id: i32,
-    token_x_mint: Pubkey,
-    token_y_mint: Pubkey,
-    reserve_x: Pubkey,
-    reserve_y: Pubkey,
-    oracle: Pubkey,
+    token_x_mint: Address,
+    token_y_mint: Address,
+    reserve_x: Address,
+    reserve_y: Address,
+    oracle: Address,
     bin_array_bitmap: [u64; INTERNAL_BITMAP_WORDS],
     token_mint_x_program_flag: u8,
     token_mint_y_program_flag: u8,
@@ -144,8 +144,8 @@ impl LbPairState {
 
     fn infer_swap_direction(
         &self,
-        mint_a: &Pubkey,
-        mint_b: &Pubkey,
+        mint_a: &Address,
+        mint_b: &Address,
     ) -> Result<bool, crate::error::ClientError> {
         if *mint_a == self.token_x_mint && *mint_b == self.token_y_mint {
             Ok(true)
@@ -173,10 +173,10 @@ impl BitmapExtensionState {
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
-    lb_pair: &Pubkey,
-    mint_a: &Pubkey,
-    mint_b: &Pubkey,
-    user: &Pubkey,
+    lb_pair: &Address,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
     let lb_pair_account = rpc.get_account(lb_pair).await?;
     if lb_pair_account.owner != METEORA_DLMM_PROGRAM_ID {
@@ -324,9 +324,9 @@ pub async fn resolve(
 
 #[cfg(feature = "resolve")]
 fn validate_transfer_hook_support(
-    mint: &Pubkey,
-    token_program: &Pubkey,
-    owner: &Pubkey,
+    mint: &Address,
+    token_program: &Address,
+    owner: &Address,
     data: &[u8],
 ) -> Result<(), crate::error::ClientError> {
     use spl_token_2022_interface::{
@@ -362,7 +362,7 @@ fn validate_transfer_hook_support(
 }
 
 #[cfg(feature = "resolve")]
-fn token_program_from_flag(flag: u8) -> Result<Pubkey, crate::error::ClientError> {
+fn token_program_from_flag(flag: u8) -> Result<Address, crate::error::ClientError> {
     match flag {
         0 => Ok(crate::TOKEN_PROGRAM_ID),
         1 => Ok(crate::TOKEN_2022_PROGRAM_ID),
@@ -500,8 +500,8 @@ fn external_bitmap_bit_is_set(bitmap: &BitmapExtensionState, bin_array_index: i3
 }
 
 #[cfg(feature = "resolve")]
-fn derive_bin_array_bitmap_extension(lb_pair: Pubkey) -> Pubkey {
-    Pubkey::find_program_address(
+fn derive_bin_array_bitmap_extension(lb_pair: Address) -> Address {
+    Address::find_program_address(
         &[b"bin_array_bitmap", lb_pair.as_ref()],
         &METEORA_DLMM_PROGRAM_ID,
     )
@@ -509,8 +509,8 @@ fn derive_bin_array_bitmap_extension(lb_pair: Pubkey) -> Pubkey {
 }
 
 #[cfg(feature = "resolve")]
-fn derive_bin_array(lb_pair: Pubkey, bin_array_index: i32) -> Pubkey {
-    Pubkey::find_program_address(
+fn derive_bin_array(lb_pair: Address, bin_array_index: i32) -> Address {
+    Address::find_program_address(
         &[
             b"bin_array",
             lb_pair.as_ref(),
@@ -522,19 +522,19 @@ fn derive_bin_array(lb_pair: Pubkey, bin_array_index: i32) -> Pubkey {
 }
 
 #[cfg(feature = "resolve")]
-fn derive_event_authority() -> Pubkey {
-    Pubkey::find_program_address(&[b"__event_authority"], &METEORA_DLMM_PROGRAM_ID).0
+fn derive_event_authority() -> Address {
+    Address::find_program_address(&[b"__event_authority"], &METEORA_DLMM_PROGRAM_ID).0
 }
 
 #[cfg(feature = "resolve")]
 fn resolve_bin_array_accounts(
-    lb_pair: Pubkey,
+    lb_pair: Address,
     active_id: i32,
     internal_bitmap: &[u64; INTERNAL_BITMAP_WORDS],
     bitmap_extension: Option<&BitmapExtensionState>,
     swap_for_y: bool,
     take_count: usize,
-) -> Vec<Pubkey> {
+) -> Vec<Address> {
     let mut bin_array_accounts = Vec::with_capacity(take_count);
     let mut index = bin_id_to_bin_array_index(active_id);
     let min_index = if bitmap_extension.is_some() {
@@ -608,11 +608,11 @@ mod tests {
         let state = LbPairState::parse(&data).unwrap();
 
         assert_eq!(state.active_id, 123);
-        assert_eq!(state.token_x_mint, Pubkey::new_from_array([1u8; 32]));
-        assert_eq!(state.token_y_mint, Pubkey::new_from_array([2u8; 32]));
-        assert_eq!(state.reserve_x, Pubkey::new_from_array([3u8; 32]));
-        assert_eq!(state.reserve_y, Pubkey::new_from_array([4u8; 32]));
-        assert_eq!(state.oracle, Pubkey::new_from_array([5u8; 32]));
+        assert_eq!(state.token_x_mint, Address::new_from_array([1u8; 32]));
+        assert_eq!(state.token_y_mint, Address::new_from_array([2u8; 32]));
+        assert_eq!(state.reserve_x, Address::new_from_array([3u8; 32]));
+        assert_eq!(state.reserve_y, Address::new_from_array([4u8; 32]));
+        assert_eq!(state.oracle, Address::new_from_array([5u8; 32]));
         assert_eq!(state.bin_array_bitmap[0], 7);
         assert_eq!(state.token_mint_x_program_flag, 1);
         assert_eq!(state.token_mint_y_program_flag, 0);
@@ -620,7 +620,7 @@ mod tests {
 
     #[test]
     fn test_resolve_bin_array_accounts_crosses_internal_and_external_ranges() {
-        let lb_pair = Pubkey::new_unique();
+        let lb_pair = Address::new_unique();
         let mut internal_bitmap = [0u64; INTERNAL_BITMAP_WORDS];
         let mut bitmap_extension = BitmapExtensionState {
             positive_bitmaps: [[0u64; EXT_BITMAP_WORDS]; EXT_BITMAP_SEGMENTS],
