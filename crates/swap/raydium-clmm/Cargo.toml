@@ -1,0 +1,17 @@
+[package]
+name = "beethoven-swap-raydium-clmm"
+description = "Raydium CLMM swap_v2 implementation for Beethoven"
+version = "0.0.1"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+beethoven-core.workspace = true
+solana-account-view.workspace = true
+solana-address = { workspace = true, features = ["decode"] }
+solana-instruction-view.workspace = true
+solana-program-error.workspace = true
+
+[lib]
+test = false
+doctest = false

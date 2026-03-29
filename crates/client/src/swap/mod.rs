@@ -22,6 +22,9 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
+#[cfg(feature = "raydium_clmm")]
+pub mod raydium_clmm;
+
 #[cfg(feature = "perena")]
 pub mod perena;
 
@@ -89,6 +92,14 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
+    #[cfg(feature = "raydium_clmm")]
+    RaydiumClmm {
+        pool: Option<Address>,
+        sqrt_price_limit_x64: u128,
+        is_base_input: bool,
+    },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -204,6 +215,24 @@ pub async fn resolve_swap(
         #[cfg(feature = "raydium-cpmm")]
         SwapProtocol::RaydiumCpmm { pool } => {
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "raydium_clmm")]
+        SwapProtocol::RaydiumClmm {
+            pool,
+            sqrt_price_limit_x64,
+            is_base_input,
+        } => {
+            raydium_clmm::resolve(
+                rpc,
+                pool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit_x64,
+                *is_base_input,
+            )
+            .await
         }
 
         #[cfg(feature = "perena")]
