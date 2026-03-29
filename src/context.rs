@@ -703,12 +703,12 @@ pub fn try_from_swap_context<'info>(
         detector_account.address(),
         &crate::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
     ) {
-        let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(accounts)?;
-        let consumed_accounts = ctx.consumed_accounts_len();
-        return Ok((
-            SwapContext::MeteoraDlmm(ctx),
-            &accounts[consumed_accounts..],
-        ));
+        let (mine, rest) = split_accounts_checked(
+            accounts,
+            crate::meteora_dlmm::MeteoraDlmmSwapAccounts::NUM_ACCOUNTS,
+        )?;
+        let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(mine)?;
+        return Ok((SwapContext::MeteoraDlmm(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)
