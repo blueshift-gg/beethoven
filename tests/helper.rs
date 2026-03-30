@@ -35,6 +35,7 @@ pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+pub const FUTARCHY_PROGRAM_ID: Address = address!("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
@@ -587,6 +588,10 @@ pub fn hadron_fixtures_dir() -> String {
 
 pub fn raydium_cpmm_fixtures_dir() -> String {
     format!("{}/fixtures/swap/raydium-cpmm", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn futarchy_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/futarchy", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]

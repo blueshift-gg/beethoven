@@ -1,3 +1,4 @@
+mod futarchy;
 mod gamma;
 mod hadron;
 mod manifest;
