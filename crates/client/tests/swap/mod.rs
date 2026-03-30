@@ -6,6 +6,7 @@ mod heaven;
 mod manifest;
 mod omnipair;
 mod perena;
+mod pump_amm;
 mod scale_amm;
 mod scale_vmm;
 mod solfi;
