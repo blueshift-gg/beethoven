@@ -57,11 +57,18 @@ pub async fn resolve(
     rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
     dao: Option<&Address>,
     swap_type: u8,
-    _mint_a: &Address,
-    _mint_b: &Address,
+    mint_a: &Address,
+    mint_b: &Address,
     user: &Address,
 ) -> Result<(Vec<solana_instruction::AccountMeta>, Vec<u8>), ClientError> {
     use solana_instruction::AccountMeta;
+
+    if swap_type > 1 {
+        return Err(ClientError::InvalidAccountData(format!(
+            "Invalid futarchy swap_type: {} (expected 0 or 1)",
+            swap_type
+        )));
+    }
 
     // Futarchy requires an explicit DAO address — the embedded PoolState enum
     // makes getProgramAccounts with fixed memcmp offsets impractical.
@@ -86,6 +93,25 @@ pub async fn resolve(
     let quote_mint = crate::read_pubkey(&dao_data, quote_mint_offset)?;
     let amm_base_vault = crate::read_pubkey(&dao_data, base_vault_offset)?;
     let amm_quote_vault = crate::read_pubkey(&dao_data, quote_vault_offset)?;
+
+    let pair_matches = (*mint_a == base_mint && *mint_b == quote_mint)
+        || (*mint_a == quote_mint && *mint_b == base_mint);
+    if !pair_matches {
+        return Err(ClientError::MintMismatch {
+            expected: format!("{}/{}", base_mint, quote_mint),
+            got: format!("{}/{}", mint_a, mint_b),
+        });
+    }
+
+    let base_token_program = crate::get_token_program_for_mint(rpc, &base_mint).await?;
+    let quote_token_program = crate::get_token_program_for_mint(rpc, &quote_mint).await?;
+    if base_token_program != crate::TOKEN_PROGRAM_ID
+        || quote_token_program != crate::TOKEN_PROGRAM_ID
+    {
+        return Err(ClientError::InvalidAccountData(
+            "Futarchy mints must be owned by the SPL Token program".to_string(),
+        ));
+    }
 
     let user_base_ata =
         crate::get_associated_token_address(user, &base_mint, &crate::TOKEN_PROGRAM_ID);
