@@ -13,6 +13,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "pump_amm")]
+pub mod pump_amm;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -43,6 +46,12 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Address> },
+
+    #[cfg(feature = "pump_amm")]
+    PumpAmm {
+        pool: Option<Address>,
+        track_volume: Option<bool>,
+    },
 }
 
 /// A single step in a multi-swap composition.
@@ -93,6 +102,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "pump_amm")]
+        SwapProtocol::PumpAmm { pool, track_volume } => {
+            pump_amm::resolve(rpc, pool.as_ref(), *track_volume, mint_a, mint_b, user).await
         }
     }
 }

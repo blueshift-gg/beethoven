@@ -57,6 +57,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
+
+    #[cfg(feature = "pump_amm-swap")]
+    PumpAmm(crate::pump_amm::PumpAmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -96,6 +99,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "pump_amm-swap")]
+    PumpAmm(crate::pump_amm::PumpAmmSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -210,6 +216,16 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
+            #[cfg(feature = "pump_amm-swap")]
+            SwapContext::PumpAmm(_) => {
+                let n = crate::pump_amm::PumpAmmSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::PumpAmm(crate::pump_amm::PumpAmmSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -355,6 +371,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "pump_amm-swap")]
+            (SwapContext::PumpAmm(accounts), SwapData::PumpAmm(d)) => {
+                crate::pump_amm::PumpAmm::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
                     signer_seeds,
                 )
             }
@@ -517,6 +544,15 @@ pub fn try_from_swap_context<'info>(
         )?;
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
+    }
+
+    #[cfg(feature = "pump_amm-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::pump_amm::PUMP_AMM_PROGRAM_ID,
+    ) {
+        let ctx = crate::pump_amm::PumpAmmSwapAccounts::try_from(accounts)?;
+        return Ok((SwapContext::PumpAmm(ctx), &[]));
     }
 
     Err(ProgramError::InvalidAccountData)
