@@ -63,10 +63,6 @@ impl<'info> TryFrom<&'info [AccountView]> for DriftDepositAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        if accounts.len() < 8 {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        }
-
         let [drift_program, state, user, user_stats, authority, spot_market_vault, user_token_account, token_program, remaining_accounts @ ..] =
             accounts
         else {
