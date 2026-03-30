@@ -15,7 +15,7 @@ use {
 pub const PERENA_PROGRAM_ID: Address =
     Address::from_str_const("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 
-const SWAP_DISCRIMINATOR: [u8; 8] = [104, 104, 131, 86, 161, 189, 180, 216];
+const SWAP_EXACT_IN_DISCRIMINATOR: [u8; 8] = [104, 104, 131, 86, 161, 189, 180, 216];
 
 pub struct Perena;
 
@@ -130,7 +130,7 @@ impl<'info> Swap<'info> for Perena {
         let mut instruction_data = MaybeUninit::<[u8; 26]>::uninit();
         unsafe {
             let ptr = instruction_data.as_mut_ptr() as *mut u8;
-            core::ptr::copy_nonoverlapping(SWAP_DISCRIMINATOR.as_ptr(), ptr, 8);
+            core::ptr::copy_nonoverlapping(SWAP_EXACT_IN_DISCRIMINATOR.as_ptr(), ptr, 8);
             core::ptr::write(ptr.add(8), data.in_index);
             core::ptr::write(ptr.add(9), data.out_index);
             core::ptr::copy_nonoverlapping(in_amount.to_le_bytes().as_ptr(), ptr.add(10), 8);

@@ -4932,9 +4932,9 @@ dependencies = [
 
 [[package]]
 name = "solana-zero-copy"
-version = "1.1.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07616ca3aa7789d40da7b5ec5708394acdb24656cf0968b9027a98f9666322bb"
+checksum = "c5a91404c7de468dd80658cdb5d894ec803d1092ea6e2bfdf84eee6f07559c0d"
 dependencies = [
  "borsh",
  "bytemuck",
