@@ -183,6 +183,8 @@ beethoven-client = { workspace = true, features = [
 ] }
 solana-rpc-client.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+spl-associated-token-account = "8.0.0"
+spl-token-2022-interface = "2.1.0"
 
 [profile.release]
 opt-level = 3

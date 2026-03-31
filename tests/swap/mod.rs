@@ -1,6 +1,7 @@
 mod futarchy;
 mod gamma;
 mod hadron;
+mod heaven;
 mod manifest;
 mod multi_swap;
 mod omnipair;
