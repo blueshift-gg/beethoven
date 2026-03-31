@@ -594,6 +594,10 @@ pub fn futarchy_fixtures_dir() -> String {
     format!("{}/fixtures/swap/futarchy", env!("CARGO_MANIFEST_DIR"))
 }
 
+pub fn perena_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/perena", env!("CARGO_MANIFEST_DIR"))
+}
+
 #[cfg(feature = "upstream-bpf")]
 pub fn beethoven_program_path() -> String {
     format!(

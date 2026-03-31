@@ -18,6 +18,9 @@ pub mod hadron;
 #[cfg(feature = "raydium_cpmm")]
 pub mod raydium_cpmm;
 
+#[cfg(feature = "perena")]
+pub mod perena;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -57,6 +60,12 @@ pub enum SwapProtocol {
     },
     #[cfg(feature = "raydium_cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+    #[cfg(feature = "perena")]
+    Perena {
+        pool: Option<Address>,
+        in_index: u8,
+        out_index: u8,
+    },
 }
 
 /// A single step in a multi-swap composition.
@@ -130,6 +139,24 @@ pub async fn resolve_swap(
         #[cfg(feature = "raydium_cpmm")]
         SwapProtocol::RaydiumCpmm { pool } => {
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "perena")]
+        SwapProtocol::Perena {
+            pool,
+            in_index,
+            out_index,
+        } => {
+            perena::resolve(
+                rpc,
+                pool.as_ref(),
+                *in_index,
+                *out_index,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
         }
     }
 }
