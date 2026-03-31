@@ -113,8 +113,9 @@ pub async fn resolve(
                 &PUMP_AMM_PROGRAM_ID,
                 OFFSET_BASE_MINT,
                 OFFSET_QUOTE_MINT,
-                mint_a,
+                // the usual order is inverted for Pump AMM: mint_a is quote, mint_b is base
                 mint_b,
+                mint_a,
             )
             .await?;
             (pk, account.data)

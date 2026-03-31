@@ -1,6 +1,7 @@
 use {
     beethoven_client::{
         resolve_swap, SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -13,8 +14,6 @@ const PUMP_AMM_PROGRAM_ID: Address =
     Address::from_str_const("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 const FEE_PROGRAM_ID: Address =
     Address::from_str_const("pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ");
-const TOKEN_PROGRAM_ID: Address =
-    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -52,37 +51,37 @@ async fn test_pump_amm_resolve_with_known_pool() {
     assert!(accounts[2].is_writable);
 
     // Global config
-    assert!(accounts[3].is_writable);
+    assert!(!accounts[3].is_writable);
 
     // Base mint
-    assert_eq!(accounts[4].pubkey, WSOL_MINT);
+    assert_eq!(accounts[4].pubkey, USDC_MINT);
 
     // Quote mint
-    assert_eq!(accounts[5].pubkey, USDC_MINT);
+    assert_eq!(accounts[5].pubkey, WSOL_MINT);
 
     // User base token account
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[6].pubkey, expected_wsol_ata);
+    let expected_usdc_ata =
+        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[6].pubkey, expected_usdc_ata);
     assert!(accounts[6].is_writable);
 
     // User quote token account
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[7].pubkey, expected_usdc_ata);
+    let expected_wsol_ata =
+        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[7].pubkey, expected_wsol_ata);
     assert!(accounts[7].is_writable);
 
     let pool = accounts[1].pubkey;
 
     // Pool base token account
     let expected_pool_base_token_account =
-        beethoven_client::get_associated_token_address(&pool, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+        beethoven_client::get_associated_token_address(&pool, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[8].pubkey, expected_pool_base_token_account);
     assert!(accounts[8].is_writable);
 
     // Pool quote token account
     let expected_pool_quote_token_account =
-        beethoven_client::get_associated_token_address(&pool, &USDC_MINT, &TOKEN_PROGRAM_ID);
+        beethoven_client::get_associated_token_address(&pool, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[9].pubkey, expected_pool_quote_token_account);
     assert!(accounts[9].is_writable);
 
@@ -134,7 +133,7 @@ async fn test_pump_amm_resolve_with_known_pool() {
     assert!(!accounts[20].is_writable);
 
     // User volume accumulator
-    assert!(!accounts[21].is_writable);
+    assert!(accounts[21].is_writable);
 
     // Fee config
     assert!(!accounts[22].is_writable);
