@@ -137,14 +137,21 @@ pub fn create_account_for_mint(mint_data: Mint) -> Account {
 }
 
 /// Create an Account for a Token Account
-pub fn create_account_for_token_account(token_account_data: TokenAccount) -> Account {
+pub fn create_account_for_token_account(
+    token_account_data: TokenAccount,
+    is_2022: bool,
+) -> Account {
     let mut data = vec![0u8; TokenAccount::LEN];
     TokenAccount::pack(token_account_data, &mut data).unwrap();
 
     Account {
         lamports: Rent::default().minimum_balance(TokenAccount::LEN),
         data,
-        owner: TOKEN_PROGRAM_ID,
+        owner: if is_2022 {
+            TOKEN_2022_PROGRAM_ID
+        } else {
+            TOKEN_PROGRAM_ID
+        },
         executable: false,
         rent_epoch: 0,
     }
@@ -156,18 +163,22 @@ pub fn create_token_account(
     owner: &Address,
     mint: &Address,
     amount: u64,
+    is_2022: bool,
 ) -> Address {
     let pubkey = Keypair::new().pubkey();
-    let account = create_account_for_token_account(TokenAccount {
-        mint: *mint,
-        owner: *owner,
-        amount,
-        delegate: COption::None,
-        state: AccountState::Initialized,
-        is_native: COption::None,
-        delegated_amount: 0,
-        close_authority: COption::None,
-    });
+    let account = create_account_for_token_account(
+        TokenAccount {
+            mint: *mint,
+            owner: *owner,
+            amount,
+            delegate: COption::None,
+            state: AccountState::Initialized,
+            is_native: COption::None,
+            delegated_amount: 0,
+            close_authority: COption::None,
+        },
+        is_2022,
+    );
     svm.set_account(pubkey, account).unwrap();
     pubkey
 }
@@ -179,17 +190,21 @@ pub fn create_token_account_at(
     owner: &Address,
     mint: &Address,
     amount: u64,
+    is_2022: bool,
 ) {
-    let account = create_account_for_token_account(TokenAccount {
-        mint: *mint,
-        owner: *owner,
-        amount,
-        delegate: COption::None,
-        state: AccountState::Initialized,
-        is_native: COption::None,
-        delegated_amount: 0,
-        close_authority: COption::None,
-    });
+    let account = create_account_for_token_account(
+        TokenAccount {
+            mint: *mint,
+            owner: *owner,
+            amount,
+            delegate: COption::None,
+            state: AccountState::Initialized,
+            is_native: COption::None,
+            delegated_amount: 0,
+            close_authority: COption::None,
+        },
+        is_2022,
+    );
     svm.set_account(pubkey, account).unwrap();
 }
 

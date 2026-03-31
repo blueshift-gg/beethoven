@@ -67,8 +67,15 @@ fn test_futarchy_swap() {
     // Selling USDC for META (output)
     let initial_usdc = 1_000_000_000u64; // 1000 USDC
     let initial_meta = 0u64;
-    let trader_input = create_token_account(&mut svm, &payer.pubkey(), &METADAO_MINT, initial_meta);
-    let trader_output = create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc);
+    let trader_input = create_token_account(
+        &mut svm,
+        &payer.pubkey(),
+        &METADAO_MINT,
+        initial_meta,
+        false,
+    );
+    let trader_output =
+        create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc, false);
 
     // Build swap instruction: sell 10 USDC for META
     let in_amount = 10_000_000u64; // 10 USDC

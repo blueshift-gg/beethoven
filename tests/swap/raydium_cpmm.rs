@@ -80,8 +80,10 @@ fn test_raydium_cpmm_swap_cpi() {
     // Selling SOL (input=WSOL) for USDC (output)
     let initial_wsol = 1_000_000_000u64;
     let initial_usdc = 0u64;
-    let trader_input = create_token_account(&mut svm, &payer.pubkey(), &WSOL_MINT, initial_wsol);
-    let trader_output = create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc);
+    let trader_input =
+        create_token_account(&mut svm, &payer.pubkey(), &WSOL_MINT, initial_wsol, false);
+    let trader_output =
+        create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc, false);
 
     let in_amount = 1_000_000u64;
     let min_out_amount = 1u64;

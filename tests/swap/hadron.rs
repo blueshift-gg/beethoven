@@ -109,8 +109,10 @@ fn test_hadron_swap_cpi() {
     // Selling SOL (input=WSOL) for USDC (output)
     let initial_wsol = 1_000_000_000u64; // 1 SOL
     let initial_usdc = 0u64;
-    let trader_input = create_token_account(&mut svm, &payer.pubkey(), &WSOL_MINT, initial_wsol);
-    let trader_output = create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc);
+    let trader_input =
+        create_token_account(&mut svm, &payer.pubkey(), &WSOL_MINT, initial_wsol, false);
+    let trader_output =
+        create_token_account(&mut svm, &payer.pubkey(), &USDC_MINT, initial_usdc, false);
 
     // Build swap instruction: sell 0.001 SOL for USDC
     let in_amount = 1_000_000u64; // 0.001 SOL

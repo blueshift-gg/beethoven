@@ -189,6 +189,7 @@ async fn test_route_gamma_wsol_to_usdt_to_usdc() {
         &payer.pubkey(),
         &WSOL_MINT,
         initial_wsol,
+        false,
     );
     create_token_account_at(
         &mut svm,
@@ -196,8 +197,16 @@ async fn test_route_gamma_wsol_to_usdt_to_usdc() {
         &payer.pubkey(),
         &USDT_MINT,
         0,
+        false,
     );
-    create_token_account_at(&mut svm, final_usdc_account, &payer.pubkey(), &USDC_MINT, 0);
+    create_token_account_at(
+        &mut svm,
+        final_usdc_account,
+        &payer.pubkey(),
+        &USDC_MINT,
+        0,
+        false,
+    );
 
     let initial_in_amount = 1_000_000u64;
     let instruction = build_route_instruction(
@@ -281,6 +290,7 @@ async fn test_route_rejects_mismatched_adjacent_token_accounts() {
         &payer.pubkey(),
         &WSOL_MINT,
         50_000_000,
+        false,
     );
     create_token_account_at(
         &mut svm,
@@ -288,6 +298,7 @@ async fn test_route_rejects_mismatched_adjacent_token_accounts() {
         &payer.pubkey(),
         &USDC_MINT,
         0,
+        false,
     );
 
     let instruction = build_route_instruction(

@@ -132,6 +132,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         &payer.pubkey(),
         &WSOL_MINT,
         50_000_000,
+        false,
     );
     create_token_account_at(
         &mut svm,
@@ -139,6 +140,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         &payer.pubkey(),
         &USDC_MINT,
         0,
+        false,
     );
     create_token_account_at(
         &mut svm,
@@ -146,6 +148,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         &payer.pubkey(),
         &WSOL_MINT,
         50_000_000,
+        false,
     );
     create_token_account_at(
         &mut svm,
@@ -153,6 +156,7 @@ async fn test_multi_swap_manifest_and_gamma() {
         &payer.pubkey(),
         &USDC_MINT,
         0,
+        false,
     );
 
     let swap_amount = 1_000_000u64; // 0.001 SOL per swap

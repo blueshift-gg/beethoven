@@ -139,8 +139,10 @@ fn test_manifest_swap_cpi() {
     // Create trader token accounts with initial balances
     let initial_wsol = 1_000_000_000u64; // 1 SOL in lamports
     let initial_usdc = 0u64;
-    let trader_base = create_token_account(&mut svm, &payer.pubkey(), &wsol_mint, initial_wsol);
-    let trader_quote = create_token_account(&mut svm, &payer.pubkey(), &usdc_mint, initial_usdc);
+    let trader_base =
+        create_token_account(&mut svm, &payer.pubkey(), &wsol_mint, initial_wsol, false);
+    let trader_quote =
+        create_token_account(&mut svm, &payer.pubkey(), &usdc_mint, initial_usdc, false);
 
     // Verify initial balances
     assert_eq!(get_token_balance(&svm, &trader_base), initial_wsol);
@@ -263,29 +265,35 @@ fn test_manifest_swap_cpi_mollusk() {
     // Create trader token accounts
     let trader_base_addr = Address::new_from_array([0x03; 32]);
     let initial_wsol = 1_000_000_000u64; // 1 SOL
-    let trader_base_account = create_account_for_token_account(TokenAccount {
-        mint: wsol_mint_addr,
-        owner: payer,
-        amount: initial_wsol,
-        delegate: COption::None,
-        state: AccountState::Initialized,
-        is_native: COption::None,
-        delegated_amount: 0,
-        close_authority: COption::None,
-    });
+    let trader_base_account = create_account_for_token_account(
+        TokenAccount {
+            mint: wsol_mint_addr,
+            owner: payer,
+            amount: initial_wsol,
+            delegate: COption::None,
+            state: AccountState::Initialized,
+            is_native: COption::None,
+            delegated_amount: 0,
+            close_authority: COption::None,
+        },
+        false,
+    );
 
     let trader_quote_addr = Address::new_from_array([0x04; 32]);
     let initial_usdc = 0u64;
-    let trader_quote_account = create_account_for_token_account(TokenAccount {
-        mint: usdc_mint_addr,
-        owner: payer,
-        amount: initial_usdc,
-        delegate: COption::None,
-        state: AccountState::Initialized,
-        is_native: COption::None,
-        delegated_amount: 0,
-        close_authority: COption::None,
-    });
+    let trader_quote_account = create_account_for_token_account(
+        TokenAccount {
+            mint: usdc_mint_addr,
+            owner: payer,
+            amount: initial_usdc,
+            delegate: COption::None,
+            state: AccountState::Initialized,
+            is_native: COption::None,
+            delegated_amount: 0,
+            close_authority: COption::None,
+        },
+        false,
+    );
 
     // Build swap instruction: sell 0.1 SOL for USDC
     let in_amount = 100_000_000u64; // 0.1 SOL
