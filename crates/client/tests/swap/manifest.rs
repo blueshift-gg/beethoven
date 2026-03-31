@@ -1,5 +1,5 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol},
+    beethoven_client::{resolve_swap, SwapProtocol, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID},
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
@@ -13,9 +13,6 @@ const QUOTE_VAULT: Address =
 
 const MANIFEST_PROGRAM_ID: Address =
     Address::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
-const TOKEN_PROGRAM_ID: Address =
-    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const SYSTEM_PROGRAM_ID: Address = Address::from_str_const("11111111111111111111111111111111");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())

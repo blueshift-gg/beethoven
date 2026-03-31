@@ -1,5 +1,5 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol},
+    beethoven_client::{resolve_swap, SwapProtocol, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
@@ -9,10 +9,6 @@ const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC
 
 const OMNIPAIR_PROGRAM_ID: Address =
     Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
-const TOKEN_PROGRAM_ID: Address =
-    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const TOKEN_2022_PROGRAM_ID: Address =
-    Address::from_str_const("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
