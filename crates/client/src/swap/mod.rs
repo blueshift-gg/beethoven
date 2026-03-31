@@ -21,6 +21,9 @@ pub mod raydium_cpmm;
 #[cfg(feature = "perena")]
 pub mod perena;
 
+#[cfg(feature = "heaven")]
+pub mod heaven;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -65,6 +68,13 @@ pub enum SwapProtocol {
         pool: Option<Address>,
         in_index: u8,
         out_index: u8,
+    },
+
+    #[cfg(feature = "heaven")]
+    Heaven {
+        pool: Option<Address>,
+        direction: u8,
+        encoded_user_defined_event_data: Vec<u8>,
     },
 }
 
@@ -152,6 +162,24 @@ pub async fn resolve_swap(
                 pool.as_ref(),
                 *in_index,
                 *out_index,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "heaven")]
+        SwapProtocol::Heaven {
+            pool,
+            direction,
+            encoded_user_defined_event_data,
+        } => {
+            heaven::resolve(
+                rpc,
+                pool.as_ref(),
+                *direction,
+                encoded_user_defined_event_data,
                 mint_a,
                 mint_b,
                 user,

@@ -17,6 +17,7 @@ swap = [
     "hadron",
     "raydium_cpmm",
     "perena",
+    "heaven",
 ]
 
 deposit = []
@@ -37,6 +38,7 @@ omnipair = []
 hadron = []
 raydium_cpmm = []
 perena = []
+heaven = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }
