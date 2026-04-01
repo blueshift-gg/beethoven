@@ -19,6 +19,9 @@ pub mod omnipair;
 #[cfg(feature = "hadron")]
 pub mod hadron;
 
+#[cfg(feature = "pancake")]
+pub mod pancake;
+
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
@@ -89,6 +92,14 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
+    #[cfg(feature = "pancake")]
+    Pancake {
+        pool: Option<Address>,
+        sqrt_price_limit_x64: u128,
+        is_base_input: bool,
+    },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -204,6 +215,24 @@ pub async fn resolve_swap(
         #[cfg(feature = "raydium-cpmm")]
         SwapProtocol::RaydiumCpmm { pool } => {
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "pancake")]
+        SwapProtocol::Pancake {
+            pool,
+            sqrt_price_limit_x64,
+            is_base_input,
+        } => {
+            pancake::resolve(
+                rpc,
+                pool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit_x64,
+                *is_base_input,
+            )
+            .await
         }
 
         #[cfg(feature = "perena")]

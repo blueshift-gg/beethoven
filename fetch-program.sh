@@ -1,0 +1,1 @@
+solana program dump HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq fixtures/swap/pancake/pancake.so -u 'https://mainnet.helius-rpc.com/?api-key=f08679a5-b3bb-44e6-840a-a330150160d7'
