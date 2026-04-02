@@ -58,7 +58,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 
-    #[cfg(feature = "meteora-damm-v2")]
+    #[cfg(feature = "meteora_damm_v2-swap")]
     MeteoraDammV2(crate::meteora_damm_v2::MeteoraDammV2SwapAccounts<'info>),
 }
 
@@ -100,7 +100,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
 
-    #[cfg(feature = "meteora-damm-v2")]
+    #[cfg(feature = "meteora_damm_v2-swap")]
     MeteoraDammV2(crate::meteora_damm_v2::MeteoraDammV2SwapData),
 }
 
@@ -217,7 +217,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
 
-            #[cfg(feature = "meteora-damm-v2")]
+            #[cfg(feature = "meteora_damm_v2-swap")]
             SwapContext::MeteoraDammV2(_) => {
                 let n = crate::meteora_damm_v2::MeteoraDammV2SwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -377,7 +377,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "meteora-damm-v2")]
+            #[cfg(feature = "meteora_damm_v2-swap")]
             (SwapContext::MeteoraDammV2(accounts), SwapData::MeteoraDammV2(d)) => {
                 crate::meteora_damm_v2::MeteoraDammV2::swap_signed(
                     accounts,
@@ -548,7 +548,7 @@ pub fn try_from_swap_context<'info>(
         return Ok((SwapContext::Omnipair(ctx), rest));
     }
 
-    #[cfg(feature = "meteora-damm-v2")]
+    #[cfg(feature = "meteora_damm_v2-swap")]
     if address_eq(
         detector_account.address(),
         &crate::meteora_damm_v2::METEORA_DAMM_V2_PROGRAM_ID,
