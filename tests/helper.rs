@@ -496,7 +496,7 @@ pub fn omnipair_fixtures_dir() -> String {
 }
 
 pub fn pump_amm_fixtures_dir() -> String {
-    format!("{}/fixtures/swap/pump_amm", env!("CARGO_MANIFEST_DIR"))
+    format!("{}/fixtures/swap/pump-amm", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]
