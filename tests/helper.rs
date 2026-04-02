@@ -499,7 +499,7 @@ pub fn hadron_fixtures_dir() -> String {
 }
 
 pub fn raydium_cpmm_fixtures_dir() -> String {
-    format!("{}/fixtures/swap/raydium_cpmm", env!("CARGO_MANIFEST_DIR"))
+    format!("{}/fixtures/swap/raydium-cpmm", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]

@@ -15,7 +15,7 @@ fn get_rpc_url() -> String {
 }
 
 #[tokio::test]
-async fn test_raydium_cpmm_resolve_with_known_pair() {
+async fn test_raydium_cpmm_resolve_with_known_pool() {
     let rpc = RpcClient::new(get_rpc_url());
     let user = Address::from_str_const("11111111111111111111111111111112");
 
