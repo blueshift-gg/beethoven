@@ -61,54 +61,54 @@ async fn test_hadron_resolve_with_known_pool() {
     );
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, HADRON_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, HADRON_PROGRAM_ID, "hadron program");
 
     // Token program x
-    assert_eq!(accounts[1].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[1].pubkey, TOKEN_PROGRAM_ID, "token program x");
 
     // Token program y
-    assert_eq!(accounts[2].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[2].pubkey, TOKEN_PROGRAM_ID, "token program y");
 
     // Config
     assert_eq!(accounts[3].pubkey, POOL_CONFIG, "config");
 
     // Midprice oracle
-    assert_eq!(accounts[4].pubkey, MIDPRICE_ORACLE);
+    assert_eq!(accounts[4].pubkey, MIDPRICE_ORACLE, "midprice oracle");
 
     // Curve meta
-    assert_eq!(accounts[5].pubkey, CURVE_META);
+    assert_eq!(accounts[5].pubkey, CURVE_META, "curve meta");
 
     // Curve prefabs
-    assert_eq!(accounts[6].pubkey, CURVE_PREFABS);
+    assert_eq!(accounts[6].pubkey, CURVE_PREFABS, "curve prefabs");
     assert!(accounts[6].is_writable);
 
     // User
-    assert_eq!(accounts[7].pubkey, user);
+    assert_eq!(accounts[7].pubkey, user, "user");
     assert!(accounts[7].is_signer);
     assert!(!accounts[7].is_writable);
 
     // User source
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[8].pubkey, expected_wsol_ata, "user_source");
+    assert_eq!(accounts[8].pubkey, expected_wsol_ata, "user source");
     assert!(accounts[8].is_writable);
 
     // Vault source
-    assert_eq!(accounts[9].pubkey, VAULT_MINT_X);
+    assert_eq!(accounts[9].pubkey, VAULT_MINT_X, "vault source");
     assert!(accounts[9].is_writable);
 
     // Vault dest
-    assert_eq!(accounts[10].pubkey, VAULT_MINT_Y);
+    assert_eq!(accounts[10].pubkey, VAULT_MINT_Y, "vault dest");
     assert!(accounts[10].is_writable);
 
     // User dest
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[11].pubkey, expected_usdc_ata, "user_dest");
+    assert_eq!(accounts[11].pubkey, expected_usdc_ata, "user dest");
     assert!(accounts[11].is_writable);
 
     // Fee config PDA
-    assert_eq!(accounts[12].pubkey, FEE_CONFIG_PDA);
+    assert_eq!(accounts[12].pubkey, FEE_CONFIG_PDA, "fee config PDA");
 
     // Fee recipient ATA
     assert_eq!(
@@ -118,20 +118,21 @@ async fn test_hadron_resolve_with_known_pool() {
     assert!(accounts[13].is_writable);
 
     // Sysvar clock
-    assert_eq!(accounts[14].pubkey, SYSVAR_CLOCK_ID);
+    assert_eq!(accounts[14].pubkey, SYSVAR_CLOCK_ID, "sysvar clock");
 
     // Curve updates
-    assert_eq!(accounts[15].pubkey, CURVE_UPDATES);
+    assert_eq!(accounts[15].pubkey, CURVE_UPDATES, "curve updates");
     assert!(accounts[15].is_writable);
 
     if accounts.len() == 18 {
         // Spread config
-        assert_eq!(accounts[16].pubkey, SPREAD_CONFIG);
+        assert_eq!(accounts[16].pubkey, SPREAD_CONFIG, "spread config");
 
         // Sysvar instructions
         assert_eq!(
             accounts[17].pubkey,
-            beethoven_client::SYSVAR_INSTRUCTIONS_ID
+            beethoven_client::SYSVAR_INSTRUCTIONS_ID,
+            "sysvar instructions"
         );
     }
 
@@ -168,54 +169,54 @@ async fn test_hadron_resolve_flipped_mints() {
     );
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, HADRON_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, HADRON_PROGRAM_ID, "hadron program");
 
     // Token program x
-    assert_eq!(accounts[1].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[1].pubkey, TOKEN_PROGRAM_ID, "token program x");
 
     // Token program y
-    assert_eq!(accounts[2].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[2].pubkey, TOKEN_PROGRAM_ID, "token program y");
 
     // Config
     assert_eq!(accounts[3].pubkey, POOL_CONFIG, "config");
 
     // Midprice oracle (PDAs use canonical pool mint order)
-    assert_eq!(accounts[4].pubkey, MIDPRICE_ORACLE);
+    assert_eq!(accounts[4].pubkey, MIDPRICE_ORACLE, "midprice oracle");
 
     // Curve meta
-    assert_eq!(accounts[5].pubkey, CURVE_META);
+    assert_eq!(accounts[5].pubkey, CURVE_META, "curve meta");
 
     // Curve prefabs
-    assert_eq!(accounts[6].pubkey, CURVE_PREFABS);
+    assert_eq!(accounts[6].pubkey, CURVE_PREFABS, "curve prefabs");
     assert!(accounts[6].is_writable);
 
     // User
-    assert_eq!(accounts[7].pubkey, user);
+    assert_eq!(accounts[7].pubkey, user, "user");
     assert!(accounts[7].is_signer);
     assert!(!accounts[7].is_writable);
 
     // User source
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[8].pubkey, expected_usdc_ata, "user_source");
+    assert_eq!(accounts[8].pubkey, expected_usdc_ata, "user source");
     assert!(accounts[8].is_writable);
 
     // Vault source
-    assert_eq!(accounts[9].pubkey, VAULT_MINT_Y);
+    assert_eq!(accounts[9].pubkey, VAULT_MINT_Y, "vault source");
     assert!(accounts[9].is_writable);
 
     // Vault dest
-    assert_eq!(accounts[10].pubkey, VAULT_MINT_X);
+    assert_eq!(accounts[10].pubkey, VAULT_MINT_X, "vault dest");
     assert!(accounts[10].is_writable);
 
     // User dest
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[11].pubkey, expected_wsol_ata, "user_dest");
+    assert_eq!(accounts[11].pubkey, expected_wsol_ata, "user dest");
     assert!(accounts[11].is_writable);
 
     // Fee config PDA
-    assert_eq!(accounts[12].pubkey, FEE_CONFIG_PDA);
+    assert_eq!(accounts[12].pubkey, FEE_CONFIG_PDA, "fee config PDA");
 
     // Fee recipient ATA
     let fee_recipient_usdc_ata = beethoven_client::get_associated_token_address(
@@ -230,20 +231,21 @@ async fn test_hadron_resolve_flipped_mints() {
     assert!(accounts[13].is_writable);
 
     // Sysvar clock
-    assert_eq!(accounts[14].pubkey, SYSVAR_CLOCK_ID);
+    assert_eq!(accounts[14].pubkey, SYSVAR_CLOCK_ID, "sysvar clock");
 
     // Curve updates
-    assert_eq!(accounts[15].pubkey, CURVE_UPDATES);
+    assert_eq!(accounts[15].pubkey, CURVE_UPDATES, "curve updates");
     assert!(accounts[15].is_writable);
 
     if accounts.len() == 18 {
         // Spread config
-        assert_eq!(accounts[16].pubkey, SPREAD_CONFIG);
+        assert_eq!(accounts[16].pubkey, SPREAD_CONFIG, "spread config");
 
         // Sysvar instructions
         assert_eq!(
             accounts[17].pubkey,
-            beethoven_client::SYSVAR_INSTRUCTIONS_ID
+            beethoven_client::SYSVAR_INSTRUCTIONS_ID,
+            "sysvar instructions"
         );
     }
 
