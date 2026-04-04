@@ -568,6 +568,7 @@ dependencies = [
  "beethoven-swap-manifest",
  "beethoven-swap-omnipair",
  "beethoven-swap-perena",
+ "beethoven-swap-raydium-amm-v4",
  "beethoven-swap-raydium-cpmm",
  "beethoven-swap-scale-amm",
  "beethoven-swap-scale-vmm",
@@ -756,6 +757,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-perena"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-raydium-amm-v4"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
