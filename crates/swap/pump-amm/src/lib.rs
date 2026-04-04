@@ -16,7 +16,7 @@ pub const PUMP_AMM_PROGRAM_ID: Address =
     Address::from_str_const("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 
 const BUY_DISCRIMINATOR: [u8; 8] = [102, 6, 61, 18, 1, 218, 235, 234];
-// Optional WSOL associated token account of the UserVolumeAccumulator for Pump AMM program
+// Optional associated token account of the UserVolumeAccumulator for Pump AMM program
 const MAX_REMAINING_ACCOUNTS: usize = 1;
 const MAX_ACCOUNTS: usize = PumpAmmSwapAccounts::NUM_ACCOUNTS + MAX_REMAINING_ACCOUNTS;
 

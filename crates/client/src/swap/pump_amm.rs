@@ -8,7 +8,7 @@ pub const BONDING_CURVE_PROGRAM_ID: Address =
     Address::from_str_const("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
 
 // Pool account layout offsets
-// Layout: [8-byte discriminator] [1 bump] [2 index] [32 creator] [32 base_mint] [32 quote_mint] [32 lp_mint] [32 pool_base_token_account] [32 pool_quote_token_account] [8 lp_supply] [32 coin_creator]
+// Layout: [8 discriminator] [1 bump] [2 index] [32 creator] [32 base_mint] [32 quote_mint] [32 lp_mint] [32 pool_base_token_account] [32 pool_quote_token_account] [8 lp_supply] [32 coin_creator]
 #[cfg(feature = "resolve")]
 const OFFSET_BASE_MINT: usize = 43;
 #[cfg(feature = "resolve")]
@@ -21,7 +21,7 @@ const OFFSET_POOL_QUOTE_TOKEN_ACCOUNT: usize = OFFSET_POOL_BASE_TOKEN_ACCOUNT + 
 const OFFSET_COIN_CREATOR: usize = OFFSET_POOL_QUOTE_TOKEN_ACCOUNT + 32 + 8;
 
 // Global Config account layout offsets
-// Layout: [8-byte discriminator] [32 admin] [8 lp_fee_basis_points] [8 protocol_fee_basis_points] [1 disable_flags] [4 + 8 * 32 protocol_fee_recipients]
+// Layout: [8 discriminator] [32 admin] [8 lp_fee_basis_points] [8 protocol_fee_basis_points] [1 disable_flags] [4 + 8 * 32 protocol_fee_recipients]
 #[cfg(feature = "resolve")]
 pub const OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT: usize = 61;
 
