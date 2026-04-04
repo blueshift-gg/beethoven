@@ -24,13 +24,13 @@ pub const BONDING_CURVE_PROGRAM_ID: Address =
 #[cfg(feature = "resolve")]
 const OFFSET_BASE_MINT: usize = 43;
 #[cfg(feature = "resolve")]
-const OFFSET_QUOTE_MINT: usize = OFFSET_BASE_MINT + 32;
+const OFFSET_QUOTE_MINT: usize = 75;
 #[cfg(feature = "resolve")]
-const OFFSET_POOL_BASE_TOKEN_ACCOUNT: usize = OFFSET_QUOTE_MINT + 32 + 32;
+const OFFSET_POOL_BASE_TOKEN_ACCOUNT: usize = 139;
 #[cfg(feature = "resolve")]
-const OFFSET_POOL_QUOTE_TOKEN_ACCOUNT: usize = OFFSET_POOL_BASE_TOKEN_ACCOUNT + 32;
+const OFFSET_POOL_QUOTE_TOKEN_ACCOUNT: usize = 171;
 #[cfg(feature = "resolve")]
-const OFFSET_COIN_CREATOR: usize = OFFSET_POOL_QUOTE_TOKEN_ACCOUNT + 32 + 8;
+const OFFSET_COIN_CREATOR: usize = 211;
 
 // Global Config account layout offsets
 // Layout: [8 discriminator] [32 admin] [8 lp_fee_basis_points] [8 protocol_fee_basis_points] [1 disable_flags] [4 + 8 * 32 protocol_fee_recipients]
