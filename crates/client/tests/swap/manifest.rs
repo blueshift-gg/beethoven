@@ -50,6 +50,7 @@ async fn test_manifest_resolve_with_known_market() {
     assert!(accounts[1].is_writable);
     assert_eq!(accounts[2].pubkey, user, "owner");
     assert!(accounts[2].is_signer);
+    assert!(accounts[2].is_writable);
 
     // Market
     assert_eq!(accounts[3].pubkey, MARKET);

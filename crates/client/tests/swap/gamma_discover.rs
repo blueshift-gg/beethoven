@@ -50,6 +50,7 @@ async fn test_gamma_resolve_with_known_pool() {
     // User (signer, readonly)
     assert_eq!(accounts[1].pubkey, user);
     assert!(accounts[1].is_signer);
+    assert!(accounts[1].is_writable);
 
     // Authority PDA
     let (expected_authority, _) =

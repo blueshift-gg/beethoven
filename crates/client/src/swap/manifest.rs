@@ -38,7 +38,7 @@ pub fn build_accounts(input: &ManifestSwapInput) -> Vec<AccountMeta> {
     vec![
         AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false),
         AccountMeta::new(input.user, true),
-        AccountMeta::new_readonly(input.user, true),
+        AccountMeta::new(input.user, true),
         AccountMeta::new(input.market, false),
         AccountMeta::new_readonly(crate::SYSTEM_PROGRAM_ID, false),
         AccountMeta::new(input.trader_base, false),

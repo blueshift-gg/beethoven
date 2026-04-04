@@ -92,7 +92,7 @@ fn test_gamma_swap_cpi() {
     // [13] observation_state
     let accounts = vec![
         AccountMeta::new_readonly(GAMMA_PROGRAM_ID, false), // gamma_program (for detection)
-        AccountMeta::new_readonly(payer.pubkey(), true),    // payer
+        AccountMeta::new(payer.pubkey(), true),             // payer
         AccountMeta::new_readonly(AUTHORITY, false),        // authority PDA
         AccountMeta::new_readonly(AMM_CONFIG, false),       // amm_config
         AccountMeta::new(POOL_STATE, false),                // pool_state

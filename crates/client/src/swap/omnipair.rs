@@ -40,7 +40,7 @@ pub fn build_accounts(input: &OmnipairSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new(input.user_token_out_account, false),
         AccountMeta::new_readonly(input.token_in_mint, false),
         AccountMeta::new_readonly(input.token_out_mint, false),
-        AccountMeta::new_readonly(input.user, true),
+        AccountMeta::new(input.user, true),
         AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),
         AccountMeta::new_readonly(crate::TOKEN_2022_PROGRAM_ID, false),
         AccountMeta::new_readonly(input.event_authority, false),

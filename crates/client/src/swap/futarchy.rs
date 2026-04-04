@@ -128,7 +128,7 @@ pub async fn resolve(
         AccountMeta::new(user_quote_ata, false),
         AccountMeta::new(amm_base_vault, false),
         AccountMeta::new(amm_quote_vault, false),
-        AccountMeta::new_readonly(*user, true),
+        AccountMeta::new(*user, true),
         AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),
         AccountMeta::new_readonly(event_authority, false),
         AccountMeta::new_readonly(FUTARCHY_PROGRAM_ID, false),

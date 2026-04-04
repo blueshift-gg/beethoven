@@ -89,7 +89,7 @@ fn test_futarchy_swap() {
         AccountMeta::new(trader_output, false),                // user_quote_account
         AccountMeta::new(METADAO_DAO_AMM_VAULT_META, false),   // amm_base_vault
         AccountMeta::new(METADAO_DAO_AMM_VAULT_USDC, false),   // amm_quote_vault
-        AccountMeta::new_readonly(payer.pubkey(), true),       // user
+        AccountMeta::new(payer.pubkey(), true),                // user
         AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),    // token_program
         AccountMeta::new_readonly(EVENT_AUTHORITY, false),     // event_authority
         AccountMeta::new_readonly(FUTARCHY_PROGRAM_ID, false), // program

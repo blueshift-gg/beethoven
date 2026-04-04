@@ -126,7 +126,7 @@ fn test_heaven_swap_cpi() {
         AccountMeta::new_readonly(ASSOCIATED_TOKEN_PROGRAM_ID, false), // associated_token_program
         AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false), // system_program
         AccountMeta::new(SOL_LIGHT_LIQUIDITY_POOL_STATE, false), // liquidity_pool_state
-        AccountMeta::new_readonly(payer.pubkey(), true),     // user
+        AccountMeta::new(payer.pubkey(), true),              // user
         AccountMeta::new_readonly(LIGHT_MINT, false),        // token_a_mint
         AccountMeta::new_readonly(WSOL_MINT, false),         // token_b_mint
         AccountMeta::new(trader_output, false),              // user_token_a_vault

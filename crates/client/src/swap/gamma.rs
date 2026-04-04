@@ -42,7 +42,7 @@ pub struct GammaSwapInput {
 pub fn build_accounts(input: &GammaSwapInput) -> Vec<AccountMeta> {
     vec![
         AccountMeta::new_readonly(GAMMA_PROGRAM_ID, false),
-        AccountMeta::new_readonly(input.user, true),
+        AccountMeta::new(input.user, true),
         AccountMeta::new_readonly(input.authority, false),
         AccountMeta::new_readonly(input.amm_config, false),
         AccountMeta::new(input.pool, false),

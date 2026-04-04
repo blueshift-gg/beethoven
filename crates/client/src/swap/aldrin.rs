@@ -75,7 +75,7 @@ pub async fn resolve(
         AccountMeta::new(base_token_vault, false),
         AccountMeta::new(quote_token_vault, false),
         AccountMeta::new(fee_pool_token_account, false),
-        AccountMeta::new_readonly(*user, true),
+        AccountMeta::new(*user, true),
         AccountMeta::new(user_base_ata, false),
         AccountMeta::new(user_quote_ata, false),
         AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),

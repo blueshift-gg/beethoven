@@ -155,7 +155,7 @@ fn test_manifest_swap_cpi() {
     let accounts = vec![
         AccountMeta::new_readonly(MANIFEST_PROGRAM_ID, false), // manifest_program (for detection)
         AccountMeta::new(payer.pubkey(), true),                // payer
-        AccountMeta::new_readonly(payer.pubkey(), true),       // owner
+        AccountMeta::new(payer.pubkey(), true),                // owner
         AccountMeta::new(market, false),                       // market
         AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false),   // system_program
         AccountMeta::new(trader_base, false),                  // trader_base (SOL)
