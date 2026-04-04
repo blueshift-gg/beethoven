@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    OrcaWhirlpool = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::OrcaWhirlpool),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::OrcaWhirlpool => 15,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "orca_whirlpool-swap")]
+    OrcaWhirlpool(crate::orca_whirlpool::OrcaWhirlpoolSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "orca_whirlpool-swap")]
+    OrcaWhirlpool(crate::orca_whirlpool::OrcaWhirlpoolSwapData<'a>),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,17 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "orca_whirlpool-swap")]
+            SwapContext::OrcaWhirlpool(_) => {
+                let n = crate::orca_whirlpool::OrcaWhirlpoolSwapData::encoded_len(data)?;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::OrcaWhirlpool(
+                        crate::orca_whirlpool::OrcaWhirlpoolSwapData::try_from(mine)?,
+                    ),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +594,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "orca_whirlpool-swap")]
+            (SwapContext::OrcaWhirlpool(accounts), SwapData::OrcaWhirlpool(d)) => {
+                crate::orca_whirlpool::OrcaWhirlpool::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +847,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::OrcaWhirlpool => {
+            #[cfg(feature = "orca_whirlpool-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::orca_whirlpool::WHIRLPOOL_PROGRAM_ID,
+                )?;
+                let ctx = crate::orca_whirlpool::OrcaWhirlpoolSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::OrcaWhirlpool(ctx), rest))
+            }
+            #[cfg(not(feature = "orca_whirlpool-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

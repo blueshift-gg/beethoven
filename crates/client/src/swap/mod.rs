@@ -40,6 +40,11 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "orca_whirlpool")]
+pub mod orca_whirlpool;
+
+#[cfg(feature = "orca_whirlpool")]
+use crate::swap::orca_whirlpool::RemainingAccountsInfo;
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -125,6 +130,15 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "orca_whirlpool")]
+    OrcaWhirlpool {
+        whirlpool: Option<Address>,
+        sqrt_price_limit: u128,
+        amount_specified_is_input: bool,
+        a_to_b: bool,
+        remaining_accounts_info: Option<RemainingAccountsInfo>,
     },
 }
 
@@ -280,6 +294,28 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "orca_whirlpool")]
+        SwapProtocol::OrcaWhirlpool {
+            whirlpool,
+            sqrt_price_limit,
+            amount_specified_is_input,
+            a_to_b,
+            remaining_accounts_info,
+        } => {
+            orca_whirlpool::resolve(
+                rpc,
+                whirlpool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit,
+                *amount_specified_is_input,
+                *a_to_b,
+                remaining_accounts_info.clone(),
             )
             .await
         }
