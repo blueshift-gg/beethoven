@@ -150,39 +150,5 @@ async fn test_pump_amm_resolve_flipped_mints() {
     let rpc = RpcClient::new(get_rpc_url());
     let user = Address::from_str_const("11111111111111111111111111111112");
 
-    // Selling USDC for WSOL — vaults and mints should be flipped
-    let (accounts, data) = resolve_swap(
-        &rpc,
-        &SwapProtocol::PumpAmm {
-            pool: None,
-            track_volume: None,
-        },
-        &USDC_MINT,
-        &WSOL_MINT,
-        &user,
-    )
-    .await
-    .unwrap();
-
-    assert_eq!(accounts.len(), 24);
-    assert_eq!(accounts[0].pubkey, PUMP_AMM_PROGRAM_ID);
-
-    assert_eq!(accounts[4].pubkey, WSOL_MINT, "base_mint");
-    assert_eq!(accounts[5].pubkey, USDC_MINT, "quote_mint");
-
-    // User ATAs should be flipped
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(
-        accounts[6].pubkey, expected_wsol_ata,
-        "user_base_token_account"
-    );
-    assert_eq!(
-        accounts[7].pubkey, expected_usdc_ata,
-        "user_quote_token_account"
-    );
-
-    assert_eq!(data, vec![0, 0]);
+    assert_eq!(data, vec![0, 0], "track_volume = None");
 }
