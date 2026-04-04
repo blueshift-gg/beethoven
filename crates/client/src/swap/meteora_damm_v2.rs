@@ -17,13 +17,13 @@ pub const POOL_AUTHORITY: Address =
 // Pair account layout offsets
 // Layout: [8 discriminator] [160 pool_fees] [32 token_a_mint] [32 token_b_mint] [32 token_a_vault] [32 token_b_vault] ...
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_A_MINT: usize = 8 + 160;
+const OFFSET_TOKEN_A_MINT: usize = 168;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_B_MINT: usize = OFFSET_TOKEN_A_MINT + 32;
+const OFFSET_TOKEN_B_MINT: usize = 200;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_A_VAULT: usize = OFFSET_TOKEN_B_MINT + 32;
+const OFFSET_TOKEN_A_VAULT: usize = 232;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_B_VAULT: usize = OFFSET_TOKEN_A_VAULT + 32;
+const OFFSET_TOKEN_B_VAULT: usize = 264;
 
 pub struct MeteoraDammV2SwapInput {
     pub pool: Address,
