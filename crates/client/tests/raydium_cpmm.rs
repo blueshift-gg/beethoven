@@ -1,14 +1,19 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol, TOKEN_PROGRAM_ID},
+    beethoven_client::{
+        resolve_swap, swap::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID, SwapProtocol, TOKEN_PROGRAM_ID,
+    },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-const RAYDIUM_CPMM_PROGRAM_ID: Address =
-    Address::from_str_const("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+const AMM_CONFIG: Address = Address::from_str_const("D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2");
+const POOL_STATE: Address = Address::from_str_const("7JuwJuNU88gurFnyWeiyGKbFmExMWcmRZntn9imEzdny");
+const SOL_VAULT: Address = Address::from_str_const("7VLUXrnSSDo9BfCa4NWaQs68g7ddDY1sdXBKW6Xswj9Y");
+const USDC_VAULT: Address = Address::from_str_const("3rzbbW5Q8MA7sCaowf28hNgACNPecdS2zceWy7Ptzua9");
+const OBSERVATION_STATE: Address =
+    Address::from_str_const("4MYrPgjgFceyhtwhG1ZX8UVb4wn1aQB5wzMimtFqg7U8");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -21,7 +26,10 @@ async fn test_raydium_cpmm_resolve_with_known_pool() {
 
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::RaydiumCpmm { pool: None },
+        // explicitly passed, pool state cannot be derived using input and output token mints alone
+        &SwapProtocol::RaydiumCpmm {
+            pool: Some(POOL_STATE),
+        },
         &WSOL_MINT,
         &USDC_MINT,
         &user,
@@ -32,79 +40,68 @@ async fn test_raydium_cpmm_resolve_with_known_pool() {
     assert_eq!(accounts.len(), 14, "raydium cpmm requires 14 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, RAYDIUM_CPMM_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
+    assert_eq!(
+        accounts[0].pubkey, RAYDIUM_CPMM_PROGRAM_ID,
+        "raydium cpmm program"
+    );
 
     // Payer
-    assert_eq!(accounts[1].pubkey, user);
+    assert_eq!(accounts[1].pubkey, user, "payer");
     assert!(accounts[1].is_signer);
-    assert!(!accounts[1].is_writable);
 
-    // Pool vault and LP mint authority
+    // authority
     let (expected_authority, _) =
         Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &RAYDIUM_CPMM_PROGRAM_ID);
-    assert_eq!(
-        accounts[2].pubkey, expected_authority,
-        "vault_and_lp_mint_auth_seed PDA"
-    );
-    assert!(!accounts[2].is_writable);
-    assert!(!accounts[2].is_signer);
+    assert_eq!(accounts[2].pubkey, expected_authority, "authority");
 
     // AMM config
-    assert!(!accounts[3].is_signer);
-    assert!(!accounts[3].is_writable);
+    assert_eq!(accounts[3].pubkey, AMM_CONFIG, "amm config");
 
     // Pool state
+    assert_eq!(accounts[4].pubkey, POOL_STATE, "pool state");
     assert!(accounts[4].is_writable);
-    assert!(!accounts[4].is_signer);
 
     // Input token account
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[5].pubkey, expected_wsol_ata);
+    assert_eq!(accounts[5].pubkey, expected_wsol_ata, "input token account");
     assert!(accounts[5].is_writable);
 
     // Output token account
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[6].pubkey, expected_usdc_ata);
+    assert_eq!(
+        accounts[6].pubkey, expected_usdc_ata,
+        "output token account"
+    );
     assert!(accounts[6].is_writable);
 
     // Input vault
+    assert_eq!(accounts[7].pubkey, SOL_VAULT, "input vault");
     assert!(accounts[7].is_writable);
-    assert!(!accounts[7].is_signer);
 
     // Output vault
+    assert_eq!(accounts[8].pubkey, USDC_VAULT, "output vault");
     assert!(accounts[8].is_writable);
-    assert!(!accounts[8].is_signer);
 
     // Input token program
-    assert_eq!(accounts[9].pubkey, TOKEN_PROGRAM_ID, "input_token_program");
-    assert!(!accounts[9].is_signer);
-    assert!(!accounts[9].is_writable);
+    assert_eq!(accounts[9].pubkey, TOKEN_PROGRAM_ID, "input token program");
 
     // Output token program
     assert_eq!(
         accounts[10].pubkey, TOKEN_PROGRAM_ID,
-        "output_token_program"
+        "output token program"
     );
-    assert!(!accounts[10].is_signer);
-    assert!(!accounts[10].is_writable);
 
     // Input token mint
-    assert_eq!(accounts[11].pubkey, WSOL_MINT, "token_in_mint");
-    assert!(!accounts[11].is_signer);
-    assert!(!accounts[11].is_writable);
+    assert_eq!(accounts[11].pubkey, WSOL_MINT, "input token mint");
 
     // Output token mint
-    assert_eq!(accounts[12].pubkey, USDC_MINT, "token_out_mint");
-    assert!(!accounts[12].is_signer);
-    assert!(!accounts[12].is_writable);
+    assert_eq!(accounts[12].pubkey, USDC_MINT, "output token mint");
 
     // Observation state
+    assert_eq!(accounts[13].pubkey, OBSERVATION_STATE, "observation state");
     assert!(accounts[13].is_writable);
-    assert!(!accounts[13].is_signer);
 
     // Raydium CPMM swap_base_input has no extra data
     assert!(data.is_empty());
@@ -118,7 +115,10 @@ async fn test_raydium_cpmm_resolve_flipped_mints() {
     // Selling USDC for WSOL — mints and ATAs should be flipped
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::RaydiumCpmm { pool: None },
+        // explicitly passed, pool state cannot be derived using input and output token mints alone
+        &SwapProtocol::RaydiumCpmm {
+            pool: Some(POOL_STATE),
+        },
         &USDC_MINT,
         &WSOL_MINT,
         &user,
@@ -126,26 +126,72 @@ async fn test_raydium_cpmm_resolve_flipped_mints() {
     .await
     .unwrap();
 
-    assert_eq!(accounts.len(), 14);
-    assert_eq!(accounts[0].pubkey, RAYDIUM_CPMM_PROGRAM_ID);
+    assert_eq!(accounts.len(), 14, "raydium cpmm requires 14 accounts");
 
-    // When mint_a=USDC, mints should be flipped vs canonical order
-    assert_eq!(accounts[11].pubkey, USDC_MINT, "token_in_mint");
-    assert_eq!(accounts[12].pubkey, WSOL_MINT, "token_out_mint");
-
-    // Vaults swap with direction (still distinct pool reserves)
-    assert_ne!(
-        accounts[7].pubkey, accounts[8].pubkey,
-        "token_in_vault and token_out_vault"
+    // Protocol program ID
+    assert_eq!(
+        accounts[0].pubkey, RAYDIUM_CPMM_PROGRAM_ID,
+        "raydium cpmm program"
     );
 
-    // User ATAs should also be flipped
+    // Payer
+    assert_eq!(accounts[1].pubkey, user, "payer");
+    assert!(accounts[1].is_signer);
+
+    // authority
+    let (expected_authority, _) =
+        Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &RAYDIUM_CPMM_PROGRAM_ID);
+    assert_eq!(accounts[2].pubkey, expected_authority, "authority");
+
+    // AMM config
+    assert_eq!(accounts[3].pubkey, AMM_CONFIG, "amm config");
+
+    // Pool state
+    assert_eq!(accounts[4].pubkey, POOL_STATE, "pool state");
+    assert!(accounts[4].is_writable);
+
+    // Input token account (USDC)
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[5].pubkey, expected_usdc_ata, "input token account");
+    assert!(accounts[5].is_writable);
+
+    // Output token account (WSOL)
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[5].pubkey, expected_usdc_ata,);
-    assert_eq!(accounts[6].pubkey, expected_wsol_ata,);
+    assert_eq!(
+        accounts[6].pubkey, expected_wsol_ata,
+        "output token account"
+    );
+    assert!(accounts[6].is_writable);
 
+    // Input vault (USDC reserve)
+    assert_eq!(accounts[7].pubkey, USDC_VAULT, "input vault");
+    assert!(accounts[7].is_writable);
+
+    // Output vault (SOL reserve)
+    assert_eq!(accounts[8].pubkey, SOL_VAULT, "output vault");
+    assert!(accounts[8].is_writable);
+
+    // Input token program
+    assert_eq!(accounts[9].pubkey, TOKEN_PROGRAM_ID, "input token program");
+
+    // Output token program
+    assert_eq!(
+        accounts[10].pubkey, TOKEN_PROGRAM_ID,
+        "output token program"
+    );
+
+    // Input token mint
+    assert_eq!(accounts[11].pubkey, USDC_MINT, "input token mint");
+
+    // Output token mint
+    assert_eq!(accounts[12].pubkey, WSOL_MINT, "output token mint");
+
+    // Observation state
+    assert_eq!(accounts[13].pubkey, OBSERVATION_STATE, "observation state");
+    assert!(accounts[13].is_writable);
+
+    // Raydium CPMM swap_base_input has no extra data
     assert!(data.is_empty());
 }
