@@ -2,7 +2,7 @@ use {
     beethoven_client::{
         resolve_swap,
         swap::meteora_damm_v2::{CP_AMM_PROGRAM_ID, POOL_AUTHORITY},
-        SwapProtocol,
+        SwapProtocol, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -10,9 +10,7 @@ use {
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-const TOKEN_PROGRAM_ID: Address =
-    Address::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const POOL: Address = Address::from_str_const("CGPxT5d1uf9a8cKVJuZaJAU76t2EfLGbTmRbfvLLZp5j");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -32,7 +30,7 @@ async fn test_meteora_damm_v2_resolve_with_known_pool() {
 
     let (accounts, _data) = resolve_swap(
         &rpc,
-        &SwapProtocol::MeteoraDammV2 { pool: None },
+        &SwapProtocol::MeteoraDammV2 { pool: Some(POOL) },
         &WSOL_MINT,
         &USDC_MINT,
         &user,
@@ -52,7 +50,8 @@ async fn test_meteora_damm_v2_resolve_with_known_pool() {
     assert_eq!(accounts[1].pubkey, POOL_AUTHORITY, "pool authority");
 
     // Pool
-    assert!(accounts[2].is_writable, "pool");
+    assert_eq!(accounts[2].pubkey, POOL, "pool");
+    assert!(accounts[2].is_writable);
 
     // Input token account
     let expected_wsol_ata =
@@ -69,15 +68,13 @@ async fn test_meteora_damm_v2_resolve_with_known_pool() {
     );
     assert!(accounts[4].is_writable);
 
-    let pool = accounts[2].pubkey;
-
     // Token a vault
-    let (expected_token_a_vault, _) = get_token_vault_pda(&WSOL_MINT, &pool);
+    let (expected_token_a_vault, _) = get_token_vault_pda(&WSOL_MINT, &POOL);
     assert_eq!(accounts[5].pubkey, expected_token_a_vault, "token a vault");
     assert!(accounts[5].is_writable);
 
     // Token b vault
-    let (expected_token_b_vault, _) = get_token_vault_pda(&USDC_MINT, &pool);
+    let (expected_token_b_vault, _) = get_token_vault_pda(&USDC_MINT, &POOL);
     assert_eq!(accounts[6].pubkey, expected_token_b_vault, "token b vault");
     assert!(accounts[6].is_writable);
 
@@ -125,7 +122,7 @@ async fn test_meteora_damm_v2_resolve_flipped_mints() {
 
     let (accounts, _data) = resolve_swap(
         &rpc,
-        &SwapProtocol::MeteoraDammV2 { pool: None },
+        &SwapProtocol::MeteoraDammV2 { pool: Some(POOL) },
         &USDC_MINT,
         &WSOL_MINT,
         &user,
@@ -145,7 +142,8 @@ async fn test_meteora_damm_v2_resolve_flipped_mints() {
     assert_eq!(accounts[1].pubkey, POOL_AUTHORITY, "pool authority");
 
     // Pool
-    assert!(accounts[2].is_writable, "pool");
+    assert_eq!(accounts[2].pubkey, POOL, "pool");
+    assert!(accounts[2].is_writable);
 
     // Input token account (USDC in)
     let expected_usdc_ata =
@@ -162,23 +160,21 @@ async fn test_meteora_damm_v2_resolve_flipped_mints() {
     );
     assert!(accounts[4].is_writable);
 
-    let pool = accounts[2].pubkey;
-
     // Token a vault
-    let (expected_token_a_vault, _) = get_token_vault_pda(&USDC_MINT, &pool);
+    let (expected_token_a_vault, _) = get_token_vault_pda(&WSOL_MINT, &POOL);
     assert_eq!(accounts[5].pubkey, expected_token_a_vault, "token a vault");
     assert!(accounts[5].is_writable);
 
     // Token b vault
-    let (expected_token_b_vault, _) = get_token_vault_pda(&WSOL_MINT, &pool);
+    let (expected_token_b_vault, _) = get_token_vault_pda(&USDC_MINT, &POOL);
     assert_eq!(accounts[6].pubkey, expected_token_b_vault, "token b vault");
     assert!(accounts[6].is_writable);
 
     // Token a mint
-    assert_eq!(accounts[7].pubkey, USDC_MINT, "token a mint");
+    assert_eq!(accounts[7].pubkey, WSOL_MINT, "token a mint");
 
     // Token b mint
-    assert_eq!(accounts[8].pubkey, WSOL_MINT, "token b mint");
+    assert_eq!(accounts[8].pubkey, USDC_MINT, "token b mint");
 
     // Payer
     assert_eq!(accounts[9].pubkey, user, "payer");
