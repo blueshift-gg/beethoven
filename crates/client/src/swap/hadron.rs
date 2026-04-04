@@ -19,17 +19,17 @@ pub const FEE_CONFIG_PDA: Address =
 #[cfg(feature = "resolve")]
 const OFFSET_SEED: usize = 1;
 #[cfg(feature = "resolve")]
-const OFFSET_MINT_X: usize = OFFSET_SEED + 8 + 32;
+const OFFSET_MINT_X: usize = 41;
 #[cfg(feature = "resolve")]
-const OFFSET_MINT_Y: usize = OFFSET_MINT_X + 32;
+const OFFSET_MINT_Y: usize = 73;
 #[cfg(feature = "resolve")]
-const OFFSET_CURVE_META: usize = OFFSET_MINT_Y + 32 + 1;
+const OFFSET_CURVE_META: usize = 106;
 #[cfg(feature = "resolve")]
-const OFFSET_SPREAD_CONFIG_INITIALIZED: usize = OFFSET_CURVE_META + 32;
+const OFFSET_SPREAD_CONFIG_INITIALIZED: usize = 138;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_PROGRAM_X: usize = OFFSET_SPREAD_CONFIG_INITIALIZED + 1 + 1 + 1 + 1 + 2 + 32 + 8;
+const OFFSET_TOKEN_PROGRAM_X: usize = 184;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_PROGRAM_Y: usize = OFFSET_TOKEN_PROGRAM_X + 32;
+const OFFSET_TOKEN_PROGRAM_Y: usize = 216;
 
 /// Pre-resolved addresses for building an Hadron swap instruction offline.
 pub struct HadronSwapInput {
