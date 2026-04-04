@@ -3,8 +3,8 @@ use {solana_address::Address, solana_instruction::AccountMeta};
 pub const OMNIPAIR_PROGRAM_ID: Address =
     Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 
-// Pair account layout offsets (after 8-byte discriminator)
-// Layout: [8-byte discriminator] [32 token0] [32 token1] [32 lp_mint] [32 rate_model] ...
+// Pair account layout offsets
+// Layout: [8 discriminator] [32 token0] [32 token1] [32 lp_mint] [32 rate_model] ...
 #[cfg(feature = "resolve")]
 const OFFSET_TOKEN_0: usize = 8;
 #[cfg(feature = "resolve")]
