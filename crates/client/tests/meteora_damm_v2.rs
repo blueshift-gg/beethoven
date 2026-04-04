@@ -1,6 +1,6 @@
 use {
     beethoven_client::{
-        resolve_swap,
+        get_associated_token_address, resolve_swap,
         swap::meteora_damm_v2::{CP_AMM_PROGRAM_ID, POOL_AUTHORITY},
         SwapProtocol, TOKEN_PROGRAM_ID,
     },
@@ -54,14 +54,12 @@ async fn test_meteora_damm_v2_resolve_with_known_pool() {
     assert!(accounts[2].is_writable);
 
     // Input token account
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[3].pubkey, expected_wsol_ata, "input token account");
     assert!(accounts[3].is_writable);
 
     // Output token account
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_usdc_ata,
         "output token account"
@@ -146,14 +144,12 @@ async fn test_meteora_damm_v2_resolve_flipped_mints() {
     assert!(accounts[2].is_writable);
 
     // Input token account (USDC in)
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[3].pubkey, expected_usdc_ata, "input token account");
     assert!(accounts[3].is_writable);
 
     // Output token account (WSOL out)
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_wsol_ata,
         "output token account"

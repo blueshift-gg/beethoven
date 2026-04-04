@@ -1,3 +1,11 @@
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
+        read_pubkey, ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 use {solana_address::Address, solana_instruction::AccountMeta};
 
 pub const CP_AMM_PROGRAM_ID: Address =
@@ -58,19 +66,19 @@ pub fn build_extra_data() -> Vec<u8> {
 
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (pool_pubkey, pool_data) = match pool {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pk, acc) = crate::discover_pool_with_flip(
+            let (pk, acc) = discover_pool_with_flip(
                 rpc,
                 &CP_AMM_PROGRAM_ID,
                 OFFSET_TOKEN_A_MINT,
@@ -83,38 +91,38 @@ pub async fn resolve(
         }
     };
 
-    let token_a_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_A_MINT)?;
-    let token_b_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_B_MINT)?;
-    let token_a_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_A_VAULT)?;
-    let token_b_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_B_VAULT)?;
+    let token_a_mint = read_pubkey(&pool_data, OFFSET_TOKEN_A_MINT)?;
+    let token_b_mint = read_pubkey(&pool_data, OFFSET_TOKEN_B_MINT)?;
+    let token_a_vault = read_pubkey(&pool_data, OFFSET_TOKEN_A_VAULT)?;
+    let token_b_vault = read_pubkey(&pool_data, OFFSET_TOKEN_B_VAULT)?;
 
     let (_input_mint, output_mint, user_input_ata, user_output_ata) = if *mint_a == token_a_mint {
-        let in_prog = crate::get_token_program_for_mint(rpc, &token_a_mint).await?;
-        let out_prog = crate::get_token_program_for_mint(rpc, &token_b_mint).await?;
+        let in_prog = get_token_program_for_mint(rpc, &token_a_mint).await?;
+        let out_prog = get_token_program_for_mint(rpc, &token_b_mint).await?;
         (
             token_a_mint,
             token_b_mint,
-            crate::get_associated_token_address(user, &token_a_mint, &in_prog),
-            crate::get_associated_token_address(user, &token_b_mint, &out_prog),
+            get_associated_token_address(user, &token_a_mint, &in_prog),
+            get_associated_token_address(user, &token_b_mint, &out_prog),
         )
     } else if *mint_a == token_b_mint {
-        let in_prog = crate::get_token_program_for_mint(rpc, &token_b_mint).await?;
-        let out_prog = crate::get_token_program_for_mint(rpc, &token_a_mint).await?;
+        let in_prog = get_token_program_for_mint(rpc, &token_b_mint).await?;
+        let out_prog = get_token_program_for_mint(rpc, &token_a_mint).await?;
         (
             token_b_mint,
             token_a_mint,
-            crate::get_associated_token_address(user, &token_b_mint, &in_prog),
-            crate::get_associated_token_address(user, &token_a_mint, &out_prog),
+            get_associated_token_address(user, &token_b_mint, &in_prog),
+            get_associated_token_address(user, &token_a_mint, &out_prog),
         )
     } else {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: format!("{} or {}", token_a_mint, token_b_mint),
             got: mint_a.to_string(),
         });
     };
 
     if output_mint != *mint_b {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: mint_b.to_string(),
             got: output_mint.to_string(),
         });
@@ -122,8 +130,8 @@ pub async fn resolve(
 
     let (input_token_account, output_token_account) = (user_input_ata, user_output_ata);
 
-    let token_a_program = crate::get_token_program_for_mint(rpc, &token_a_mint).await?;
-    let token_b_program = crate::get_token_program_for_mint(rpc, &token_b_mint).await?;
+    let token_a_program = get_token_program_for_mint(rpc, &token_a_mint).await?;
+    let token_b_program = get_token_program_for_mint(rpc, &token_b_mint).await?;
 
     let (event_authority, _) =
         Address::find_program_address(&[b"__event_authority"], &CP_AMM_PROGRAM_ID);
