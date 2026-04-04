@@ -16,19 +16,19 @@ pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
 #[cfg(feature = "resolve")]
 const OFFSET_AMM_CONFIG: usize = 8;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_0_VAULT: usize = OFFSET_AMM_CONFIG + 32 + 32;
+const OFFSET_TOKEN_0_VAULT: usize = 72;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_1_VAULT: usize = OFFSET_TOKEN_0_VAULT + 32;
+const OFFSET_TOKEN_1_VAULT: usize = 104;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_0_MINT: usize = OFFSET_TOKEN_1_VAULT + 32 + 32;
+const OFFSET_TOKEN_0_MINT: usize = 168;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_1_MINT: usize = OFFSET_TOKEN_0_MINT + 32;
+const OFFSET_TOKEN_1_MINT: usize = 200;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_0_PROGRAM: usize = OFFSET_TOKEN_1_MINT + 32;
+const OFFSET_TOKEN_0_PROGRAM: usize = 232;
 #[cfg(feature = "resolve")]
-const OFFSET_TOKEN_1_PROGRAM: usize = OFFSET_TOKEN_0_PROGRAM + 32;
+const OFFSET_TOKEN_1_PROGRAM: usize = 264;
 #[cfg(feature = "resolve")]
-const OFFSET_OBSERVATION_KEY: usize = OFFSET_TOKEN_1_PROGRAM + 32;
+const OFFSET_OBSERVATION_KEY: usize = 296;
 
 /// Pre-resolved addresses for building a Raydium CPMM `swap_base_input` offline.
 pub struct RaydiumCpmmSwapInput {
