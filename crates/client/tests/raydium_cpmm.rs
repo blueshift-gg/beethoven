@@ -1,6 +1,7 @@
 use {
     beethoven_client::{
-        resolve_swap, swap::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID, SwapProtocol, TOKEN_PROGRAM_ID,
+        get_associated_token_address, resolve_swap, swap::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID,
+        SwapProtocol, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -62,14 +63,12 @@ async fn test_raydium_cpmm_resolve_with_known_pool() {
     assert!(accounts[4].is_writable);
 
     // Input token account
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[5].pubkey, expected_wsol_ata, "input token account");
     assert!(accounts[5].is_writable);
 
     // Output token account
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_usdc_ata,
         "output token account"
@@ -151,14 +150,12 @@ async fn test_raydium_cpmm_resolve_flipped_mints() {
     assert!(accounts[4].is_writable);
 
     // Input token account (USDC)
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[5].pubkey, expected_usdc_ata, "input token account");
     assert!(accounts[5].is_writable);
 
     // Output token account (WSOL)
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_wsol_ata,
         "output token account"

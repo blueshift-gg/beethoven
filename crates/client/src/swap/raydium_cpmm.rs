@@ -1,3 +1,8 @@
+#[cfg(feature = "resolve")]
+use {
+    crate::{discover_pool_with_flip, get_associated_token_address, read_pubkey},
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 use {solana_address::Address, solana_instruction::AccountMeta};
 
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
@@ -63,7 +68,7 @@ pub fn build_accounts(input: &RaydiumCpmmSwapInput) -> Vec<AccountMeta> {
 
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     mint_a: &Address,
     mint_b: &Address,
@@ -75,7 +80,7 @@ pub async fn resolve(
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &RAYDIUM_CPMM_PROGRAM_ID,
                 OFFSET_TOKEN_0_MINT,
@@ -88,12 +93,12 @@ pub async fn resolve(
         }
     };
 
-    let amm_config = crate::read_pubkey(&pool_data, OFFSET_AMM_CONFIG)?;
-    let token_0_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_0_MINT)?;
-    let token_1_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_1_MINT)?;
-    let token_0_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_0_VAULT)?;
-    let token_1_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_1_VAULT)?;
-    let observation_key = crate::read_pubkey(&pool_data, OFFSET_OBSERVATION_KEY)?;
+    let amm_config = read_pubkey(&pool_data, OFFSET_AMM_CONFIG)?;
+    let token_0_mint = read_pubkey(&pool_data, OFFSET_TOKEN_0_MINT)?;
+    let token_1_mint = read_pubkey(&pool_data, OFFSET_TOKEN_1_MINT)?;
+    let token_0_vault = read_pubkey(&pool_data, OFFSET_TOKEN_0_VAULT)?;
+    let token_1_vault = read_pubkey(&pool_data, OFFSET_TOKEN_1_VAULT)?;
+    let observation_key = read_pubkey(&pool_data, OFFSET_OBSERVATION_KEY)?;
 
     let (input_vault, output_vault, input_mint, output_mint) = if *mint_a == token_0_mint {
         (token_0_vault, token_1_vault, token_0_mint, token_1_mint)
@@ -107,23 +112,21 @@ pub async fn resolve(
     };
 
     let input_token_program = if input_mint == token_0_mint {
-        crate::read_pubkey(&pool_data, OFFSET_TOKEN_0_PROGRAM)?
+        read_pubkey(&pool_data, OFFSET_TOKEN_0_PROGRAM)?
     } else {
-        crate::read_pubkey(&pool_data, OFFSET_TOKEN_1_PROGRAM)?
+        read_pubkey(&pool_data, OFFSET_TOKEN_1_PROGRAM)?
     };
     let output_token_program = if output_mint == token_0_mint {
-        crate::read_pubkey(&pool_data, OFFSET_TOKEN_0_PROGRAM)?
+        read_pubkey(&pool_data, OFFSET_TOKEN_0_PROGRAM)?
     } else {
-        crate::read_pubkey(&pool_data, OFFSET_TOKEN_1_PROGRAM)?
+        read_pubkey(&pool_data, OFFSET_TOKEN_1_PROGRAM)?
     };
 
     let (authority, _) =
         Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &RAYDIUM_CPMM_PROGRAM_ID);
 
-    let user_input_ata =
-        crate::get_associated_token_address(user, &input_mint, &input_token_program);
-    let user_output_ata =
-        crate::get_associated_token_address(user, &output_mint, &output_token_program);
+    let user_input_ata = get_associated_token_address(user, &input_mint, &input_token_program);
+    let user_output_ata = get_associated_token_address(user, &output_mint, &output_token_program);
 
     let input = RaydiumCpmmSwapInput {
         user: *user,
