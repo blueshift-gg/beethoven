@@ -1,5 +1,8 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol, TOKEN_PROGRAM_ID},
+    beethoven_client::{
+        get_associated_token_address, resolve_swap, swap::futarchy::FUTARCHY_PROGRAM_ID,
+        SwapProtocol, TOKEN_PROGRAM_ID,
+    },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
@@ -9,9 +12,6 @@ const METADAO_MINT: Address =
     Address::from_str_const("METAwkXcqyXKy1AtsSgJ8JiUHwGCafnZL38n3vYmeta");
 const METADAO_DAO: Address =
     Address::from_str_const("CUPoiqkK4hxyCiJcLC4yE9AtJP1MoV1vFV2vx3jqwWeS");
-
-const FUTARCHY_PROGRAM_ID: Address =
-    Address::from_str_const("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -48,7 +48,7 @@ async fn test_futarchy_resolve_with_known_pair() {
 
     // User base account
     let expected_metadao_ata =
-        beethoven_client::get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[2].pubkey, expected_metadao_ata,
         "user_quote_account ATA"
@@ -56,8 +56,7 @@ async fn test_futarchy_resolve_with_known_pair() {
     assert!(accounts[2].is_writable);
 
     // User quote account
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[3].pubkey, expected_usdc_ata,
         "user_base_account ATA"
@@ -68,7 +67,7 @@ async fn test_futarchy_resolve_with_known_pair() {
 
     // AMM base vault
     let expected_amm_base_vault =
-        beethoven_client::get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_amm_base_vault,
         "amm_base_vault"
@@ -127,7 +126,7 @@ async fn test_futarchy_resolve_flipped_mints() {
 
     // User base account
     let expected_metadao_ata =
-        beethoven_client::get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[2].pubkey, expected_metadao_ata,
         "user_quote_account ATA"
@@ -135,8 +134,7 @@ async fn test_futarchy_resolve_flipped_mints() {
     assert!(accounts[2].is_writable);
 
     // User quote account
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[3].pubkey, expected_usdc_ata,
         "user_base_account ATA"
@@ -147,7 +145,7 @@ async fn test_futarchy_resolve_flipped_mints() {
 
     // AMM base vault
     let expected_amm_base_vault =
-        beethoven_client::get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_amm_base_vault,
         "amm_base_vault"
@@ -156,7 +154,7 @@ async fn test_futarchy_resolve_flipped_mints() {
 
     // AMM quote vault
     let expected_amm_quote_vault =
-        beethoven_client::get_associated_token_address(&dao, &USDC_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&dao, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[5].pubkey, expected_amm_quote_vault,
         "amm_quote_vault"

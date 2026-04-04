@@ -1,14 +1,14 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
+    beethoven_client::{
+        get_associated_token_address, resolve_swap, swap::omnipair::OMNIPAIR_PROGRAM_ID,
+        SwapProtocol, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID,
+    },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-const OMNIPAIR_PROGRAM_ID: Address =
-    Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -86,10 +86,8 @@ async fn test_omnipair_resolve_with_known_pair() {
     );
 
     // User ATAs
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_wsol_ata,
         "user_token_in_account ATA"
@@ -190,10 +188,8 @@ async fn test_omnipair_resolve_flipped_mints() {
     );
 
     // User ATAs should also be flipped
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_usdc_ata,
         "user_token_in_account ATA"

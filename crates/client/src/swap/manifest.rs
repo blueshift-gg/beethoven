@@ -1,4 +1,12 @@
-use {solana_address::Address, solana_instruction::AccountMeta};
+use {crate::SYSTEM_PROGRAM_ID, solana_address::Address, solana_instruction::AccountMeta};
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
+        read_pubkey, ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 
 pub const MANIFEST_PROGRAM_ID: Address =
     Address::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
@@ -40,7 +48,7 @@ pub fn build_accounts(input: &ManifestSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new(input.user, true),
         AccountMeta::new(input.user, true),
         AccountMeta::new(input.market, false),
-        AccountMeta::new_readonly(crate::SYSTEM_PROGRAM_ID, false),
+        AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false),
         AccountMeta::new(input.trader_base, false),
         AccountMeta::new(input.trader_quote, false),
         AccountMeta::new(input.base_vault, false),
@@ -65,20 +73,20 @@ pub fn build_extra_data(is_base_in: bool, is_exact_in: bool) -> Vec<u8> {
 /// by comparing `mint_a` against the market's base mint.
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     market: Option<&Address>,
     is_exact_in: bool,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (market_pubkey, market_data) = match market {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &MANIFEST_PROGRAM_ID,
                 OFFSET_BASE_MINT,
@@ -91,18 +99,18 @@ pub async fn resolve(
         }
     };
 
-    let base_mint = crate::read_pubkey(&market_data, OFFSET_BASE_MINT)?;
-    let quote_mint = crate::read_pubkey(&market_data, OFFSET_QUOTE_MINT)?;
-    let base_vault = crate::read_pubkey(&market_data, OFFSET_BASE_VAULT)?;
-    let quote_vault = crate::read_pubkey(&market_data, OFFSET_QUOTE_VAULT)?;
+    let base_mint = read_pubkey(&market_data, OFFSET_BASE_MINT)?;
+    let quote_mint = read_pubkey(&market_data, OFFSET_QUOTE_MINT)?;
+    let base_vault = read_pubkey(&market_data, OFFSET_BASE_VAULT)?;
+    let quote_vault = read_pubkey(&market_data, OFFSET_QUOTE_VAULT)?;
 
     let is_base_in = *mint_a == base_mint;
 
-    let base_token_program = crate::get_token_program_for_mint(rpc, &base_mint).await?;
-    let quote_token_program = crate::get_token_program_for_mint(rpc, &quote_mint).await?;
+    let base_token_program = get_token_program_for_mint(rpc, &base_mint).await?;
+    let quote_token_program = get_token_program_for_mint(rpc, &quote_mint).await?;
 
-    let trader_base = crate::get_associated_token_address(user, &base_mint, &base_token_program);
-    let trader_quote = crate::get_associated_token_address(user, &quote_mint, &quote_token_program);
+    let trader_base = get_associated_token_address(user, &base_mint, &base_token_program);
+    let trader_quote = get_associated_token_address(user, &quote_mint, &quote_token_program);
 
     let (global, _) = Address::find_program_address(&[b"global"], &MANIFEST_PROGRAM_ID);
     let (global_vault, _) = Address::find_program_address(&[b"global-vault"], &MANIFEST_PROGRAM_ID);

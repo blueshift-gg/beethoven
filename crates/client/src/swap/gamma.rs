@@ -1,3 +1,11 @@
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
+        read_pubkey, ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 use {solana_address::Address, solana_instruction::AccountMeta};
 
 pub const GAMMA_PROGRAM_ID: Address =
@@ -66,19 +74,19 @@ pub fn build_extra_data() -> Vec<u8> {
 /// Resolve accounts and data for a Gamma swap via RPC.
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (pool_pubkey, pool_data) = match pool {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &GAMMA_PROGRAM_ID,
                 OFFSET_TOKEN_MINT_0,
@@ -91,34 +99,32 @@ pub async fn resolve(
         }
     };
 
-    let amm_config = crate::read_pubkey(&pool_data, OFFSET_AMM_CONFIG)?;
-    let token_mint_0 = crate::read_pubkey(&pool_data, OFFSET_TOKEN_MINT_0)?;
-    let token_mint_1 = crate::read_pubkey(&pool_data, OFFSET_TOKEN_MINT_1)?;
-    let token_vault_0 = crate::read_pubkey(&pool_data, OFFSET_TOKEN_VAULT_0)?;
-    let token_vault_1 = crate::read_pubkey(&pool_data, OFFSET_TOKEN_VAULT_1)?;
-    let observation_key = crate::read_pubkey(&pool_data, OFFSET_OBSERVATION_KEY)?;
+    let amm_config = read_pubkey(&pool_data, OFFSET_AMM_CONFIG)?;
+    let token_mint_0 = read_pubkey(&pool_data, OFFSET_TOKEN_MINT_0)?;
+    let token_mint_1 = read_pubkey(&pool_data, OFFSET_TOKEN_MINT_1)?;
+    let token_vault_0 = read_pubkey(&pool_data, OFFSET_TOKEN_VAULT_0)?;
+    let token_vault_1 = read_pubkey(&pool_data, OFFSET_TOKEN_VAULT_1)?;
+    let observation_key = read_pubkey(&pool_data, OFFSET_OBSERVATION_KEY)?;
 
     let (input_vault, output_vault, input_mint, output_mint) = if *mint_a == token_mint_0 {
         (token_vault_0, token_vault_1, token_mint_0, token_mint_1)
     } else if *mint_a == token_mint_1 {
         (token_vault_1, token_vault_0, token_mint_1, token_mint_0)
     } else {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: format!("{} or {}", token_mint_0, token_mint_1),
             got: mint_a.to_string(),
         });
     };
 
-    let input_token_program = crate::get_token_program_for_mint(rpc, &input_mint).await?;
-    let output_token_program = crate::get_token_program_for_mint(rpc, &output_mint).await?;
+    let input_token_program = get_token_program_for_mint(rpc, &input_mint).await?;
+    let output_token_program = get_token_program_for_mint(rpc, &output_mint).await?;
 
     let (authority, _) =
         Address::find_program_address(&[b"vault_and_lp_mint_auth_seed"], &GAMMA_PROGRAM_ID);
 
-    let user_input_ata =
-        crate::get_associated_token_address(user, &input_mint, &input_token_program);
-    let user_output_ata =
-        crate::get_associated_token_address(user, &output_mint, &output_token_program);
+    let user_input_ata = get_associated_token_address(user, &input_mint, &input_token_program);
+    let user_output_ata = get_associated_token_address(user, &output_mint, &output_token_program);
 
     let input = GammaSwapInput {
         user: *user,

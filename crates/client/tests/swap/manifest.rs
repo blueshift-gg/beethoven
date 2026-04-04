@@ -1,5 +1,8 @@
 use {
-    beethoven_client::{resolve_swap, SwapProtocol, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID},
+    beethoven_client::{
+        get_associated_token_address, resolve_swap, swap::manifest::MANIFEST_PROGRAM_ID,
+        SwapProtocol, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID,
+    },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
 };
@@ -10,9 +13,6 @@ const MARKET: Address = Address::from_str_const("ENhU8LsaR7vDD2G1CsWcsuSGNrih9Cv
 const BASE_VAULT: Address = Address::from_str_const("AKjfJDv4ywdpCDrj7AURuNkGA3696GTVFgrMwk4TjkKs");
 const QUOTE_VAULT: Address =
     Address::from_str_const("FN9K6rTdWtRDUPmLTN2FnGvLZpHVNRN2MeRghKknSGDs");
-
-const MANIFEST_PROGRAM_ID: Address =
-    Address::from_str_const("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -56,10 +56,8 @@ async fn test_manifest_resolve_with_known_market() {
     assert_eq!(accounts[4].pubkey, SYSTEM_PROGRAM_ID);
 
     // Trader ATAs — derived from user, verify they match expected derivation
-    let expected_trader_base =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    let expected_trader_quote =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_trader_base = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_trader_quote = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[5].pubkey, expected_trader_base, "trader_base ATA");
     assert_eq!(
         accounts[6].pubkey, expected_trader_quote,

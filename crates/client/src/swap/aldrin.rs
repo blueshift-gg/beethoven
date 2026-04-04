@@ -1,4 +1,13 @@
 use solana_address::Address;
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, read_pubkey, ClientError,
+        TOKEN_PROGRAM_ID,
+    },
+    solana_instruction::AccountMeta,
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 
 pub const ALDRIN_PROGRAM_ID: Address =
     Address::from_str_const("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
@@ -26,22 +35,20 @@ const OFFSET_FEE_POOL_TOKEN_ACCOUNT: usize = 361;
 
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     side: u8,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<solana_instruction::AccountMeta>, Vec<u8>), crate::error::ClientError> {
-    use solana_instruction::AccountMeta;
-
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (pool_pubkey, pool_data) = match pool {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &ALDRIN_PROGRAM_ID,
                 OFFSET_BASE_TOKEN_MINT,
@@ -54,18 +61,16 @@ pub async fn resolve(
         }
     };
 
-    let pool_mint = crate::read_pubkey(&pool_data, OFFSET_POOL_MINT)?;
-    let base_token_vault = crate::read_pubkey(&pool_data, OFFSET_BASE_TOKEN_VAULT)?;
-    let base_token_mint = crate::read_pubkey(&pool_data, OFFSET_BASE_TOKEN_MINT)?;
-    let quote_token_vault = crate::read_pubkey(&pool_data, OFFSET_QUOTE_TOKEN_VAULT)?;
-    let quote_token_mint = crate::read_pubkey(&pool_data, OFFSET_QUOTE_TOKEN_MINT)?;
-    let pool_signer = crate::read_pubkey(&pool_data, OFFSET_POOL_SIGNER)?;
-    let fee_pool_token_account = crate::read_pubkey(&pool_data, OFFSET_FEE_POOL_TOKEN_ACCOUNT)?;
+    let pool_mint = read_pubkey(&pool_data, OFFSET_POOL_MINT)?;
+    let base_token_vault = read_pubkey(&pool_data, OFFSET_BASE_TOKEN_VAULT)?;
+    let base_token_mint = read_pubkey(&pool_data, OFFSET_BASE_TOKEN_MINT)?;
+    let quote_token_vault = read_pubkey(&pool_data, OFFSET_QUOTE_TOKEN_VAULT)?;
+    let quote_token_mint = read_pubkey(&pool_data, OFFSET_QUOTE_TOKEN_MINT)?;
+    let pool_signer = read_pubkey(&pool_data, OFFSET_POOL_SIGNER)?;
+    let fee_pool_token_account = read_pubkey(&pool_data, OFFSET_FEE_POOL_TOKEN_ACCOUNT)?;
 
-    let user_base_ata =
-        crate::get_associated_token_address(user, &base_token_mint, &crate::TOKEN_PROGRAM_ID);
-    let user_quote_ata =
-        crate::get_associated_token_address(user, &quote_token_mint, &crate::TOKEN_PROGRAM_ID);
+    let user_base_ata = get_associated_token_address(user, &base_token_mint, &TOKEN_PROGRAM_ID);
+    let user_quote_ata = get_associated_token_address(user, &quote_token_mint, &TOKEN_PROGRAM_ID);
 
     let accounts = vec![
         AccountMeta::new_readonly(ALDRIN_PROGRAM_ID, false),
@@ -78,7 +83,7 @@ pub async fn resolve(
         AccountMeta::new(*user, true),
         AccountMeta::new(user_base_ata, false),
         AccountMeta::new(user_quote_ata, false),
-        AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
     ];
 
     Ok((accounts, vec![side]))

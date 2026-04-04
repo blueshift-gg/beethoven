@@ -1,7 +1,23 @@
-use {solana_address::Address, solana_instruction::AccountMeta};
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
+        read_pubkey, ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
+use {
+    crate::{TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
+    solana_address::Address,
+    solana_instruction::AccountMeta,
+};
 
 pub const OMNIPAIR_PROGRAM_ID: Address =
     Address::from_str_const("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const FUTARCHY_AUTHORITY: Address =
+    Address::from_str_const("2SMS1Y4EAyL2dQLpXD6VJCrNbQJ2eQ2pN3qYcX1vim3E");
+pub const EVENT_AUTHORITY: Address =
+    Address::from_str_const("FWdP9yTogKbuXvEqQNNHYw2TYm38MbinAZ2iTHeZWX8H");
 
 // Pair account layout offsets
 // Layout: [8 discriminator] [32 token0] [32 token1] [32 lp_mint] [32 rate_model] ...
@@ -41,8 +57,8 @@ pub fn build_accounts(input: &OmnipairSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new_readonly(input.token_in_mint, false),
         AccountMeta::new_readonly(input.token_out_mint, false),
         AccountMeta::new(input.user, true),
-        AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),
-        AccountMeta::new_readonly(crate::TOKEN_2022_PROGRAM_ID, false),
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+        AccountMeta::new_readonly(TOKEN_2022_PROGRAM_ID, false),
         AccountMeta::new_readonly(input.event_authority, false),
         AccountMeta::new_readonly(OMNIPAIR_PROGRAM_ID, false),
     ]
@@ -54,19 +70,19 @@ pub fn build_accounts(input: &OmnipairSwapInput) -> Vec<AccountMeta> {
 /// by comparing `mint_a` against the pair's token0.
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pair: Option<&Address>,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (pair_pubkey, pair_data) = match pair {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &OMNIPAIR_PROGRAM_ID,
                 OFFSET_TOKEN_0,
@@ -79,16 +95,16 @@ pub async fn resolve(
         }
     };
 
-    let token_0 = crate::read_pubkey(&pair_data, OFFSET_TOKEN_0)?;
-    let token_1 = crate::read_pubkey(&pair_data, OFFSET_TOKEN_1)?;
-    let rate_model = crate::read_pubkey(&pair_data, OFFSET_RATE_MODEL)?;
+    let token_0 = read_pubkey(&pair_data, OFFSET_TOKEN_0)?;
+    let token_1 = read_pubkey(&pair_data, OFFSET_TOKEN_1)?;
+    let rate_model = read_pubkey(&pair_data, OFFSET_RATE_MODEL)?;
 
     let (token_in_mint, token_out_mint) = if *mint_a == token_0 {
         (token_0, token_1)
     } else if *mint_a == token_1 {
         (token_1, token_0)
     } else {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: format!("{} or {}", token_0, token_1),
             got: mint_a.to_string(),
         });
@@ -117,13 +133,13 @@ pub async fn resolve(
     let (event_authority, _) =
         Address::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
 
-    let token_in_program = crate::get_token_program_for_mint(rpc, &token_in_mint).await?;
-    let token_out_program = crate::get_token_program_for_mint(rpc, &token_out_mint).await?;
+    let token_in_program = get_token_program_for_mint(rpc, &token_in_mint).await?;
+    let token_out_program = get_token_program_for_mint(rpc, &token_out_mint).await?;
 
     let user_token_in_account =
-        crate::get_associated_token_address(user, &token_in_mint, &token_in_program);
+        get_associated_token_address(user, &token_in_mint, &token_in_program);
     let user_token_out_account =
-        crate::get_associated_token_address(user, &token_out_mint, &token_out_program);
+        get_associated_token_address(user, &token_out_mint, &token_out_program);
 
     let input = OmnipairSwapInput {
         pair: pair_pubkey,

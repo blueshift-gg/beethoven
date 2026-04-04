@@ -1,7 +1,9 @@
 use {
     beethoven_client::{
-        resolve_swap, SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID,
-        SYSVAR_INSTRUCTIONS_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID,
+        get_associated_token_address, resolve_swap,
+        swap::heaven::{CHAINLINK_SOL_USD_FEED, CHAINLINK_STORE_PROGRAM_ID, HEAVEN_PROGRAM_ID},
+        SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID,
+        TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -9,8 +11,6 @@ use {
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const LIGHT_MINT: Address = Address::from_str_const("LiGHtkg3uTa9836RaNkKLLriqTNRcMdRAhqjGWNv777");
-const HEAVEN_PROGRAM_ID: Address =
-    Address::from_str_const("HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5mJYkdeC8BAX2o");
 const SOL_LIGHT_LIQUIDITY_POOL_STATE: Address =
     Address::from_str_const("EkU9zGSkUnVVK6nhmPSqnxqcKPzt1PicrCjdxSbWo9uA");
 const PROTOCOL_CONFIG: Address =
@@ -18,10 +18,6 @@ const PROTOCOL_CONFIG: Address =
 const WSOL_VAULT: Address = Address::from_str_const("HBw4rhjiJ1cXDNQz7395QJ51DskLknwHRAjxYzgBsYnK");
 const LIGHT_VAULT: Address =
     Address::from_str_const("FjCZrwymiMvdufnrPZLP6NvgZDY8j9KGnLakRic3vQi7");
-const CHAINLINK_SOL_USD_FEED: Address =
-    Address::from_str_const("CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt");
-const CHAINLINK_PROGRAM_ID: Address =
-    Address::from_str_const("HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -82,13 +78,12 @@ async fn test_heaven_resolve_with_known_pair() {
 
     // User token a vault
     let expected_light_ata =
-        beethoven_client::get_associated_token_address(&user, &LIGHT_MINT, &TOKEN_2022_PROGRAM_ID);
+        get_associated_token_address(&user, &LIGHT_MINT, &TOKEN_2022_PROGRAM_ID);
     assert_eq!(accounts[9].pubkey, expected_light_ata);
     assert!(accounts[9].is_writable);
 
     // User token b vault
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[10].pubkey, expected_wsol_ata);
     assert!(accounts[10].is_writable);
 
@@ -107,7 +102,7 @@ async fn test_heaven_resolve_with_known_pair() {
     assert_eq!(accounts[14].pubkey, SYSVAR_INSTRUCTIONS_ID);
 
     // Chainlink store program
-    assert_eq!(accounts[15].pubkey, CHAINLINK_PROGRAM_ID);
+    assert_eq!(accounts[15].pubkey, CHAINLINK_STORE_PROGRAM_ID);
 
     // Chainlink transmissions SOL USD feed
     assert_eq!(accounts[16].pubkey, CHAINLINK_SOL_USD_FEED);
@@ -175,13 +170,12 @@ async fn test_heaven_resolve_flipped_mints() {
 
     // User token a vault
     let expected_light_ata =
-        beethoven_client::get_associated_token_address(&user, &LIGHT_MINT, &TOKEN_2022_PROGRAM_ID);
+        get_associated_token_address(&user, &LIGHT_MINT, &TOKEN_2022_PROGRAM_ID);
     assert_eq!(accounts[9].pubkey, expected_light_ata);
     assert!(accounts[9].is_writable);
 
     // User token b vault
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[10].pubkey, expected_wsol_ata);
     assert!(accounts[10].is_writable);
 
@@ -201,7 +195,7 @@ async fn test_heaven_resolve_flipped_mints() {
     assert!(!accounts[14].is_writable);
 
     // Chainlink store program
-    assert_eq!(accounts[15].pubkey, CHAINLINK_PROGRAM_ID);
+    assert_eq!(accounts[15].pubkey, CHAINLINK_STORE_PROGRAM_ID);
 
     // Chainlink transmissions SOL USD feed
     assert_eq!(accounts[16].pubkey, CHAINLINK_SOL_USD_FEED);

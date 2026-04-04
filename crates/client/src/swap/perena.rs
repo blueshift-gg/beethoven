@@ -1,4 +1,16 @@
-use {solana_address::Address, solana_instruction::AccountMeta};
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool, get_associated_token_address, get_token_program_for_mint, read_pubkey,
+        ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
+use {
+    crate::{TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
+    solana_address::Address,
+    solana_instruction::AccountMeta,
+};
 
 pub const PERENA_PROGRAM_ID: Address =
     Address::from_str_const("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
@@ -64,8 +76,8 @@ pub fn build_accounts(input: &PerenaSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new(input.out_vault, false),
         AccountMeta::new_readonly(input.numeraire_config, false),
         AccountMeta::new(input.user, true),
-        AccountMeta::new_readonly(crate::TOKEN_PROGRAM_ID, false),
-        AccountMeta::new_readonly(crate::TOKEN_2022_PROGRAM_ID, false),
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+        AccountMeta::new_readonly(TOKEN_2022_PROGRAM_ID, false),
     ]
 }
 
@@ -77,16 +89,16 @@ pub fn build_extra_data(in_index: u8, out_index: u8) -> Vec<u8> {
 /// Resolve accounts and data for a Perena swap via RPC.
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     in_index: u8,
     out_index: u8,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     if in_index == out_index {
-        return Err(crate::error::ClientError::InvalidAccountData(
+        return Err(ClientError::InvalidAccountData(
             "Perena in_index and out_index must be different".to_string(),
         ));
     }
@@ -97,7 +109,7 @@ pub async fn resolve(
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool(
+            let (pubkey, account) = discover_pool(
                 rpc,
                 &PERENA_PROGRAM_ID,
                 &[
@@ -110,58 +122,57 @@ pub async fn resolve(
         }
     };
 
-    let in_mint = crate::read_pubkey(&pool_data, virtual_stable_pair_x_mint_offset(in_index))?;
-    let out_mint = crate::read_pubkey(&pool_data, virtual_stable_pair_x_mint_offset(out_index))?;
+    let in_mint = read_pubkey(&pool_data, virtual_stable_pair_x_mint_offset(in_index))?;
+    let out_mint = read_pubkey(&pool_data, virtual_stable_pair_x_mint_offset(out_index))?;
 
     if *mint_a != in_mint {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: in_mint.to_string(),
             got: mint_a.to_string(),
         });
     }
     if *mint_b != out_mint {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: out_mint.to_string(),
             got: mint_b.to_string(),
         });
     }
 
-    let in_vault = crate::read_pubkey(&pool_data, virtual_stable_pair_x_vault_offset(in_index))?;
-    let out_vault = crate::read_pubkey(&pool_data, virtual_stable_pair_x_vault_offset(out_index))?;
+    let in_vault = read_pubkey(&pool_data, virtual_stable_pair_x_vault_offset(in_index))?;
+    let out_vault = read_pubkey(&pool_data, virtual_stable_pair_x_vault_offset(out_index))?;
 
-    let in_token_program = crate::get_token_program_for_mint(rpc, &in_mint).await?;
-    let out_token_program = crate::get_token_program_for_mint(rpc, &out_mint).await?;
+    let in_token_program = get_token_program_for_mint(rpc, &in_mint).await?;
+    let out_token_program = get_token_program_for_mint(rpc, &out_mint).await?;
 
     let in_is_2022_offset = virtual_stable_pair_x_is_2022_offset(in_index);
     let out_is_2022_offset = virtual_stable_pair_x_is_2022_offset(out_index);
     if pool_data.len() <= in_is_2022_offset || pool_data.len() <= out_is_2022_offset {
-        return Err(crate::error::ClientError::InvalidAccountData(
+        return Err(ClientError::InvalidAccountData(
             "StablePool account data too short for x_is_2022 fields".to_string(),
         ));
     }
     let in_is_2022 = pool_data[in_is_2022_offset] != 0;
     let out_is_2022 = pool_data[out_is_2022_offset] != 0;
 
-    let in_program_matches_flag = (in_is_2022 && in_token_program == crate::TOKEN_2022_PROGRAM_ID)
-        || (!in_is_2022 && in_token_program == crate::TOKEN_PROGRAM_ID);
+    let in_program_matches_flag = (in_is_2022 && in_token_program == TOKEN_2022_PROGRAM_ID)
+        || (!in_is_2022 && in_token_program == TOKEN_PROGRAM_ID);
     if !in_program_matches_flag {
-        return Err(crate::error::ClientError::InvalidAccountData(format!(
+        return Err(ClientError::InvalidAccountData(format!(
             "Perena input mint/token program mismatch: x_is_2022={}, owner={}",
             in_is_2022, in_token_program
         )));
     }
-    let out_program_matches_flag = (out_is_2022
-        && out_token_program == crate::TOKEN_2022_PROGRAM_ID)
-        || (!out_is_2022 && out_token_program == crate::TOKEN_PROGRAM_ID);
+    let out_program_matches_flag = (out_is_2022 && out_token_program == TOKEN_2022_PROGRAM_ID)
+        || (!out_is_2022 && out_token_program == TOKEN_PROGRAM_ID);
     if !out_program_matches_flag {
-        return Err(crate::error::ClientError::InvalidAccountData(format!(
+        return Err(ClientError::InvalidAccountData(format!(
             "Perena output mint/token program mismatch: x_is_2022={}, owner={}",
             out_is_2022, out_token_program
         )));
     }
 
-    let in_trader = crate::get_associated_token_address(user, &in_mint, &in_token_program);
-    let out_trader = crate::get_associated_token_address(user, &out_mint, &out_token_program);
+    let in_trader = get_associated_token_address(user, &in_mint, &in_token_program);
+    let out_trader = get_associated_token_address(user, &out_mint, &out_token_program);
 
     let (numeraire_config, _) = Address::find_program_address(&[b"config"], &PERENA_PROGRAM_ID);
 

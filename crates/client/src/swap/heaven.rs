@@ -1,3 +1,8 @@
+#[cfg(feature = "resolve")]
+use {
+    crate::{discover_pool_with_flip, get_associated_token_address, read_pubkey, ClientError},
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
 use {
     crate::{
         ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID,
@@ -109,16 +114,16 @@ pub fn build_extra_data(direction: u8, encoded_user_defined_event_data: &[u8]) -
 
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     direction: u8,
     encoded_user_defined_event_data: &[u8],
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     if direction > 1 {
-        return Err(crate::error::ClientError::InvalidAccountData(format!(
+        return Err(ClientError::InvalidAccountData(format!(
             "Invalid heaven direction: {} (expected 0=Buy or 1=Sell)",
             direction
         )));
@@ -130,7 +135,7 @@ pub async fn resolve(
             (*addr, account.data)
         }
         None => {
-            let (pubkey, account) = crate::discover_pool_with_flip(
+            let (pubkey, account) = discover_pool_with_flip(
                 rpc,
                 &HEAVEN_PROGRAM_ID,
                 OFFSET_TOKEN_A_MINT,
@@ -143,40 +148,38 @@ pub async fn resolve(
         }
     };
 
-    let token_a_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_A_MINT)?;
-    let token_b_mint = crate::read_pubkey(&pool_data, OFFSET_TOKEN_B_MINT)?;
-    let token_a_owner = crate::read_pubkey(&pool_data, OFFSET_TOKEN_A_OWNER)?;
-    let token_b_owner = crate::read_pubkey(&pool_data, OFFSET_TOKEN_B_OWNER)?;
-    let token_a_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_A_VAULT)?;
-    let token_b_vault = crate::read_pubkey(&pool_data, OFFSET_TOKEN_B_VAULT)?;
-    let protocol_config = crate::read_pubkey(&pool_data, OFFSET_PROTOCOL_CONFIG)?;
+    let token_a_mint = read_pubkey(&pool_data, OFFSET_TOKEN_A_MINT)?;
+    let token_b_mint = read_pubkey(&pool_data, OFFSET_TOKEN_B_MINT)?;
+    let token_a_owner = read_pubkey(&pool_data, OFFSET_TOKEN_A_OWNER)?;
+    let token_b_owner = read_pubkey(&pool_data, OFFSET_TOKEN_B_OWNER)?;
+    let token_a_vault = read_pubkey(&pool_data, OFFSET_TOKEN_A_VAULT)?;
+    let token_b_vault = read_pubkey(&pool_data, OFFSET_TOKEN_B_VAULT)?;
+    let protocol_config = read_pubkey(&pool_data, OFFSET_PROTOCOL_CONFIG)?;
 
     let pair_matches = (*mint_a == token_a_mint && *mint_b == token_b_mint)
         || (*mint_a == token_b_mint && *mint_b == token_a_mint);
     if !pair_matches {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: format!("{}/{}", token_a_mint, token_b_mint),
             got: format!("{}/{}", mint_a, mint_b),
         });
     }
 
     if token_a_owner != TOKEN_PROGRAM_ID && token_a_owner != TOKEN_2022_PROGRAM_ID {
-        return Err(crate::error::ClientError::InvalidAccountData(format!(
+        return Err(ClientError::InvalidAccountData(format!(
             "token_a owner {} is not a supported token program",
             token_a_owner
         )));
     }
     if token_b_owner != TOKEN_PROGRAM_ID && token_b_owner != TOKEN_2022_PROGRAM_ID {
-        return Err(crate::error::ClientError::InvalidAccountData(format!(
+        return Err(ClientError::InvalidAccountData(format!(
             "token_b owner {} is not a supported token program",
             token_b_owner
         )));
     }
 
-    let user_token_a_vault =
-        crate::get_associated_token_address(user, &token_a_mint, &token_a_owner);
-    let user_token_b_vault =
-        crate::get_associated_token_address(user, &token_b_mint, &token_b_owner);
+    let user_token_a_vault = get_associated_token_address(user, &token_a_mint, &token_a_owner);
+    let user_token_b_vault = get_associated_token_address(user, &token_b_mint, &token_b_owner);
 
     let input = HeavenSwapInput {
         liquidity_pool_state: pool_pubkey,
