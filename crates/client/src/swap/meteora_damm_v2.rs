@@ -14,8 +14,8 @@ pub const CP_AMM_PROGRAM_ID: Address =
 pub const POOL_AUTHORITY: Address =
     Address::from_str_const("HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC");
 
-// Pair account layout offsets (after 8-byte discriminator)
-// Layout: [8-byte discriminator] [160 pool_fees] [32 token_a_mint] [32 token_b_mint] [32 token_a_vault] [32 token_b_vault] ...
+// Pair account layout offsets
+// Layout: [8 discriminator] [160 pool_fees] [32 token_a_mint] [32 token_b_mint] [32 token_a_vault] [32 token_b_vault] ...
 #[cfg(feature = "resolve")]
 const OFFSET_TOKEN_A_MINT: usize = 8 + 160;
 #[cfg(feature = "resolve")]
