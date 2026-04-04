@@ -39,21 +39,23 @@ async fn test_manifest_resolve_with_known_market() {
     assert_eq!(accounts.len(), 15, "manifest requires 15 accounts");
 
     // Protocol program ID (used by on-chain routing)
-    assert_eq!(accounts[0].pubkey, MANIFEST_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, MANIFEST_PROGRAM_ID, "manifest program");
 
-    // User accounts
+    // Payer
     assert_eq!(accounts[1].pubkey, user, "payer");
     assert!(accounts[1].is_signer);
     assert!(accounts[1].is_writable);
+
+    // Owner
     assert_eq!(accounts[2].pubkey, user, "owner");
     assert!(accounts[2].is_signer);
     assert!(accounts[2].is_writable);
 
     // Market
-    assert_eq!(accounts[3].pubkey, MARKET);
+    assert_eq!(accounts[3].pubkey, MARKET, "market");
 
     // System program
-    assert_eq!(accounts[4].pubkey, SYSTEM_PROGRAM_ID);
+    assert_eq!(accounts[4].pubkey, SYSTEM_PROGRAM_ID, "system program");
 
     // Trader ATAs — derived from user, verify they match expected derivation
     let expected_trader_base = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
@@ -108,7 +110,7 @@ async fn test_manifest_resolve_quote_in() {
     .unwrap();
 
     assert_eq!(accounts.len(), 15);
-    assert_eq!(accounts[0].pubkey, MANIFEST_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, MANIFEST_PROGRAM_ID, "manifest program");
 
     // is_base_in=false (USDC != base_mint), is_exact_in=true
     assert_eq!(data, vec![0u8, 1u8]);

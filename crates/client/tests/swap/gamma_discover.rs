@@ -43,10 +43,10 @@ async fn test_gamma_resolve_with_known_pool() {
     assert_eq!(accounts.len(), 14, "gamma requires 14 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, GAMMA_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, GAMMA_PROGRAM_ID, "gamma program");
 
     // User (signer, readonly)
-    assert_eq!(accounts[1].pubkey, user);
+    assert_eq!(accounts[1].pubkey, user, "user");
     assert!(accounts[1].is_signer);
     assert!(accounts[1].is_writable);
 
@@ -106,7 +106,7 @@ async fn test_gamma_resolve_flipped_mints() {
     .unwrap();
 
     assert_eq!(accounts.len(), 14);
-    assert_eq!(accounts[0].pubkey, GAMMA_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, GAMMA_PROGRAM_ID, "gamma program");
 
     // When mint_a=USDC (token_1), vaults should be flipped:
     // input_vault = token_1_vault, output_vault = token_0_vault

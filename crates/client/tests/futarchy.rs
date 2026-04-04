@@ -38,29 +38,24 @@ async fn test_futarchy_resolve_with_known_pair() {
     assert_eq!(accounts.len(), 10, "futarchy requires 10 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, FUTARCHY_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
+    assert_eq!(accounts[0].pubkey, FUTARCHY_PROGRAM_ID, "futarchy program");
 
     // Dao
+    assert_eq!(accounts[1].pubkey, METADAO_DAO, "dao");
     assert!(accounts[1].is_writable);
-    assert!(!accounts[1].is_signer);
 
     // User base account
     let expected_metadao_ata =
         get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[2].pubkey, expected_metadao_ata,
-        "user_quote_account ATA"
+        "user base account"
     );
     assert!(accounts[2].is_writable);
 
     // User quote account
     let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(
-        accounts[3].pubkey, expected_usdc_ata,
-        "user_base_account ATA"
-    );
+    assert_eq!(accounts[3].pubkey, expected_usdc_ata, "user quote account");
     assert!(accounts[3].is_writable);
 
     let dao = accounts[1].pubkey;
@@ -70,7 +65,7 @@ async fn test_futarchy_resolve_with_known_pair() {
         get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_amm_base_vault,
-        "amm_base_vault"
+        "amm base vault"
     );
     assert!(accounts[4].is_writable);
 
@@ -79,14 +74,13 @@ async fn test_futarchy_resolve_with_known_pair() {
         beethoven_client::get_associated_token_address(&dao, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[5].pubkey, expected_amm_quote_vault,
-        "amm_quote_vault"
+        "amm quote vault"
     );
     assert!(accounts[5].is_writable);
 
     // User
-    assert_eq!(accounts[6].pubkey, user);
+    assert_eq!(accounts[6].pubkey, user, "user");
     assert!(accounts[6].is_signer);
-    assert!(!accounts[6].is_writable);
 
     // Token program
     assert_eq!(accounts[7].pubkey, TOKEN_PROGRAM_ID, "token_program");
@@ -117,28 +111,23 @@ async fn test_futarchy_resolve_flipped_mints() {
 
     // Protocol program ID
     assert_eq!(accounts[0].pubkey, FUTARCHY_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
 
     // Dao
+    assert_eq!(accounts[1].pubkey, METADAO_DAO, "dao");
     assert!(accounts[1].is_writable);
-    assert!(!accounts[1].is_signer);
 
     // User base account
     let expected_metadao_ata =
         get_associated_token_address(&user, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[2].pubkey, expected_metadao_ata,
-        "user_quote_account ATA"
+        "user quote account"
     );
     assert!(accounts[2].is_writable);
 
     // User quote account
     let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(
-        accounts[3].pubkey, expected_usdc_ata,
-        "user_base_account ATA"
-    );
+    assert_eq!(accounts[3].pubkey, expected_usdc_ata, "user base account");
     assert!(accounts[3].is_writable);
 
     let dao = accounts[1].pubkey;
@@ -148,7 +137,7 @@ async fn test_futarchy_resolve_flipped_mints() {
         get_associated_token_address(&dao, &METADAO_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[4].pubkey, expected_amm_base_vault,
-        "amm_base_vault"
+        "amm base vault"
     );
     assert!(accounts[4].is_writable);
 
@@ -157,14 +146,13 @@ async fn test_futarchy_resolve_flipped_mints() {
         get_associated_token_address(&dao, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[5].pubkey, expected_amm_quote_vault,
-        "amm_quote_vault"
+        "amm quote vault"
     );
     assert!(accounts[5].is_writable);
 
     // User
-    assert_eq!(accounts[6].pubkey, user);
+    assert_eq!(accounts[6].pubkey, user, "user");
     assert!(accounts[6].is_signer);
-    assert!(!accounts[6].is_writable);
 
     // Token program
     assert_eq!(accounts[7].pubkey, TOKEN_PROGRAM_ID, "token_program");

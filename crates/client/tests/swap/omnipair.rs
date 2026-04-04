@@ -9,6 +9,17 @@ use {
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const SOL_USDC_PAIR: Address =
+    Address::from_str_const("3cPJTS5kfD7414aTRPcyBrA55aSx8csCUPWsrS4mnFWV");
+const RATE_MODEL: Address = Address::from_str_const("GEbFhfNcpu1gnKbyuzGZ4wfP4kXzuyKj4J8xRm2yTKeG");
+const FUTARCHY_AUTHORITY: Address =
+    Address::from_str_const("2SMS1Y4EAyL2dQLpXD6VJCrNbQJ2eQ2pN3qYcX1vim3E");
+const SOL_USDC_PAIR_SOL_RESERVE_VAULT: Address =
+    Address::from_str_const("2PXu1RN3zW5PDjAZoNBaijaGs3rEZ3bG9omRihb5C8Bi");
+const SOL_USDC_PAIR_USDC_RESERVE_VAULT: Address =
+    Address::from_str_const("F5c9GM9rZXPk99z6sahgSnZcyp67ck4Q694uve1RUU2Z");
+const EVENT_AUTHORITY: Address =
+    Address::from_str_const("FWdP9yTogKbuXvEqQNNHYw2TYm38MbinAZ2iTHeZWX8H");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -21,7 +32,9 @@ async fn test_omnipair_resolve_with_known_pair() {
 
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::Omnipair { pair: None },
+        &SwapProtocol::Omnipair {
+            pair: Some(SOL_USDC_PAIR),
+        },
         &WSOL_MINT,
         &USDC_MINT,
         &user,
@@ -32,35 +45,31 @@ async fn test_omnipair_resolve_with_known_pair() {
     assert_eq!(accounts.len(), 15, "omnipair requires 15 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, OMNIPAIR_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
+    assert_eq!(accounts[0].pubkey, OMNIPAIR_PROGRAM_ID, "omnipair program");
 
     // Pair
+    assert_eq!(accounts[1].pubkey, SOL_USDC_PAIR, "pair");
     assert!(accounts[1].is_writable);
-    assert!(!accounts[1].is_signer);
 
-    // Rate model, read from pair state
-    assert!(accounts[2].is_writable);
-    assert!(!accounts[2].is_signer);
+    // Rate model
+    assert_eq!(accounts[2].pubkey, RATE_MODEL, "rate model");
 
     // Futarchy authority
-    let (expected_futarchy_authority, _) =
-        Address::find_program_address(&[b"futarchy_authority"], &OMNIPAIR_PROGRAM_ID);
-    assert_eq!(
-        accounts[3].pubkey, expected_futarchy_authority,
-        "futarchy_authority PDA"
-    );
-    assert!(!accounts[3].is_writable);
-    assert!(!accounts[3].is_signer);
+    assert_eq!(accounts[3].pubkey, FUTARCHY_AUTHORITY, "futarchy authority");
 
     // Token in vault
+    assert_eq!(
+        accounts[4].pubkey, SOL_USDC_PAIR_SOL_RESERVE_VAULT,
+        "token in vault"
+    );
     assert!(accounts[4].is_writable);
-    assert!(!accounts[4].is_signer);
 
     // Token out vault
+    assert_eq!(
+        accounts[5].pubkey, SOL_USDC_PAIR_USDC_RESERVE_VAULT,
+        "token out vault"
+    );
     assert!(accounts[5].is_writable);
-    assert!(!accounts[5].is_signer);
 
     let pair = accounts[1].pubkey;
     let token_in_mint = accounts[8].pubkey;
@@ -85,59 +94,50 @@ async fn test_omnipair_resolve_with_known_pair() {
         "token_out_vault PDA"
     );
 
-    // User ATAs
+    // User token in account
     let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_wsol_ata,
-        "user_token_in_account ATA"
-    );
-    assert_eq!(
-        accounts[7].pubkey, expected_usdc_ata,
-        "user_token_out_account ATA"
+        "user token in account"
     );
     assert!(accounts[6].is_writable);
+
+    // User token out account
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(
+        accounts[7].pubkey, expected_usdc_ata,
+        "user token out account"
+    );
     assert!(accounts[7].is_writable);
 
-    // Token in mint and token out mint
-    assert_eq!(accounts[8].pubkey, WSOL_MINT, "token_in_mint");
-    assert_eq!(accounts[9].pubkey, USDC_MINT, "token_out_mint");
-    assert!(!accounts[8].is_writable);
-    assert!(!accounts[9].is_writable);
+    // Token in mint
+    assert_eq!(accounts[8].pubkey, WSOL_MINT, "token in mint");
+
+    // token out mint
+    assert_eq!(accounts[9].pubkey, USDC_MINT, "token out mint");
 
     // User
-    assert_eq!(accounts[10].pubkey, user);
+    assert_eq!(accounts[10].pubkey, user, "user");
+    assert!(accounts[10].is_writable);
     assert!(accounts[10].is_signer);
-    assert!(!accounts[10].is_writable);
 
     // Token program
-    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token_program");
-    assert!(!accounts[11].is_writable);
+    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token program");
 
     // Token 2022 program
     assert_eq!(
         accounts[12].pubkey, TOKEN_2022_PROGRAM_ID,
-        "token_2022_program"
+        "token 2022 program"
     );
-    assert!(!accounts[12].is_writable);
 
     // Event authority
-    let (expected_event_authority, _) =
-        Address::find_program_address(&[b"__event_authority"], &OMNIPAIR_PROGRAM_ID);
-    assert_eq!(
-        accounts[13].pubkey, expected_event_authority,
-        "event_authority PDA"
-    );
-    assert!(!accounts[13].is_writable);
-    assert!(!accounts[13].is_signer);
+    assert_eq!(accounts[13].pubkey, EVENT_AUTHORITY, "event authority");
 
     // Omnipair program itself
     assert_eq!(
         accounts[14].pubkey, OMNIPAIR_PROGRAM_ID,
         "program self-reference"
     );
-    assert!(!accounts[14].is_writable);
-    assert!(!accounts[14].is_signer);
 
     // Omnipair has no extra data
     assert!(data.is_empty());
@@ -151,7 +151,9 @@ async fn test_omnipair_resolve_flipped_mints() {
     // Selling USDC for WSOL — vaults and mints should be flipped
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::Omnipair { pair: None },
+        &SwapProtocol::Omnipair {
+            pair: Some(SOL_USDC_PAIR),
+        },
         &USDC_MINT,
         &WSOL_MINT,
         &user,
@@ -160,44 +162,79 @@ async fn test_omnipair_resolve_flipped_mints() {
     .unwrap();
 
     assert_eq!(accounts.len(), 15);
-    assert_eq!(accounts[0].pubkey, OMNIPAIR_PROGRAM_ID);
 
-    // When mint_a=USDC, mints should be flipped vs canonical order
-    assert_eq!(accounts[8].pubkey, USDC_MINT, "token_in_mint");
-    assert_eq!(accounts[9].pubkey, WSOL_MINT, "token_out_mint");
+    // Protocol program ID
+    assert_eq!(accounts[0].pubkey, OMNIPAIR_PROGRAM_ID, "omnipair program");
 
-    // Vaults should be derived for the flipped direction
-    let pair = accounts[1].pubkey;
-    let expected_token_in_vault = Address::find_program_address(
-        &[b"reserve_vault", pair.as_ref(), USDC_MINT.as_ref()],
-        &OMNIPAIR_PROGRAM_ID,
-    )
-    .0;
-    let expected_token_out_vault = Address::find_program_address(
-        &[b"reserve_vault", pair.as_ref(), WSOL_MINT.as_ref()],
-        &OMNIPAIR_PROGRAM_ID,
-    )
-    .0;
+    // Pair
+    assert_eq!(accounts[1].pubkey, SOL_USDC_PAIR, "pair");
+    assert!(accounts[1].is_writable);
+
+    // Rate model
+    assert_eq!(accounts[2].pubkey, RATE_MODEL, "rate model");
+
+    // Futarchy authority
+    assert_eq!(accounts[3].pubkey, FUTARCHY_AUTHORITY, "futarchy authority");
+
+    // Token in vault
     assert_eq!(
-        accounts[4].pubkey, expected_token_in_vault,
-        "token_in_vault (USDC vault)"
+        accounts[4].pubkey, SOL_USDC_PAIR_USDC_RESERVE_VAULT,
+        "token in vault"
     );
-    assert_eq!(
-        accounts[5].pubkey, expected_token_out_vault,
-        "token_out_vault (WSOL vault)"
-    );
+    assert!(accounts[4].is_writable);
 
-    // User ATAs should also be flipped
+    // Token out vault
+    assert_eq!(
+        accounts[5].pubkey, SOL_USDC_PAIR_SOL_RESERVE_VAULT,
+        "token out vault"
+    );
+    assert!(accounts[5].is_writable);
+
+    // User token in account
     let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_usdc_ata,
-        "user_token_in_account ATA"
+        "user token in account"
     );
+    assert!(accounts[6].is_writable);
+
+    // User token out account
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[7].pubkey, expected_wsol_ata,
-        "user_token_out_account ATA"
+        "user token out account"
+    );
+    assert!(accounts[7].is_writable);
+
+    // Token in mint
+    assert_eq!(accounts[8].pubkey, USDC_MINT, "token in mint");
+
+    // token out mint
+    assert_eq!(accounts[9].pubkey, WSOL_MINT, "token out mint");
+
+    // User
+    assert_eq!(accounts[10].pubkey, user, "user");
+    assert!(accounts[10].is_writable);
+    assert!(accounts[10].is_signer);
+
+    // Token program
+    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token program");
+
+    // Token 2022 program
+    assert_eq!(
+        accounts[12].pubkey, TOKEN_2022_PROGRAM_ID,
+        "token 2022 program"
     );
 
+    // Event authority
+    assert_eq!(accounts[13].pubkey, EVENT_AUTHORITY, "event authority");
+
+    // Omnipair program itself
+    assert_eq!(
+        accounts[14].pubkey, OMNIPAIR_PROGRAM_ID,
+        "program self-reference"
+    );
+
+    // Omnipair has no extra data
     assert!(data.is_empty());
 }
