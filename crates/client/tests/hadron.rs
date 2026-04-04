@@ -1,8 +1,8 @@
 use {
     beethoven_client::{
-        resolve_swap,
+        get_associated_token_address, resolve_swap,
         swap::hadron::{FEE_CONFIG_PDA, HADRON_PROGRAM_ID},
-        SwapProtocol, SYSVAR_CLOCK_ID, TOKEN_PROGRAM_ID,
+        SwapProtocol, SYSVAR_CLOCK_ID, SYSVAR_INSTRUCTIONS_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -88,8 +88,7 @@ async fn test_hadron_resolve_with_known_pool() {
     assert!(!accounts[7].is_writable);
 
     // User source
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[8].pubkey, expected_wsol_ata, "user source");
     assert!(accounts[8].is_writable);
 
@@ -102,8 +101,7 @@ async fn test_hadron_resolve_with_known_pool() {
     assert!(accounts[10].is_writable);
 
     // User dest
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[11].pubkey, expected_usdc_ata, "user dest");
     assert!(accounts[11].is_writable);
 
@@ -196,8 +194,7 @@ async fn test_hadron_resolve_flipped_mints() {
     assert!(!accounts[7].is_writable);
 
     // User source
-    let expected_usdc_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_usdc_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[8].pubkey, expected_usdc_ata, "user source");
     assert!(accounts[8].is_writable);
 
@@ -210,8 +207,7 @@ async fn test_hadron_resolve_flipped_mints() {
     assert!(accounts[10].is_writable);
 
     // User dest
-    let expected_wsol_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    let expected_wsol_ata = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(accounts[11].pubkey, expected_wsol_ata, "user dest");
     assert!(accounts[11].is_writable);
 
@@ -219,11 +215,8 @@ async fn test_hadron_resolve_flipped_mints() {
     assert_eq!(accounts[12].pubkey, FEE_CONFIG_PDA, "fee config PDA");
 
     // Fee recipient ATA
-    let fee_recipient_usdc_ata = beethoven_client::get_associated_token_address(
-        &FEE_RECIPIENT,
-        &USDC_MINT,
-        &TOKEN_PROGRAM_ID,
-    );
+    let fee_recipient_usdc_ata =
+        get_associated_token_address(&FEE_RECIPIENT, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[13].pubkey, fee_recipient_usdc_ata,
         "fee recipient ATA (input mint = USDC)"
@@ -243,8 +236,7 @@ async fn test_hadron_resolve_flipped_mints() {
 
         // Sysvar instructions
         assert_eq!(
-            accounts[17].pubkey,
-            beethoven_client::SYSVAR_INSTRUCTIONS_ID,
+            accounts[17].pubkey, SYSVAR_INSTRUCTIONS_ID,
             "sysvar instructions"
         );
     }
