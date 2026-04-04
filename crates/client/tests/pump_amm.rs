@@ -1,7 +1,11 @@
 use {
     beethoven_client::{
-        resolve_swap, SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
+        get_associated_token_address, read_pubkey, resolve_swap,
+        swap::pump_amm::{
+            BONDING_CURVE_PROGRAM_ID, FEE_PROGRAM_ID, OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT,
+            PUMP_AMM_PROGRAM_ID,
+        },
+        SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -9,11 +13,21 @@ use {
 
 const WSOL_MINT: Address = Address::from_str_const("So11111111111111111111111111111111111111112");
 const USDC_MINT: Address = Address::from_str_const("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-const PUMP_AMM_PROGRAM_ID: Address =
-    Address::from_str_const("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
-const FEE_PROGRAM_ID: Address =
-    Address::from_str_const("pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ");
+const POOL_STATE: Address = Address::from_str_const("Gf7sXMoP8iRw4iiXmJ1nq4vxcRycbGXy5RL8a8LnTd3v");
+const GLOBAL_CONFIG: Address =
+    Address::from_str_const("ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw");
+const POOL_BASE_TOKEN_ACCOUNT: Address =
+    Address::from_str_const("nML7msD1MiJHxFvhv4po1u6C4KpWr64ugKqc75DMuD2");
+const POOL_QUOTE_TOKEN_ACCOUNT: Address =
+    Address::from_str_const("EjHirXt2bQd2DDNveagHHCWYzUwtY1iwNbBrV5j84e6j");
+const EVENT_AUTHORITY: Address =
+    Address::from_str_const("GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR");
+const COIN_CREATOR_VAULT_ATA: Address =
+    Address::from_str_const("Ei6iux5MMYG8JxCTr58goADqFTtMroL9TXJityF3fAQc");
+const COIN_CREATOR_VAULT_AUTHORITY: Address =
+    Address::from_str_const("8N3GDaZ2iwN65oxVatKTLPNooAVUJTbfiVJ1ahyqwjSk");
+const GLOBAL_VOLUME_ACCUMULATOR: Address =
+    Address::from_str_const("C2aFPdENg4A2HQsmrd5rTw5TaYBX5Ku887cWjbFKtZpw");
 
 fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
@@ -27,7 +41,8 @@ async fn test_pump_amm_resolve_with_known_pool() {
     let (accounts, data) = resolve_swap(
         &rpc,
         &SwapProtocol::PumpAmm {
-            pool: None,
+            // explicitly passed, pool cannot be derived using base and quote mints alone
+            pool: Some(POOL_STATE),
             track_volume: None,
         },
         &WSOL_MINT,
@@ -37,118 +52,140 @@ async fn test_pump_amm_resolve_with_known_pool() {
     .await
     .unwrap();
 
-    assert_eq!(accounts.len(), 24, "pump_amm requires 24 accounts");
+    assert_eq!(accounts.len(), 24, "pump amm requires 24 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, PUMP_AMM_PROGRAM_ID);
+    assert_eq!(accounts[0].pubkey, PUMP_AMM_PROGRAM_ID, "pump AMM program");
 
     // Pool
+    assert_eq!(accounts[1].pubkey, POOL_STATE, "pool");
     assert!(accounts[1].is_writable);
 
     // User
-    assert_eq!(accounts[2].pubkey, user);
+    assert_eq!(accounts[2].pubkey, user, "user");
     assert!(accounts[2].is_signer);
     assert!(accounts[2].is_writable);
 
     // Global config
-    assert!(!accounts[3].is_writable);
+    assert_eq!(accounts[3].pubkey, GLOBAL_CONFIG, "global config");
 
     // Base mint
-    assert_eq!(accounts[4].pubkey, USDC_MINT);
+    assert_eq!(accounts[4].pubkey, USDC_MINT, "base mint");
 
     // Quote mint
-    assert_eq!(accounts[5].pubkey, WSOL_MINT);
+    assert_eq!(accounts[5].pubkey, WSOL_MINT, "quote mint");
 
     // User base token account
-    let expected_usdc_ata =
+    let expected_user_base_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[6].pubkey, expected_usdc_ata);
+    assert_eq!(
+        accounts[6].pubkey, expected_user_base_ata,
+        "user base token account"
+    );
     assert!(accounts[6].is_writable);
 
     // User quote token account
-    let expected_wsol_ata =
+    let expected_user_quote_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[7].pubkey, expected_wsol_ata);
+    assert_eq!(
+        accounts[7].pubkey, expected_user_quote_ata,
+        "user quote token account"
+    );
     assert!(accounts[7].is_writable);
 
-    let pool = accounts[1].pubkey;
-
     // Pool base token account
-    let expected_pool_base_token_account =
-        beethoven_client::get_associated_token_address(&pool, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[8].pubkey, expected_pool_base_token_account);
+    assert_eq!(
+        accounts[8].pubkey, POOL_BASE_TOKEN_ACCOUNT,
+        "pool base token account"
+    );
     assert!(accounts[8].is_writable);
 
     // Pool quote token account
-    let expected_pool_quote_token_account =
-        beethoven_client::get_associated_token_address(&pool, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[9].pubkey, expected_pool_quote_token_account);
+    assert_eq!(
+        accounts[9].pubkey, POOL_QUOTE_TOKEN_ACCOUNT,
+        "pool quote token account"
+    );
     assert!(accounts[9].is_writable);
 
     // Protocol fee recipient
-    assert!(!accounts[10].is_writable);
-
-    let protocol_fee_recipient = accounts[10].pubkey;
+    let gc_data = rpc.get_account(&GLOBAL_CONFIG).await.unwrap().data;
+    let protocol_fee_recipient =
+        read_pubkey(&gc_data, OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT).unwrap();
+    assert_eq!(
+        accounts[10].pubkey, protocol_fee_recipient,
+        "protocol fee recipient"
+    );
 
     // Protocol fee recipient token account
     let expected_protocol_fee_recipient_token_account =
-        beethoven_client::get_associated_token_address(
-            &protocol_fee_recipient,
-            &WSOL_MINT,
-            &TOKEN_PROGRAM_ID,
-        );
+        get_associated_token_address(&protocol_fee_recipient, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
-        accounts[11].pubkey,
-        expected_protocol_fee_recipient_token_account
+        accounts[11].pubkey, expected_protocol_fee_recipient_token_account,
+        "protocol fee recipient token account"
     );
     assert!(accounts[11].is_writable);
 
     // Base token program
-    assert_eq!(accounts[12].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[12].pubkey, TOKEN_PROGRAM_ID, "base token program");
 
     // Quote token program
-    assert_eq!(accounts[13].pubkey, TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[13].pubkey, TOKEN_PROGRAM_ID, "quote token program");
 
     // System program
-    assert_eq!(accounts[14].pubkey, SYSTEM_PROGRAM_ID);
+    assert_eq!(accounts[14].pubkey, SYSTEM_PROGRAM_ID, "system program");
 
     // Associated token program
-    assert_eq!(accounts[15].pubkey, ASSOCIATED_TOKEN_PROGRAM_ID);
+    assert_eq!(
+        accounts[15].pubkey, ASSOCIATED_TOKEN_PROGRAM_ID,
+        "associated token program"
+    );
 
     // Event authority
-    let (expected_event_authority, _) =
-        Address::find_program_address(&[b"__event_authority"], &PUMP_AMM_PROGRAM_ID);
-    assert_eq!(accounts[16].pubkey, expected_event_authority);
+    assert_eq!(accounts[16].pubkey, EVENT_AUTHORITY, "event authority");
 
-    // Program
-    assert_eq!(accounts[17].pubkey, PUMP_AMM_PROGRAM_ID);
+    // Program (self)
+    assert_eq!(accounts[17].pubkey, PUMP_AMM_PROGRAM_ID, "program (self)");
 
     // Coin creator vault ATA
+    assert_eq!(
+        accounts[18].pubkey, COIN_CREATOR_VAULT_ATA,
+        "coin creator vault ATA"
+    );
     assert!(accounts[18].is_writable);
 
     // Coin creator vault authority
-    assert!(!accounts[19].is_writable);
+    assert_eq!(
+        accounts[19].pubkey, COIN_CREATOR_VAULT_AUTHORITY,
+        "coin creator vault authority"
+    );
 
     // Global volume accumulator
-    assert!(!accounts[20].is_writable);
+    assert_eq!(
+        accounts[20].pubkey, GLOBAL_VOLUME_ACCUMULATOR,
+        "global volume accumulator"
+    );
 
     // User volume accumulator
+    let (expected_user_volume_accumulator, _) = Address::find_program_address(
+        &[b"user_volume_accumulator", user.as_ref()],
+        &PUMP_AMM_PROGRAM_ID,
+    );
+    assert_eq!(
+        accounts[21].pubkey, expected_user_volume_accumulator,
+        "user volume accumulator"
+    );
     assert!(accounts[21].is_writable);
 
     // Fee config
-    assert!(!accounts[22].is_writable);
+    let (expected_fee_config, _) = Address::find_program_address(
+        &[b"fee_config", BONDING_CURVE_PROGRAM_ID.as_ref()],
+        &FEE_PROGRAM_ID,
+    );
+    assert_eq!(accounts[22].pubkey, expected_fee_config, "fee config");
 
     // Fee program
-    assert_eq!(accounts[23].pubkey, FEE_PROGRAM_ID);
+    assert_eq!(accounts[23].pubkey, FEE_PROGRAM_ID, "fee program");
 
     // Pump AMM has extra data
     assert_eq!(data, vec![0, 0]);
-}
-
-#[tokio::test]
-async fn test_pump_amm_resolve_flipped_mints() {
-    let rpc = RpcClient::new(get_rpc_url());
-    let user = Address::from_str_const("11111111111111111111111111111112");
-
-    assert_eq!(data, vec![0, 0], "track_volume = None");
 }

@@ -23,7 +23,7 @@ const OFFSET_COIN_CREATOR: usize = OFFSET_POOL_QUOTE_TOKEN_ACCOUNT + 32 + 8;
 // Global Config account layout offsets
 // Layout: [8-byte discriminator] [32 admin] [8 lp_fee_basis_points] [8 protocol_fee_basis_points] [1 disable_flags] [4 + 8 * 32 protocol_fee_recipients]
 #[cfg(feature = "resolve")]
-const OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT: usize = 61;
+pub const OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT: usize = 61;
 
 /// Pre-resolved addresses for building a Pump AMM swap instruction offline.
 pub struct PumpAmmSwapInput {
