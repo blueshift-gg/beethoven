@@ -76,8 +76,7 @@ async fn test_pump_amm_resolve_with_known_pool() {
     assert_eq!(accounts[5].pubkey, WSOL_MINT, "quote mint");
 
     // User base token account
-    let expected_user_base_ata =
-        beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    let expected_user_base_ata = get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[6].pubkey, expected_user_base_ata,
         "user base token account"
@@ -86,7 +85,7 @@ async fn test_pump_amm_resolve_with_known_pool() {
 
     // User quote token account
     let expected_user_quote_ata =
-        beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+        get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
     assert_eq!(
         accounts[7].pubkey, expected_user_quote_ata,
         "user quote token account"

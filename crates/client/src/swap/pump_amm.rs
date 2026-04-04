@@ -1,4 +1,16 @@
-use {solana_address::Address, solana_instruction::AccountMeta};
+#[cfg(feature = "resolve")]
+use {
+    crate::{
+        discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
+        read_pubkey, ClientError,
+    },
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
+use {
+    crate::{ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID},
+    solana_address::Address,
+    solana_instruction::AccountMeta,
+};
 
 pub const PUMP_AMM_PROGRAM_ID: Address =
     Address::from_str_const("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
@@ -64,8 +76,8 @@ pub fn build_accounts(input: &PumpAmmSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new(input.protocol_fee_recipient_token_account, false),
         AccountMeta::new_readonly(input.base_token_program, false),
         AccountMeta::new_readonly(input.quote_token_program, false),
-        AccountMeta::new_readonly(crate::SYSTEM_PROGRAM_ID, false),
-        AccountMeta::new_readonly(crate::ASSOCIATED_TOKEN_PROGRAM_ID, false),
+        AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false),
+        AccountMeta::new_readonly(ASSOCIATED_TOKEN_PROGRAM_ID, false),
         AccountMeta::new_readonly(input.event_authority, false),
         AccountMeta::new_readonly(PUMP_AMM_PROGRAM_ID, false),
         AccountMeta::new(input.coin_creator_vault_ata, false),
@@ -95,20 +107,20 @@ pub fn build_extra_data(track_volume: Option<bool>) -> Vec<u8> {
 
 #[cfg(feature = "resolve")]
 pub async fn resolve(
-    rpc: &solana_rpc_client::nonblocking::rpc_client::RpcClient,
+    rpc: &RpcClient,
     pool: Option<&Address>,
     track_volume: Option<bool>,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
-) -> Result<(Vec<AccountMeta>, Vec<u8>), crate::error::ClientError> {
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     let (pool_pk, pool_data) = match pool {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
             (*addr, account.data)
         }
         None => {
-            let (pk, account) = crate::discover_pool_with_flip(
+            let (pk, account) = discover_pool_with_flip(
                 rpc,
                 &PUMP_AMM_PROGRAM_ID,
                 OFFSET_BASE_MINT,
@@ -122,16 +134,16 @@ pub async fn resolve(
         }
     };
 
-    let base_mint = crate::read_pubkey(&pool_data, OFFSET_BASE_MINT)?;
-    let quote_mint = crate::read_pubkey(&pool_data, OFFSET_QUOTE_MINT)?;
-    let pool_base_token_account = crate::read_pubkey(&pool_data, OFFSET_POOL_BASE_TOKEN_ACCOUNT)?;
-    let pool_quote_token_account = crate::read_pubkey(&pool_data, OFFSET_POOL_QUOTE_TOKEN_ACCOUNT)?;
-    let coin_creator = crate::read_pubkey(&pool_data, OFFSET_COIN_CREATOR)?;
+    let base_mint = read_pubkey(&pool_data, OFFSET_BASE_MINT)?;
+    let quote_mint = read_pubkey(&pool_data, OFFSET_QUOTE_MINT)?;
+    let pool_base_token_account = read_pubkey(&pool_data, OFFSET_POOL_BASE_TOKEN_ACCOUNT)?;
+    let pool_quote_token_account = read_pubkey(&pool_data, OFFSET_POOL_QUOTE_TOKEN_ACCOUNT)?;
+    let coin_creator = read_pubkey(&pool_data, OFFSET_COIN_CREATOR)?;
 
     if (*mint_a != quote_mint || *mint_b != base_mint)
         && (*mint_a != base_mint || *mint_b != quote_mint)
     {
-        return Err(crate::error::ClientError::MintMismatch {
+        return Err(ClientError::MintMismatch {
             expected: format!(
                 "quote {} and base {} (buy direction: mint_a=quote, mint_b=base)",
                 quote_mint, base_mint
@@ -142,40 +154,37 @@ pub async fn resolve(
 
     // `buy`: spend quote (`mint_a`) to receive base (`mint_b`).
     if *mint_a != quote_mint {
-        return Err(crate::error::ClientError::InvalidAccountData(
+        return Err(ClientError::InvalidAccountData(
             "Pump AMM `buy` expects mint_a == pool quote mint (input)".into(),
         ));
     }
     if *mint_b != base_mint {
-        return Err(crate::error::ClientError::InvalidAccountData(
+        return Err(ClientError::InvalidAccountData(
             "Pump AMM `buy` expects mint_b == pool base mint (output)".into(),
         ));
     }
 
-    let base_token_program = crate::get_token_program_for_mint(rpc, &base_mint).await?;
-    let quote_token_program = crate::get_token_program_for_mint(rpc, &quote_mint).await?;
+    let base_token_program = get_token_program_for_mint(rpc, &base_mint).await?;
+    let quote_token_program = get_token_program_for_mint(rpc, &quote_mint).await?;
 
     let (global_config, _) =
         Address::find_program_address(&[b"global_config"], &PUMP_AMM_PROGRAM_ID);
     let gc_data = rpc.get_account(&global_config).await?.data;
-    let protocol_fee_recipient = crate::read_pubkey(&gc_data, OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT)?;
+    let protocol_fee_recipient = read_pubkey(&gc_data, OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT)?;
 
-    let protocol_fee_recipient_token_account = crate::get_associated_token_address(
-        &protocol_fee_recipient,
-        &quote_mint,
-        &quote_token_program,
-    );
+    let protocol_fee_recipient_token_account =
+        get_associated_token_address(&protocol_fee_recipient, &quote_mint, &quote_token_program);
 
     let user_base_token_account =
-        crate::get_associated_token_address(user, &base_mint, &base_token_program);
+        get_associated_token_address(user, &base_mint, &base_token_program);
     let user_quote_token_account =
-        crate::get_associated_token_address(user, &quote_mint, &quote_token_program);
+        get_associated_token_address(user, &quote_mint, &quote_token_program);
 
     let (coin_creator_vault_authority, _) = Address::find_program_address(
         &[b"creator_vault", coin_creator.as_ref()],
         &PUMP_AMM_PROGRAM_ID,
     );
-    let coin_creator_vault_ata = crate::get_associated_token_address(
+    let coin_creator_vault_ata = get_associated_token_address(
         &coin_creator_vault_authority,
         &quote_mint,
         &quote_token_program,
