@@ -43,79 +43,79 @@ async fn test_meteora_damm_v2_resolve_with_known_pool() {
     assert_eq!(accounts.len(), 15, "meteora damm v2 requires 15 accounts");
 
     // Protocol program
-    assert_eq!(accounts[0].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
+    assert_eq!(
+        accounts[0].pubkey, CP_AMM_PROGRAM_ID,
+        "meteora damm v2 program"
+    );
 
     // Pool authority
-    assert_eq!(accounts[1].pubkey, POOL_AUTHORITY);
-    assert!(!accounts[1].is_signer);
-    assert!(!accounts[1].is_writable);
+    assert_eq!(accounts[1].pubkey, POOL_AUTHORITY, "pool authority");
 
     // Pool
-    assert!(accounts[2].is_writable);
-    assert!(!accounts[2].is_signer);
+    assert!(accounts[2].is_writable, "pool");
 
     // Input token account
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[3].pubkey, expected_wsol_ata);
+    assert_eq!(accounts[3].pubkey, expected_wsol_ata, "input token account");
     assert!(accounts[3].is_writable);
 
     // Output token account
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[4].pubkey, expected_usdc_ata);
+    assert_eq!(
+        accounts[4].pubkey, expected_usdc_ata,
+        "output token account"
+    );
     assert!(accounts[4].is_writable);
 
     let pool = accounts[2].pubkey;
 
     // Token a vault
     let (expected_token_a_vault, _) = get_token_vault_pda(&WSOL_MINT, &pool);
-    assert_eq!(accounts[5].pubkey, expected_token_a_vault);
+    assert_eq!(accounts[5].pubkey, expected_token_a_vault, "token a vault");
     assert!(accounts[5].is_writable);
 
     // Token b vault
     let (expected_token_b_vault, _) = get_token_vault_pda(&USDC_MINT, &pool);
-    assert_eq!(accounts[6].pubkey, expected_token_b_vault);
+    assert_eq!(accounts[6].pubkey, expected_token_b_vault, "token b vault");
     assert!(accounts[6].is_writable);
 
     // Token a mint
-    assert_eq!(accounts[7].pubkey, WSOL_MINT);
-    assert!(!accounts[7].is_writable);
+    assert_eq!(accounts[7].pubkey, WSOL_MINT, "token a mint");
 
     // Token b mint
-    assert_eq!(accounts[8].pubkey, USDC_MINT);
-    assert!(!accounts[8].is_writable);
+    assert_eq!(accounts[8].pubkey, USDC_MINT, "token b mint");
 
     // Payer
-    assert_eq!(accounts[9].pubkey, user);
+    assert_eq!(accounts[9].pubkey, user, "payer");
     assert!(accounts[9].is_signer);
-    assert!(!accounts[9].is_writable);
 
     // Token a program
-    assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID);
-    assert!(!accounts[10].is_writable);
+    assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID, "token a program");
 
     // Token b program
-    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID);
-    assert!(!accounts[11].is_writable);
+    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token b program");
 
     // Referral token account, by default the program itself
-    assert_eq!(accounts[12].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[12].is_writable);
+    assert_eq!(
+        accounts[12].pubkey, CP_AMM_PROGRAM_ID,
+        "referral token account"
+    );
 
     // Event authority
     let (expected_event_authority, _) =
         Address::find_program_address(&[b"__event_authority"], &CP_AMM_PROGRAM_ID);
-    assert_eq!(accounts[13].pubkey, expected_event_authority);
-    assert!(!accounts[13].is_writable);
-    assert!(!accounts[13].is_signer);
+    assert_eq!(
+        accounts[13].pubkey, expected_event_authority,
+        "event authority"
+    );
 
     // Meteora DAMM v2 Program itself
-    assert_eq!(accounts[14].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[14].is_writable);
-    assert!(!accounts[14].is_signer);
+    assert_eq!(
+        accounts[14].pubkey, CP_AMM_PROGRAM_ID,
+        "meteora DAMM V2 program"
+    );
 }
 
 #[tokio::test]
@@ -136,77 +136,77 @@ async fn test_meteora_damm_v2_resolve_flipped_mints() {
     assert_eq!(accounts.len(), 15, "meteora damm v2 requires 15 accounts");
 
     // Protocol program
-    assert_eq!(accounts[0].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[0].is_signer);
-    assert!(!accounts[0].is_writable);
+    assert_eq!(
+        accounts[0].pubkey, CP_AMM_PROGRAM_ID,
+        "meteora damm v2 program"
+    );
 
     // Pool authority
-    assert_eq!(accounts[1].pubkey, POOL_AUTHORITY);
-    assert!(!accounts[1].is_signer);
-    assert!(!accounts[1].is_writable);
+    assert_eq!(accounts[1].pubkey, POOL_AUTHORITY, "pool authority");
 
     // Pool
-    assert!(accounts[2].is_writable);
-    assert!(!accounts[2].is_signer);
+    assert!(accounts[2].is_writable, "pool");
 
     // Input token account (USDC in)
     let expected_usdc_ata =
         beethoven_client::get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[3].pubkey, expected_usdc_ata);
+    assert_eq!(accounts[3].pubkey, expected_usdc_ata, "input token account");
     assert!(accounts[3].is_writable);
 
     // Output token account (WSOL out)
     let expected_wsol_ata =
         beethoven_client::get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
-    assert_eq!(accounts[4].pubkey, expected_wsol_ata);
+    assert_eq!(
+        accounts[4].pubkey, expected_wsol_ata,
+        "output token account"
+    );
     assert!(accounts[4].is_writable);
 
     let pool = accounts[2].pubkey;
 
     // Token a vault
     let (expected_token_a_vault, _) = get_token_vault_pda(&USDC_MINT, &pool);
-    assert_eq!(accounts[5].pubkey, expected_token_a_vault);
+    assert_eq!(accounts[5].pubkey, expected_token_a_vault, "token a vault");
     assert!(accounts[5].is_writable);
 
     // Token b vault
     let (expected_token_b_vault, _) = get_token_vault_pda(&WSOL_MINT, &pool);
-    assert_eq!(accounts[6].pubkey, expected_token_b_vault);
+    assert_eq!(accounts[6].pubkey, expected_token_b_vault, "token b vault");
     assert!(accounts[6].is_writable);
 
     // Token a mint
-    assert_eq!(accounts[7].pubkey, USDC_MINT);
-    assert!(!accounts[7].is_writable);
+    assert_eq!(accounts[7].pubkey, USDC_MINT, "token a mint");
 
     // Token b mint
-    assert_eq!(accounts[8].pubkey, WSOL_MINT);
-    assert!(!accounts[8].is_writable);
+    assert_eq!(accounts[8].pubkey, WSOL_MINT, "token b mint");
 
     // Payer
-    assert_eq!(accounts[9].pubkey, user);
+    assert_eq!(accounts[9].pubkey, user, "payer");
     assert!(accounts[9].is_signer);
-    assert!(!accounts[9].is_writable);
 
     // Token a program
-    assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID);
-    assert!(!accounts[10].is_writable);
+    assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID, "token a program");
 
     // Token b program
-    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID);
-    assert!(!accounts[11].is_writable);
+    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token b program");
 
     // Referral token account, by default the program itself
-    assert_eq!(accounts[12].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[12].is_writable);
+    assert_eq!(
+        accounts[12].pubkey, CP_AMM_PROGRAM_ID,
+        "referral token account"
+    );
 
     // Event authority
     let (expected_event_authority, _) =
         Address::find_program_address(&[b"__event_authority"], &CP_AMM_PROGRAM_ID);
-    assert_eq!(accounts[13].pubkey, expected_event_authority);
-    assert!(!accounts[13].is_writable);
-    assert!(!accounts[13].is_signer);
+    assert_eq!(
+        accounts[13].pubkey, expected_event_authority,
+        "event authority"
+    );
 
     // Meteora DAMM v2 Program itself
-    assert_eq!(accounts[14].pubkey, CP_AMM_PROGRAM_ID);
-    assert!(!accounts[14].is_writable);
-    assert!(!accounts[14].is_signer);
+    assert_eq!(
+        accounts[14].pubkey, CP_AMM_PROGRAM_ID,
+        "meteora DAMM V2 program"
+    );
 }
