@@ -4,7 +4,7 @@ pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     Address::from_str_const("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
 
 // Pool state account layout offsets
-// Layout: [8-byte discriminator] [32 amm_config] [32 pool_creator]
+// Layout: [8 discriminator] [32 amm_config] [32 pool_creator]
 //         [32 token_0_vault] [32 token_1_vault] [32 lp_mint]
 //         [32 token_0_mint] [32 token_1_mint] [32 token_0_program]
 //         [32 token_1_program] [32 observation_key] ...
