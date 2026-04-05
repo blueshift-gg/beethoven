@@ -21,6 +21,8 @@ pub mod hadron;
 
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
+#[cfg(feature = "stabble_weighted")]
+pub mod stabble_weighted;
 
 #[cfg(feature = "perena")]
 pub mod perena;
@@ -89,6 +91,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +129,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "stabble_weighted")]
+    StabbleWeighted { pool: Address },
 }
 
 /// A single step in a multi-swap composition.
@@ -282,6 +288,11 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(feature = "stabble_weighted")]
+        SwapProtocol::StabbleWeighted { pool } => {
+            stabble_weighted::resolve(rpc, pool, mint_a, mint_b, user).await
         }
     }
 }
