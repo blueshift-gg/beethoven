@@ -1,0 +1,14 @@
+{
+  "pubkey": "BMFQxq1x9GBsSDpHVf8iMVmmoB8rR9sJq3JSSE2kDQwG",
+  "account": {
+    "lamports": 4189920,
+    "data": [
+      "8ZptBBGxbbzuabSxFrIDn3aUV8GbLq//9PsU9c24lh/3vNwgENzf1yRGH34R1M3+8vRd5KA9K1OM+qOZWczuZ0oIaJ0nZvlZ/qc0aYzeq5/JeDmTK7QjHTP4z5o+EQJSfIEWkOg0ZQXG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYSgXsf0lsDF/+AE5A4FWpAgoiw7o5edSSLWopfnr9hprvAfFbmCtPT8Xc4LqxlSPuh/TLP2QygKz58+hhf3Oc5hY0jphNbhBlh+lLIKHW+BdI8JSL12T/muDzOU5i8SUCP+g/U+nSp5sgNOJBxjVSNWln0CsFbo31D7SsnWtcERK1hf8wPsJ9yZNX3ZWbipNYDgP0iQB3WZubVAoHRGwBAxG+32n5MOzrKV4+srQZ/7xVRcThe3/cjSX72YX9sWaWA3lnaYdYtikRQB+61EEukfj1LTjn/8E/2rsXPA0mW3zkjYpTpBXTBeVwaDZSDjuX3BOhdMggiHnJFm2VIsg1RflFAAAAAAAAAAQJwAAAAAAAAoAAAAAAAAAECcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABPtH2/ylUmFeysGX7jvcVozYdD5BsytB9G1WrDHchqJ",
+      "base64"
+    ],
+    "owner": "CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4",
+    "executable": false,
+    "rentEpoch": 18446744073709551615,
+    "space": 474
+  }
+}
