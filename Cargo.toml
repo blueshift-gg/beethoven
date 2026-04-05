@@ -176,9 +176,15 @@ mollusk-svm.workspace = true
 mollusk-svm-programs-token.workspace = true
 beethoven-client = { workspace = true, features = [
     "manifest",
+    "aldrin",
+    "aldrin_v2",
+    "futarchy",
     "gamma",
     "hadron",
     "raydium_cpmm",
+    "omnipair",
+    "perena",
+    "heaven",
     "resolve",
 ] }
 solana-rpc-client.workspace = true
