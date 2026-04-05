@@ -33,6 +33,52 @@ const OFFSET_POOL_SIGNER: usize = 200;
 #[cfg(feature = "resolve")]
 const OFFSET_FEE_POOL_TOKEN_ACCOUNT: usize = 361;
 
+#[derive(Clone, Copy)]
+pub enum Side {
+    Bid,
+    Ask,
+}
+
+/// Pre-resolved addresses for building a Aldrin swap instruction offline.
+pub struct AldrinSwapInput {
+    pub pool: Address,
+    pub pool_signer: Address,
+    pub pool_mint: Address,
+    pub base_token_vault: Address,
+    pub quote_token_vault: Address,
+    pub fee_pool_token_account: Address,
+    pub wallet_authority: Address,
+    pub user_base_token_account: Address,
+    pub user_quote_token_account: Address,
+}
+
+/// Build Aldrin swap AccountMeta list from pre-resolved addresses (no RPC needed).
+pub fn build_accounts(input: &AldrinSwapInput) -> Vec<AccountMeta> {
+    vec![
+        AccountMeta::new_readonly(ALDRIN_PROGRAM_ID, false),
+        AccountMeta::new(input.pool, false),
+        AccountMeta::new(input.pool_signer, false),
+        AccountMeta::new(input.pool_mint, false),
+        AccountMeta::new(input.base_token_vault, false),
+        AccountMeta::new(input.quote_token_vault, false),
+        AccountMeta::new(input.fee_pool_token_account, false),
+        AccountMeta::new(input.wallet_authority, true),
+        AccountMeta::new(input.user_base_token_account, false),
+        AccountMeta::new(input.user_quote_token_account, false),
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+    ]
+}
+
+/// Build Aldrin extra data: [side].
+pub fn build_extra_data(side: Side) -> Vec<u8> {
+    let side_byte = match side {
+        Side::Bid => 0,
+        Side::Ask => 1,
+    };
+
+    vec![side_byte]
+}
+
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &RpcClient,
@@ -72,19 +118,28 @@ pub async fn resolve(
     let user_base_ata = get_associated_token_address(user, &base_token_mint, &TOKEN_PROGRAM_ID);
     let user_quote_ata = get_associated_token_address(user, &quote_token_mint, &TOKEN_PROGRAM_ID);
 
-    let accounts = vec![
-        AccountMeta::new_readonly(ALDRIN_PROGRAM_ID, false),
-        AccountMeta::new_readonly(pool_pubkey, false),
-        AccountMeta::new_readonly(pool_signer, false),
-        AccountMeta::new(pool_mint, false),
-        AccountMeta::new(base_token_vault, false),
-        AccountMeta::new(quote_token_vault, false),
-        AccountMeta::new(fee_pool_token_account, false),
-        AccountMeta::new(*user, true),
-        AccountMeta::new(user_base_ata, false),
-        AccountMeta::new(user_quote_ata, false),
-        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
-    ];
+    let input = AldrinSwapInput {
+        pool: pool_pubkey,
+        pool_signer,
+        pool_mint,
+        base_token_vault,
+        quote_token_vault,
+        fee_pool_token_account,
+        wallet_authority: *user,
+        user_base_token_account: user_base_ata,
+        user_quote_token_account: user_quote_ata,
+    };
 
-    Ok((accounts, vec![side]))
+    let side = match side {
+        0 => Side::Bid,
+        1 => Side::Ask,
+        _ => {
+            return Err(ClientError::InvalidAccountData(format!(
+                "Invalid Aldrin side: {}",
+                side
+            )))
+        }
+    };
+
+    Ok((build_accounts(&input), build_extra_data(side)))
 }
