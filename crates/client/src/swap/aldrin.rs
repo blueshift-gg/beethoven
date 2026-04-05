@@ -12,12 +12,12 @@ use {
 pub const ALDRIN_PROGRAM_ID: Address =
     Address::from_str_const("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
 
-// Aldrin Pool V1 layout offsets (from poolsV1.json IDL)
-// Layout: [8-byte discriminator] [32-byte lpTokenFreezeVault] [32-byte poolMint]
-//         [32-byte baseTokenVault] [32-byte baseTokenMint] [32-byte quoteTokenVault]
-//         [32-byte quoteTokenMint] [32-byte poolSigner] [1-byte poolSignerNonce]
-//         [32-byte authority] [32-byte initializerAccount] [32-byte feeBaseAccount]
-//         [32-byte feeQuoteAccount] [32-byte feePoolTokenAccount] [Fees struct]
+// Pool account layout offsets
+// Layout: [8 discriminator] [32 lpTokenFreezeVault] [32 poolMint]
+//         [32 baseTokenVault] [32 baseTokenMint] [32 quoteTokenVault]
+//         [32 quoteTokenMint] [32 poolSigner] [1 poolSignerNonce]
+//         [32 authority] [32 initializerAccount] [32 feeBaseAccount]
+//         [32 feeQuoteAccount] [32 feePoolTokenAccount] [48 fees]
 #[cfg(feature = "resolve")]
 const OFFSET_POOL_MINT: usize = 40;
 #[cfg(feature = "resolve")]
@@ -56,8 +56,8 @@ pub struct AldrinSwapInput {
 pub fn build_accounts(input: &AldrinSwapInput) -> Vec<AccountMeta> {
     vec![
         AccountMeta::new_readonly(ALDRIN_PROGRAM_ID, false),
-        AccountMeta::new(input.pool, false),
-        AccountMeta::new(input.pool_signer, false),
+        AccountMeta::new_readonly(input.pool, false),
+        AccountMeta::new_readonly(input.pool_signer, false),
         AccountMeta::new(input.pool_mint, false),
         AccountMeta::new(input.base_token_vault, false),
         AccountMeta::new(input.quote_token_vault, false),
