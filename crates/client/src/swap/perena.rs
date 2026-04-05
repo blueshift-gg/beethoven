@@ -56,8 +56,8 @@ pub fn build_accounts(input: &PerenaSwapInput) -> Vec<AccountMeta> {
     vec![
         AccountMeta::new_readonly(PERENA_PROGRAM_ID, false),
         AccountMeta::new(input.pool, false),
-        AccountMeta::new(input.in_mint, false),
-        AccountMeta::new(input.out_mint, false),
+        AccountMeta::new_readonly(input.in_mint, false),
+        AccountMeta::new_readonly(input.out_mint, false),
         AccountMeta::new(input.in_trader, false),
         AccountMeta::new(input.out_trader, false),
         AccountMeta::new(input.in_vault, false),
