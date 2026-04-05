@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    StabbleStable = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::StabbleStable),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::StabbleStable => 14,
         }
     }
 }
@@ -142,6 +145,8 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+    #[cfg(feature = "stabble_stable-swap")]
+    StabbleStable(crate::stabble_stable::StabbleStableSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +192,8 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+    #[cfg(feature = "stabble_stable-swap")]
+    StabbleStable(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +320,8 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "stabble_stable-swap")]
+            SwapContext::StabbleStable(_) => Ok((SwapData::StabbleStable(()), data)),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +583,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "stabble_stable-swap")]
+            (SwapContext::StabbleStable(accounts), SwapData::StabbleStable(())) => {
+                crate::stabble_stable::StabbleStable::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +836,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::StabbleStable => {
+            #[cfg(feature = "stabble_stable-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::stabble_stable::STABBLE_STABLE_PROGRAM_ID,
+                )?;
+                let ctx = crate::stabble_stable::StabbleStableSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::StabbleStable(ctx), rest))
+            }
+            #[cfg(not(feature = "stabble_stable-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
