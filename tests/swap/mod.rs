@@ -1,3 +1,4 @@
+mod aldrin;
 mod futarchy;
 mod gamma;
 mod hadron;
