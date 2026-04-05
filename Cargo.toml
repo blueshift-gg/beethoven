@@ -118,6 +118,7 @@ mollusk-svm-programs-token = "0.11.0"
 beethoven-client = { path = "crates/client", features = [
     "manifest",
     "gamma",
+    "hadron",
     "resolve",
 ] }
 solana-rpc-client = "3"
