@@ -1,0 +1,14 @@
+{
+  "pubkey": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+  "account": {
+    "lamports": 6256797952,
+    "data": [
+      "AQAAAF97VMvuIvkXYWb+RRRZtiAZp/kHXsaJaGywGUcUVrFl8tdiK0A1AwAGAQEAAABpABO3JyzZq1lqrNeYIqP0v/TOjpRY5+Ltw3RArhK21A==",
+      "base64"
+    ],
+    "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "executable": false,
+    "rentEpoch": 18446744073709551615,
+    "space": 82
+  }
+}
