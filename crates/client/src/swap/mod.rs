@@ -4,6 +4,9 @@ pub mod manifest;
 #[cfg(feature = "aldrin")]
 pub mod aldrin;
 
+#[cfg(feature = "aldrin_v2")]
+pub mod aldrin_v2;
+
 #[cfg(feature = "futarchy")]
 pub mod futarchy;
 
@@ -42,6 +45,9 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "aldrin")]
     Aldrin { pool: Option<Address>, side: u8 },
+
+    #[cfg(feature = "aldrin_v2")]
+    AldrinV2 { pool: Option<Address>, side: u8 },
 
     #[cfg(feature = "futarchy")]
     Futarchy { dao: Option<Address>, swap_type: u8 },
@@ -110,6 +116,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "aldrin")]
         SwapProtocol::Aldrin { pool, side } => {
             aldrin::resolve(rpc, pool.as_ref(), *side, mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "aldrin_v2")]
+        SwapProtocol::AldrinV2 { pool, side } => {
+            aldrin_v2::resolve(rpc, pool.as_ref(), *side, mint_a, mint_b, user).await
         }
 
         #[cfg(feature = "futarchy")]

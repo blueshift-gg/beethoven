@@ -11,6 +11,7 @@ default = ["swap", "deposit", "resolve"]
 swap = [
     "manifest",
     "aldrin",
+    "aldrin_v2",
     "futarchy",
     "gamma",
     "omnipair",
@@ -32,6 +33,7 @@ resolve = [
 
 manifest = []
 aldrin = []
+aldrin_v2 = []
 futarchy = []
 gamma = []
 omnipair = []
