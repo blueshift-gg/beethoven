@@ -1,12 +1,12 @@
 [package]
 name = "beethoven-client"
-description = "Client-side helper for composing Beethoven swap instructions"
+description = "Client-side helper for composing Beethoven swap and deposit instructions"
 version = "0.0.1"
 license = "MIT"
 edition = "2021"
 
 [features]
-default = ["swap", "resolve"]
+default = ["swap", "deposit", "resolve"]
 
 swap = [
     "manifest",
@@ -16,6 +16,8 @@ swap = [
     "omnipair",
     "hadron",
 ]
+
+deposit = []
 
 resolve = [
     "dep:solana-rpc-client",

@@ -1,8 +1,11 @@
 use solana_address::Address;
 
+pub mod deposit;
 pub mod error;
 pub mod swap;
 
+#[cfg(feature = "resolve")]
+pub use deposit::resolve_deposit;
 #[cfg(feature = "resolve")]
 pub use swap::{resolve_swap, resolve_swaps};
 pub use {
