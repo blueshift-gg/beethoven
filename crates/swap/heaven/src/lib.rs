@@ -123,7 +123,7 @@ impl<'info> Swap<'info> for Heaven {
             InstructionAccount::readonly(ctx.ata_program.address()),
             InstructionAccount::readonly(ctx.system_program.address()),
             InstructionAccount::writable(ctx.pool_state.address()),
-            InstructionAccount::readonly_signer(ctx.user.address()),
+            InstructionAccount::writable_signer(ctx.user.address()),
             InstructionAccount::readonly(ctx.token_a_mint.address()),
             InstructionAccount::readonly(ctx.token_b_mint.address()),
             InstructionAccount::writable(ctx.user_token_a_account.address()),
