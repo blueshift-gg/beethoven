@@ -838,6 +838,8 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
+    #[cfg(feature = "perena_bankineco-deposit")]
+    PerenaBankineco(crate::perena_bankineco::BankinecoDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -850,6 +852,8 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
+    #[cfg(feature = "perena_bankineco-deposit")]
+    PerenaBankineco(crate::perena_bankineco::BankinecoDepositData),
 }
 
 impl<'a> DepositContext<'a> {
@@ -873,6 +877,14 @@ impl<'a> DepositContext<'a> {
             #[cfg(feature = "marginfi-deposit")]
             DepositContext::Marginfi(_) => Ok((
                 DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
+                &[],
+            )),
+
+            #[cfg(feature = "perena_bankineco-deposit")]
+            DepositContext::PerenaBankineco(_) => Ok((
+                DepositData::PerenaBankineco(
+                    crate::perena_bankineco::BankinecoDepositData::try_from(data)?,
+                ),
                 &[],
             )),
 
@@ -916,6 +928,20 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             DepositContext::Marginfi(accounts) => {
                 if let DepositData::Marginfi(data) = data {
                     crate::marginfi::Marginfi::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
+            }
+
+            #[cfg(feature = "perena_bankineco-deposit")]
+            DepositContext::PerenaBankineco(accounts) => {
+                if let DepositData::PerenaBankineco(data) = data {
+                    crate::perena_bankineco::Bankineco::deposit_signed(
+                        accounts,
+                        amount,
+                        data,
+                        signer_seeds,
+                    )
                 } else {
                     Err(ProgramError::InvalidInstructionData)
                 }
@@ -967,6 +993,15 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::marginfi::MarginfiDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Marginfi(ctx));
+    }
+
+    #[cfg(feature = "perena_bankineco-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::perena_bankineco::BANKINECO_PROGRAM_ID,
+    ) {
+        let ctx = crate::perena_bankineco::BankinecoDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::PerenaBankineco(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

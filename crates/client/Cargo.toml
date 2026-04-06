@@ -23,9 +23,12 @@ swap = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "perena_bankineco",
 ]
 
-deposit = []
+deposit = [
+    "perena_bankineco",
+]
 
 resolve = [
     "dep:solana-rpc-client",
@@ -49,6 +52,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
+perena_bankineco = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }

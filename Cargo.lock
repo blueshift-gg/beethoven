@@ -509,6 +509,7 @@ dependencies = [
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
  "beethoven-deposit-marginfi",
+ "beethoven-deposit-perena-bankineco",
  "beethoven-swap-aldrin",
  "beethoven-swap-aldrin-v2",
  "beethoven-swap-futarchy",
@@ -605,6 +606,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-deposit-marginfi"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-deposit-perena-bankineco"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
@@ -3029,9 +3041,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
+checksum = "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
 dependencies = [
  "itoa",
  "memchr",
@@ -4700,9 +4712,9 @@ dependencies = [
 
 [[package]]
 name = "solana-zero-copy"
-version = "1.0.1"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5a91404c7de468dd80658cdb5d894ec803d1092ea6e2bfdf84eee6f07559c0d"
+checksum = "8ea15126ebdc7e270c50d43884369af9f51d2308156d46a18e351522a164844d"
 dependencies = [
  "borsh",
  "bytemuck",
