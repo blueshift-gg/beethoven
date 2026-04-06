@@ -272,9 +272,14 @@ pub fn create_mock_account_at(svm: &mut LiteSVM, pubkey: Address, owner: &Addres
 // Instruction Builders
 // =============================================================================
 
-pub fn build_deposit_instruction(accounts: Vec<AccountMeta>, amount: u64) -> Instruction {
+pub fn build_deposit_instruction(
+    accounts: Vec<AccountMeta>,
+    amount: u64,
+    extra_data: &[u8],
+) -> Instruction {
     let mut data = vec![discriminator::DEPOSIT];
     data.extend_from_slice(&amount.to_le_bytes());
+    data.extend_from_slice(extra_data);
 
     Instruction {
         program_id: TEST_PROGRAM_ID,
