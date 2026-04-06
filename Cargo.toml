@@ -14,7 +14,7 @@ upstream-bpf = []
 # Action groups
 deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit"]
 swap = [
-    "perena-swap",
+    "perena-numeraire-swap",
     "solfi-swap",
     "solfi-v2-swap",
     "manifest-swap",
@@ -38,7 +38,7 @@ drift-deposit = ["dep:beethoven-deposit-drift"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 
 # Swap protocols
-perena-swap = ["dep:beethoven-swap-perena"]
+perena-numeraire-swap = ["dep:beethoven-swap-perena-numeraire"]
 solfi-swap = ["dep:beethoven-swap-solfi"]
 solfi-v2-swap = ["dep:beethoven-swap-solfi-v2"]
 manifest-swap = ["dep:beethoven-swap-manifest"]
@@ -66,7 +66,7 @@ beethoven-deposit-kamino = { workspace = true, optional = true }
 beethoven-deposit-jupiter = { workspace = true, optional = true }
 beethoven-deposit-drift = { workspace = true, optional = true }
 beethoven-deposit-marginfi = { workspace = true, optional = true }
-beethoven-swap-perena = { workspace = true, optional = true }
+beethoven-swap-perena-numeraire = { workspace = true, optional = true }
 beethoven-swap-solfi = { workspace = true, optional = true }
 beethoven-swap-solfi-v2 = { workspace = true, optional = true }
 beethoven-swap-manifest = { workspace = true, optional = true }
@@ -89,7 +89,7 @@ members = [
     "crates/deposit/jupiter",
     "crates/deposit/drift",
     "crates/deposit/marginfi",
-    "crates/swap/perena",
+    "crates/swap/perena-numeraire",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
     "crates/swap/manifest",
@@ -116,7 +116,7 @@ beethoven-deposit-kamino = { path = "crates/deposit/kamino" }
 beethoven-deposit-jupiter = { path = "crates/deposit/jupiter" }
 beethoven-deposit-drift = { path = "crates/deposit/drift" }
 beethoven-deposit-marginfi = { path = "crates/deposit/marginfi" }
-beethoven-swap-perena = { path = "crates/swap/perena" }
+beethoven-swap-perena-numeraire = { path = "crates/swap/perena-numeraire" }
 beethoven-swap-solfi = { path = "crates/swap/solfi" }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2" }
 beethoven-swap-manifest = { path = "crates/swap/manifest" }
@@ -185,7 +185,7 @@ beethoven-client = { workspace = true, features = [
     "raydium-cpmm",
     "raydium-clmm",
     "omnipair",
-    "perena",
+    "perena-numeraire",
     "heaven",
     "scale-amm",
     "scale-vmm",

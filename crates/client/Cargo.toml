@@ -18,7 +18,7 @@ swap = [
     "hadron",
     "raydium-cpmm",
     "raydium-clmm",
-    "perena",
+    "perena-numeraire",
     "heaven",
     "scale-amm",
     "scale-vmm",
@@ -45,7 +45,7 @@ omnipair = []
 hadron = []
 raydium-cpmm = []
 raydium-clmm = []
-perena = []
+perena-numeraire = []
 heaven = []
 scale-amm = []
 scale-vmm = []

@@ -29,7 +29,7 @@ pub const MEMO_PROGRAM_ID: Address = address!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCq
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
-pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
+pub const NUMERAIRE_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
@@ -574,8 +574,11 @@ pub fn futarchy_fixtures_dir() -> String {
     format!("{}/fixtures/swap/futarchy", env!("CARGO_MANIFEST_DIR"))
 }
 
-pub fn perena_fixtures_dir() -> String {
-    format!("{}/fixtures/swap/perena", env!("CARGO_MANIFEST_DIR"))
+pub fn numeraire_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/swap/perena-numeraire",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 pub fn heaven_fixtures_dir() -> String {
