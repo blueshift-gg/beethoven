@@ -12,7 +12,7 @@ default = ["deposit", "swap"]
 upstream-bpf = []
 
 # Action groups
-deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "carrot-deposit"]
+deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "carrot_lend-deposit"]
 swap = [
     "perena-swap",
     "solfi-swap",
@@ -32,7 +32,7 @@ swap = [
 kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
-carrot-deposit = ["dep:beethoven-deposit-carrot"]
+carrot_lend-deposit = ["dep:beethoven-deposit-carrot-lend"]
 
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
@@ -59,7 +59,7 @@ solana-program-error = "3.0.0"
 beethoven-deposit-kamino = { path = "crates/deposit/kamino", optional = true }
 beethoven-deposit-jupiter = { path = "crates/deposit/jupiter", optional = true }
 beethoven-deposit-drift = { path = "crates/deposit/drift", optional = true }
-beethoven-deposit-carrot = { path = "crates/deposit/carrot", optional = true }
+beethoven-deposit-carrot-lend = { path = "crates/deposit/carrot-lend", optional = true }
 beethoven-swap-perena = { path = "crates/swap/perena", optional = true }
 beethoven-swap-solfi = { path = "crates/swap/solfi", optional = true }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2", optional = true }
@@ -79,7 +79,7 @@ members = [
     "crates/deposit/kamino",
     "crates/deposit/jupiter",
     "crates/deposit/drift",
-    "crates/deposit/carrot",
+    "crates/deposit/carrot-lend",
     "crates/swap/perena",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",

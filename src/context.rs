@@ -555,8 +555,8 @@ pub enum DepositContext<'info> {
     #[cfg(feature = "drift-deposit")]
     Drift(crate::drift::DriftDepositAccounts<'info>),
 
-    #[cfg(feature = "carrot-deposit")]
-    Carrot(crate::carrot::CarrotLendDepositAccounts<'info>),
+    #[cfg(feature = "carrot_lend-deposit")]
+    CarrotLend(crate::carrot_lend::CarrotLendDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -567,8 +567,8 @@ pub enum DepositData {
     Jupiter(()),
     #[cfg(feature = "drift-deposit")]
     Drift(crate::drift::DriftDepositData),
-    #[cfg(feature = "carrot-deposit")]
-    Carrot(crate::carrot::CarrotDepositData),
+    #[cfg(feature = "carrot_lend-deposit")]
+    CarrotLend(crate::carrot_lend::CarrotLendDepositData),
 }
 
 impl<'a> DepositContext<'a> {
@@ -589,9 +589,9 @@ impl<'a> DepositContext<'a> {
                 &[],
             )),
 
-            #[cfg(feature = "carrot-deposit")]
-            DepositContext::Carrot(_) => Ok((
-                DepositData::Carrot(crate::carrot::CarrotDepositData::try_from(data)?),
+            #[cfg(feature = "carrot_lend-deposit")]
+            DepositContext::CarrotLend(_) => Ok((
+                DepositData::CarrotLend(crate::carrot_lend::CarrotLendDepositData::try_from(data)?),
                 &[],
             )),
 
@@ -631,10 +631,15 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
                 }
             }
 
-            #[cfg(feature = "carrot-deposit")]
-            DepositContext::Carrot(accounts) => {
-                if let DepositData::Carrot(data) = data {
-                    crate::carrot::CarrotLend::deposit_signed(accounts, amount, data, signer_seeds)
+            #[cfg(feature = "carrot_lend-deposit")]
+            DepositContext::CarrotLend(accounts) => {
+                if let DepositData::CarrotLend(data) = data {
+                    crate::carrot_lend::CarrotLend::deposit_signed(
+                        accounts,
+                        amount,
+                        data,
+                        signer_seeds,
+                    )
                 } else {
                     Err(ProgramError::InvalidInstructionData)
                 }
@@ -679,13 +684,13 @@ pub fn try_from_deposit_context<'info>(
         return Ok(DepositContext::Drift(ctx));
     }
 
-    #[cfg(feature = "carrot-deposit")]
+    #[cfg(feature = "carrot_lend-deposit")]
     if address_eq(
         detector_account.address(),
-        &crate::carrot::CARROT_LEND_PROGRAM_ID,
+        &crate::carrot_lend::CARROT_LEND_PROGRAM_ID,
     ) {
-        let ctx = crate::carrot::CarrotLendDepositAccounts::try_from(accounts)?;
-        return Ok(DepositContext::Carrot(ctx));
+        let ctx = crate::carrot_lend::CarrotLendDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::CarrotLend(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

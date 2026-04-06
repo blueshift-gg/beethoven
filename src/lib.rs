@@ -2,8 +2,8 @@
 
 // Re-export core traits
 pub use beethoven_core::{Deposit, Swap};
-#[cfg(feature = "carrot-deposit")]
-pub use beethoven_deposit_carrot as carrot;
+#[cfg(feature = "carrot_lend-deposit")]
+pub use beethoven_deposit_carrot_lend as carrot_lend;
 #[cfg(feature = "drift-deposit")]
 pub use beethoven_deposit_drift as drift;
 #[cfg(feature = "jupiter-deposit")]

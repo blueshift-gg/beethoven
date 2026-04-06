@@ -20,15 +20,15 @@ pub const MAX_ACCOUNTS: usize = 13;
 
 pub struct CarrotLend;
 
-pub struct CarrotDepositData {
+pub struct CarrotLendDepositData {
     pub deposit_up_to_amount: u8,
 }
 
-impl CarrotDepositData {
+impl CarrotLendDepositData {
     pub const DATA_LEN: usize = 1;
 }
 
-impl TryFrom<&[u8]> for CarrotDepositData {
+impl TryFrom<&[u8]> for CarrotLendDepositData {
     type Error = ProgramError;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
@@ -80,7 +80,7 @@ impl<'info> TryFrom<&'info [AccountView]> for CarrotLendDepositAccounts<'info> {
 
 impl<'info> Deposit<'info> for CarrotLend {
     type Accounts = CarrotLendDepositAccounts<'info>;
-    type Data = CarrotDepositData;
+    type Data = CarrotLendDepositData;
 
     fn deposit_signed(
         ctx: &CarrotLendDepositAccounts<'info>,

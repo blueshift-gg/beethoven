@@ -1,5 +1,5 @@
 [package]
-name = "beethoven-deposit-carrot"
+name = "beethoven-deposit-carrot-lend"
 description = "Carrot Lend deposit implementation for Beethoven"
 version = "0.0.1"
 license = "MIT"

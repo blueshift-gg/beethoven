@@ -555,7 +555,7 @@ dependencies = [
  "base64 0.22.1",
  "beethoven-client",
  "beethoven-core",
- "beethoven-deposit-carrot",
+ "beethoven-deposit-carrot-lend",
  "beethoven-deposit-drift",
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
@@ -618,7 +618,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "beethoven-deposit-carrot"
+name = "beethoven-deposit-carrot-lend"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

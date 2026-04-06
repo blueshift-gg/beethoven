@@ -1,13 +1,13 @@
 use {crate::helper::*, solana_keypair::Keypair, solana_signer::Signer};
 
 #[test]
-fn test_carrot_deposit() {
+fn test_carrot_lend_deposit() {
     let mut svm = setup_svm();
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
 
     // TODO: Load beethoven-test program
-    // TODO: Load carrot program or mock
+    // TODO: Load Carrot Lend program or mock
     // TODO: Set up accounts from fixtures
     // TODO: Execute deposit instruction
     // TODO: Verify results
