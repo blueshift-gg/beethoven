@@ -596,6 +596,8 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
+    #[cfg(feature = "carrot_boost-deposit")]
+    CarrotBoost(crate::carrot_boost::CarrotBoostDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -608,6 +610,8 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
+    #[cfg(feature = "carrot_boost-deposit")]
+    CarrotBoost(crate::carrot_boost::CarrotBoostDepositData),
 }
 
 impl<'a> DepositContext<'a> {
@@ -631,6 +635,14 @@ impl<'a> DepositContext<'a> {
             #[cfg(feature = "marginfi-deposit")]
             DepositContext::Marginfi(_) => Ok((
                 DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
+                &[],
+            )),
+
+            #[cfg(feature = "carrot_boost-deposit")]
+            DepositContext::CarrotBoost(_) => Ok((
+                DepositData::CarrotBoost(crate::carrot_boost::CarrotBoostDepositData::try_from(
+                    data,
+                )?),
                 &[],
             )),
 
@@ -674,6 +686,20 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             DepositContext::Marginfi(accounts) => {
                 if let DepositData::Marginfi(data) = data {
                     crate::marginfi::Marginfi::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
+            }
+
+            #[cfg(feature = "carrot_boost-deposit")]
+            DepositContext::CarrotBoost(accounts) => {
+                if let DepositData::CarrotBoost(data) = data {
+                    crate::carrot_boost::CarrotBoost::deposit_signed(
+                        accounts,
+                        amount,
+                        data,
+                        signer_seeds,
+                    )
                 } else {
                     Err(ProgramError::InvalidInstructionData)
                 }
@@ -725,6 +751,15 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::marginfi::MarginfiDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Marginfi(ctx));
+    }
+
+    #[cfg(feature = "carrot_boost-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::carrot_boost::CARROT_BOOST_PROGRAM_ID,
+    ) {
+        let ctx = crate::carrot_boost::CarrotBoostDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::CarrotBoost(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

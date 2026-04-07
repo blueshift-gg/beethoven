@@ -1,0 +1,1 @@
+solana program dump C73nDAFn23RYwiFa6vtHshSbcg8x6BLYjw3bERJ3vHxf fixtures/deposit/carrot-boost/carrot_boost.so -u 'https://mainnet.helius-rpc.com/?api-key=f08679a5-b3bb-44e6-840a-a330150160d7'

@@ -26,6 +26,8 @@ pub const TOKEN_2022_PROGRAM_ID: Address = address!("TokenzQdBNbLqP5VEhdkAS6EPFL
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+pub const CARROT_BOOST_PROGRAM_ID: Address =
+    address!("C73nDAFn23RYwiFa6vtHshSbcg8x6BLYjw3bERJ3vHxf");
 pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
@@ -499,6 +501,13 @@ pub fn omnipair_fixtures_dir() -> String {
 
 pub fn hadron_fixtures_dir() -> String {
     format!("{}/fixtures/swap/hadron", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn carrot_boost_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/deposit/carrot-boost",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 #[cfg(feature = "upstream-bpf")]
