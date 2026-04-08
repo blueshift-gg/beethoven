@@ -16,6 +16,9 @@ pub enum ClientError {
 
     #[error("Mint mismatch: expected {expected}, got {got}")]
     MintMismatch { expected: String, got: String },
+
+    #[error("Invalid swap type: {0}")]
+    InvalidSwapType(String),
 }
 
 #[cfg(feature = "resolve")]
