@@ -27,6 +27,12 @@ pub mod perena;
 #[cfg(feature = "heaven")]
 pub mod heaven;
 
+#[cfg(feature = "scale_amm")]
+pub mod scale_amm;
+
+#[cfg(feature = "scale_vmm")]
+pub mod scale_vmm;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -82,6 +88,12 @@ pub enum SwapProtocol {
         direction: u8,
         encoded_user_defined_event_data: Vec<u8>,
     },
+
+    #[cfg(feature = "scale_amm")]
+    ScaleAmm { pool: Option<Address>, side: u8 },
+
+    #[cfg(feature = "scale_vmm")]
+    ScaleVmm { pair: Option<Address>, side: u8 },
 }
 
 /// A single step in a multi-swap composition.
@@ -196,6 +208,16 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(all(feature = "resolve", feature = "scale_amm"))]
+        SwapProtocol::ScaleAmm { pool, side } => {
+            scale_amm::resolve(rpc, pool.as_ref(), *side, mint_a, mint_b, user).await
+        }
+
+        #[cfg(all(feature = "resolve", feature = "scale_vmm"))]
+        SwapProtocol::ScaleVmm { pair, side } => {
+            scale_vmm::resolve(rpc, pair.as_ref(), *side, mint_a, mint_b, user).await
         }
     }
 }

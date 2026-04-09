@@ -19,6 +19,8 @@ swap = [
     "raydium_cpmm",
     "perena",
     "heaven",
+    "scale_amm",
+    "scale_vmm",
 ]
 
 deposit = []
@@ -41,6 +43,8 @@ hadron = []
 raydium_cpmm = []
 perena = []
 heaven = []
+scale_amm = []
+scale_vmm = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }

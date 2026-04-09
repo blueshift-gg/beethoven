@@ -157,3 +157,14 @@ pub fn read_pubkey(data: &[u8], offset: usize) -> Result<Address, ClientError> {
         <[u8; 32]>::try_from(&data[offset..offset + 32]).unwrap(),
     ))
 }
+
+pub fn read_u8(data: &[u8], offset: usize) -> Result<u8, ClientError> {
+    if data.len() < offset + 1 {
+        return Err(ClientError::InvalidAccountData(format!(
+            "Account data too short: {} bytes, need at least {}",
+            data.len(),
+            offset + 1
+        )));
+    }
+    Ok(data[offset])
+}
