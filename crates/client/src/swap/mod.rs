@@ -33,6 +33,12 @@ pub mod scale_amm;
 #[cfg(feature = "scale_vmm")]
 pub mod scale_vmm;
 
+#[cfg(feature = "solfi")]
+pub mod solfi;
+
+#[cfg(feature = "solfi_v2")]
+pub mod solfi_v2;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -94,6 +100,18 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "scale_vmm")]
     ScaleVmm { pair: Option<Address>, side: u8 },
+
+    #[cfg(feature = "solfi")]
+    SolFi {
+        market: Option<Address>,
+        is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "solfi_v2")]
+    SolFiV2 {
+        market: Option<Address>,
+        is_quote_to_base: bool,
+    },
 }
 
 /// A single step in a multi-swap composition.
@@ -218,6 +236,38 @@ pub async fn resolve_swap(
         #[cfg(all(feature = "resolve", feature = "scale_vmm"))]
         SwapProtocol::ScaleVmm { pair, side } => {
             scale_vmm::resolve(rpc, pair.as_ref(), *side, mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "solfi")]
+        SwapProtocol::SolFi {
+            market,
+            is_quote_to_base,
+        } => {
+            solfi::resolve(
+                rpc,
+                market.as_ref(),
+                *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "solfi_v2")]
+        SwapProtocol::SolFiV2 {
+            market,
+            is_quote_to_base,
+        } => {
+            solfi_v2::resolve(
+                rpc,
+                market.as_ref(),
+                *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
         }
     }
 }

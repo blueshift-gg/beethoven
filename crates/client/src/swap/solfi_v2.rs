@@ -1,0 +1,144 @@
+use {crate::SYSVAR_INSTRUCTIONS_ID, solana_address::Address, solana_instruction::AccountMeta};
+#[cfg(feature = "resolve")]
+use {
+    crate::{discover_pool_with_flip, get_associated_token_address, read_pubkey, ClientError},
+    solana_rpc_client::nonblocking::rpc_client::RpcClient,
+};
+
+pub const SOLFI_V2_PROGRAM_ID: Address =
+    Address::from_str_const("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
+
+// Market account layout offsets
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_ORACLE_ACCOUNT: usize = 24;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_CONFIG_ACCOUNT: usize = 256;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_BASE_MINT: usize = 56;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_QUOTE_MINT: usize = 88;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_BASE_VAULT: usize = 120;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_QUOTE_VAULT: usize = 152;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_BASE_TOKEN_PROGRAM: usize = 184;
+#[cfg(feature = "resolve")]
+const OFFSET_MARKET_QUOTE_TOKEN_PROGRAM: usize = 216;
+
+/// Pre-resolved addresses for building a SolFi v2 swap instruction offline.
+pub struct SolFiV2SwapInput {
+    pub token_transfer_authority: Address,
+    pub market_account: Address,
+    pub oracle_account: Address,
+    pub config_account: Address,
+    pub base_vault: Address,
+    pub quote_vault: Address,
+    pub user_base_ata: Address,
+    pub user_quote_ata: Address,
+    pub base_mint: Address,
+    pub quote_mint: Address,
+    pub base_token_program: Address,
+    pub quote_token_program: Address,
+}
+
+/// Build SolFi v2 swap AccountMeta list from pre-resolved addresses (no RPC needed).
+pub fn build_accounts(input: &SolFiV2SwapInput) -> Vec<AccountMeta> {
+    vec![
+        AccountMeta::new_readonly(SOLFI_V2_PROGRAM_ID, false),
+        AccountMeta::new(input.token_transfer_authority, true),
+        AccountMeta::new(input.market_account, false),
+        AccountMeta::new_readonly(input.oracle_account, false),
+        AccountMeta::new_readonly(input.config_account, false),
+        AccountMeta::new(input.base_vault, false),
+        AccountMeta::new(input.quote_vault, false),
+        AccountMeta::new(input.user_base_ata, false),
+        AccountMeta::new(input.user_quote_ata, false),
+        AccountMeta::new_readonly(input.base_mint, false),
+        AccountMeta::new_readonly(input.quote_mint, false),
+        AccountMeta::new_readonly(input.base_token_program, false),
+        AccountMeta::new_readonly(input.quote_token_program, false),
+        AccountMeta::new_readonly(SYSVAR_INSTRUCTIONS_ID, false),
+    ]
+}
+
+/// SolFi v2 extra data: [is_quote_to_base]
+pub fn build_extra_data(is_quote_to_base: bool) -> Vec<u8> {
+    vec![is_quote_to_base as u8]
+}
+
+/// Resolve accounts and data for a SolFi v2 swap via RPC.
+///
+/// `mint_a` is the input mint (what you're selling). Direction is inferred
+/// by comparing `mint_a` against the pair's token0.
+#[cfg(feature = "resolve")]
+pub async fn resolve(
+    rpc: &RpcClient,
+    market: Option<&Address>,
+    is_quote_to_base: bool,
+    mint_a: &Address,
+    mint_b: &Address,
+    user: &Address,
+) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
+    let (market_pubkey, market_data) = match market {
+        Some(addr) => {
+            let account = rpc.get_account(addr).await?;
+            (*addr, account.data)
+        }
+        None => {
+            let (pubkey, account) = discover_pool_with_flip(
+                rpc,
+                &SOLFI_V2_PROGRAM_ID,
+                OFFSET_MARKET_BASE_MINT,
+                OFFSET_MARKET_QUOTE_MINT,
+                mint_a,
+                mint_b,
+            )
+            .await?;
+            (pubkey, account.data)
+        }
+    };
+
+    let base_mint = read_pubkey(&market_data, OFFSET_MARKET_BASE_MINT)?;
+    let quote_mint = read_pubkey(&market_data, OFFSET_MARKET_QUOTE_MINT)?;
+
+    if *mint_a != base_mint && *mint_a != quote_mint {
+        return Err(ClientError::MintMismatch {
+            expected: format!("{} or {}", base_mint, quote_mint),
+            got: mint_a.to_string(),
+        });
+    }
+
+    if *mint_b != base_mint && *mint_b != quote_mint {
+        return Err(ClientError::MintMismatch {
+            expected: format!("{} or {}", base_mint, quote_mint),
+            got: mint_b.to_string(),
+        });
+    }
+
+    let oracle_account = read_pubkey(&market_data, OFFSET_MARKET_ORACLE_ACCOUNT)?;
+    let config_account = read_pubkey(&market_data, OFFSET_MARKET_CONFIG_ACCOUNT)?;
+    let base_vault = read_pubkey(&market_data, OFFSET_MARKET_BASE_VAULT)?;
+    let quote_vault = read_pubkey(&market_data, OFFSET_MARKET_QUOTE_VAULT)?;
+    let base_token_program = read_pubkey(&market_data, OFFSET_MARKET_BASE_TOKEN_PROGRAM)?;
+    let quote_token_program = read_pubkey(&market_data, OFFSET_MARKET_QUOTE_TOKEN_PROGRAM)?;
+    let user_base_ata = get_associated_token_address(user, &base_mint, &base_token_program);
+    let user_quote_ata = get_associated_token_address(user, &quote_mint, &quote_token_program);
+
+    let input = SolFiV2SwapInput {
+        token_transfer_authority: *user,
+        market_account: market_pubkey,
+        oracle_account,
+        config_account,
+        base_vault,
+        quote_vault,
+        user_base_ata,
+        user_quote_ata,
+        base_mint,
+        quote_mint,
+        base_token_program,
+        quote_token_program,
+    };
+
+    Ok((build_accounts(&input), build_extra_data(is_quote_to_base)))
+}

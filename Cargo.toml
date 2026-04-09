@@ -187,6 +187,8 @@ beethoven-client = { workspace = true, features = [
     "heaven",
     "scale_amm",
     "scale_vmm",
+    "solfi",
+    "solfi_v2",
     "resolve",
 ] }
 solana-rpc-client.workspace = true
