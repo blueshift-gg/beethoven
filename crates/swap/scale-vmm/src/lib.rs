@@ -162,7 +162,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                 [
                     InstructionAccount::writable(ctx.pair.address()),
                     InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::writable(ctx.mint_a.address()),
+                    InstructionAccount::readonly(ctx.mint_a.address()),
                     InstructionAccount::readonly(ctx.mint_b.address()),
                     InstructionAccount::writable(ctx.user_ta_a.address()),
                     InstructionAccount::writable(ctx.user_ta_b.address()),
@@ -206,7 +206,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                 [
                     InstructionAccount::writable(ctx.pair.address()),
                     InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::writable(ctx.mint_a.address()),
+                    InstructionAccount::readonly(ctx.mint_a.address()),
                     InstructionAccount::readonly(ctx.mint_b.address()),
                     InstructionAccount::writable(ctx.user_ta_a.address()),
                     InstructionAccount::writable(ctx.user_ta_b.address()),
@@ -252,7 +252,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                 [
                     InstructionAccount::writable(ctx.pair.address()),
                     InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::writable(ctx.mint_a.address()),
+                    InstructionAccount::readonly(ctx.mint_a.address()),
                     InstructionAccount::readonly(ctx.mint_b.address()),
                     InstructionAccount::writable(ctx.user_ta_a.address()),
                     InstructionAccount::writable(ctx.user_ta_b.address()),
@@ -300,7 +300,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                 [
                     InstructionAccount::writable(ctx.pair.address()),
                     InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::writable(ctx.mint_a.address()),
+                    InstructionAccount::readonly(ctx.mint_a.address()),
                     InstructionAccount::readonly(ctx.mint_b.address()),
                     InstructionAccount::writable(ctx.user_ta_a.address()),
                     InstructionAccount::writable(ctx.user_ta_b.address()),
@@ -350,7 +350,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                 [
                     InstructionAccount::writable(ctx.pair.address()),
                     InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::writable(ctx.mint_a.address()),
+                    InstructionAccount::readonly(ctx.mint_a.address()),
                     InstructionAccount::readonly(ctx.mint_b.address()),
                     InstructionAccount::writable(ctx.user_ta_a.address()),
                     InstructionAccount::writable(ctx.user_ta_b.address()),
@@ -403,7 +403,7 @@ impl<'info> Swap<'info> for ScaleVmm {
                     [
                         InstructionAccount::writable(ctx.pair.address()),
                         InstructionAccount::writable_signer(ctx.user.address()),
-                        InstructionAccount::writable(ctx.mint_a.address()),
+                        InstructionAccount::readonly(ctx.mint_a.address()),
                         InstructionAccount::readonly(ctx.mint_b.address()),
                         InstructionAccount::writable(ctx.user_ta_a.address()),
                         InstructionAccount::writable(ctx.user_ta_b.address()),
