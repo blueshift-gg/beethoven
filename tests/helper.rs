@@ -31,6 +31,7 @@ pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
 pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
+pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
@@ -639,6 +640,14 @@ pub fn scale_amm_fixtures_dir() -> String {
 
 pub fn scale_vmm_fixtures_dir() -> String {
     format!("{}/fixtures/swap/scale-vmm", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn solfi_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/solfi", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn solfi_v2_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/solfi-v2", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]

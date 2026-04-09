@@ -12,4 +12,6 @@ mod raydium_cpmm;
 mod route;
 mod scale_amm;
 mod scale_vmm;
+mod solfi;
+mod solfi_v2;
 mod tagged;
