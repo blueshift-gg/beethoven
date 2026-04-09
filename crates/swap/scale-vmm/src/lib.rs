@@ -18,7 +18,7 @@ pub const SCALE_VMM_PROGRAM_ID: Address =
 const BUY_DISCRIMINATOR: [u8; 8] = [102, 6, 61, 18, 1, 218, 235, 234];
 const SELL_DISCRIMINATOR: [u8; 8] = [51, 230, 133, 164, 1, 127, 131, 173];
 
-const FIXED_ACCOUNT_COUNT: usize = 22;
+const FIXED_ACCOUNT_COUNT: usize = 19;
 const MAX_BENEFICIARY_ACCOUNTS: usize = 5;
 
 pub struct ScaleVmm;
@@ -81,9 +81,6 @@ pub struct ScaleVmmSwapAccounts<'info> {
     pub amm_vault_a: &'info AccountView,
     pub amm_vault_b: &'info AccountView,
     pub amm_config: &'info AccountView,
-    pub amm_token_program_a: &'info AccountView,
-    pub amm_token_program_b: &'info AccountView,
-    pub amm_system_program: &'info AccountView,
     pub beneficiary_accounts: &'info [AccountView],
 }
 
@@ -91,7 +88,7 @@ impl<'info> TryFrom<&'info [AccountView]> for ScaleVmmSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        let [scale_vmm_program, pair, user, mint_a, mint_b, user_ta_a, user_ta_b, vault_a, vault_b, platform_fee_ta_a, token_program_a, token_program_b, system_program, config, amm_program, amm_pool, amm_vault_a, amm_vault_b, amm_config, amm_token_program_a, amm_token_program_b, amm_system_program, beneficiary_accounts @ ..] =
+        let [scale_vmm_program, pair, user, mint_a, mint_b, user_ta_a, user_ta_b, vault_a, vault_b, platform_fee_ta_a, token_program_a, token_program_b, system_program, config, amm_program, amm_pool, amm_vault_a, amm_vault_b, amm_config, beneficiary_accounts @ ..] =
             accounts
         else {
             return Err(ProgramError::NotEnoughAccountKeys);
@@ -121,9 +118,6 @@ impl<'info> TryFrom<&'info [AccountView]> for ScaleVmmSwapAccounts<'info> {
             amm_vault_a,
             amm_vault_b,
             amm_config,
-            amm_token_program_a,
-            amm_token_program_b,
-            amm_system_program,
             beneficiary_accounts,
         })
     }
@@ -184,9 +178,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     InstructionAccount::writable(ctx.amm_vault_a.address()),
                     InstructionAccount::writable(ctx.amm_vault_b.address()),
                     InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                    InstructionAccount::readonly(ctx.amm_system_program.address()),
                 ],
                 [
                     ctx.pair,
@@ -207,9 +198,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     ctx.amm_vault_a,
                     ctx.amm_vault_b,
                     ctx.amm_config,
-                    ctx.amm_token_program_a,
-                    ctx.amm_token_program_b,
-                    ctx.amm_system_program,
                 ],
                 &instruction_data,
                 signer_seeds,
@@ -234,9 +222,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     InstructionAccount::writable(ctx.amm_vault_a.address()),
                     InstructionAccount::writable(ctx.amm_vault_b.address()),
                     InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                    InstructionAccount::readonly(ctx.amm_system_program.address()),
                     InstructionAccount::writable(beneficiary_0.address()),
                 ],
                 [
@@ -258,9 +243,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     ctx.amm_vault_a,
                     ctx.amm_vault_b,
                     ctx.amm_config,
-                    ctx.amm_token_program_a,
-                    ctx.amm_token_program_b,
-                    ctx.amm_system_program,
                     beneficiary_0,
                 ],
                 &instruction_data,
@@ -286,9 +268,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     InstructionAccount::writable(ctx.amm_vault_a.address()),
                     InstructionAccount::writable(ctx.amm_vault_b.address()),
                     InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                    InstructionAccount::readonly(ctx.amm_system_program.address()),
                     InstructionAccount::writable(beneficiary_0.address()),
                     InstructionAccount::writable(beneficiary_1.address()),
                 ],
@@ -311,9 +290,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     ctx.amm_vault_a,
                     ctx.amm_vault_b,
                     ctx.amm_config,
-                    ctx.amm_token_program_a,
-                    ctx.amm_token_program_b,
-                    ctx.amm_system_program,
                     beneficiary_0,
                     beneficiary_1,
                 ],
@@ -340,9 +316,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     InstructionAccount::writable(ctx.amm_vault_a.address()),
                     InstructionAccount::writable(ctx.amm_vault_b.address()),
                     InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                    InstructionAccount::readonly(ctx.amm_system_program.address()),
                     InstructionAccount::writable(beneficiary_0.address()),
                     InstructionAccount::writable(beneficiary_1.address()),
                     InstructionAccount::writable(beneficiary_2.address()),
@@ -366,9 +339,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     ctx.amm_vault_a,
                     ctx.amm_vault_b,
                     ctx.amm_config,
-                    ctx.amm_token_program_a,
-                    ctx.amm_token_program_b,
-                    ctx.amm_system_program,
                     beneficiary_0,
                     beneficiary_1,
                     beneficiary_2,
@@ -396,9 +366,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     InstructionAccount::writable(ctx.amm_vault_a.address()),
                     InstructionAccount::writable(ctx.amm_vault_b.address()),
                     InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                    InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                    InstructionAccount::readonly(ctx.amm_system_program.address()),
                     InstructionAccount::writable(beneficiary_0.address()),
                     InstructionAccount::writable(beneficiary_1.address()),
                     InstructionAccount::writable(beneficiary_2.address()),
@@ -423,9 +390,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                     ctx.amm_vault_a,
                     ctx.amm_vault_b,
                     ctx.amm_config,
-                    ctx.amm_token_program_a,
-                    ctx.amm_token_program_b,
-                    ctx.amm_system_program,
                     beneficiary_0,
                     beneficiary_1,
                     beneficiary_2,
@@ -455,9 +419,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                         InstructionAccount::writable(ctx.amm_vault_a.address()),
                         InstructionAccount::writable(ctx.amm_vault_b.address()),
                         InstructionAccount::readonly(ctx.amm_config.address()),
-                        InstructionAccount::readonly(ctx.amm_token_program_a.address()),
-                        InstructionAccount::readonly(ctx.amm_token_program_b.address()),
-                        InstructionAccount::readonly(ctx.amm_system_program.address()),
                         InstructionAccount::writable(beneficiary_0.address()),
                         InstructionAccount::writable(beneficiary_1.address()),
                         InstructionAccount::writable(beneficiary_2.address()),
@@ -483,9 +444,6 @@ impl<'info> Swap<'info> for ScaleVmm {
                         ctx.amm_vault_a,
                         ctx.amm_vault_b,
                         ctx.amm_config,
-                        ctx.amm_token_program_a,
-                        ctx.amm_token_program_b,
-                        ctx.amm_system_program,
                         beneficiary_0,
                         beneficiary_1,
                         beneficiary_2,
