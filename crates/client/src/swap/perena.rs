@@ -51,7 +51,7 @@ fn virtual_stable_pair_x_is_2022_offset(pair_index: u8) -> usize {
         + OFFSET_X_IS_2022_IN_VIRTUAL_STABLE_PAIR
 }
 
-/// Pre-resolved addresses for building a Perena swap instruction offline.
+/// Pre-resolved addresses for building a Perena Numeraire swap instruction offline.
 pub struct PerenaSwapInput {
     pub user: Address,
     pub pool: Address,
@@ -64,6 +64,7 @@ pub struct PerenaSwapInput {
     pub numeraire_config: Address,
 }
 
+/// Build Perena Numeraire swap AccountMeta list from pre-resolved addresses (no RPC needed).
 pub fn build_accounts(input: &PerenaSwapInput) -> Vec<AccountMeta> {
     vec![
         AccountMeta::new_readonly(PERENA_PROGRAM_ID, false),
@@ -81,12 +82,12 @@ pub fn build_accounts(input: &PerenaSwapInput) -> Vec<AccountMeta> {
     ]
 }
 
-/// Build Perena extra data: [in_index, out_index].
+/// Build Perena Numeraire extra data: [in_index, out_index].
 pub fn build_extra_data(in_index: u8, out_index: u8) -> Vec<u8> {
     vec![in_index, out_index]
 }
 
-/// Resolve accounts and data for a Perena swap via RPC.
+/// Resolve accounts and data for a Perena Numeraire swap via RPC.
 #[cfg(feature = "resolve")]
 pub async fn resolve(
     rpc: &RpcClient,
