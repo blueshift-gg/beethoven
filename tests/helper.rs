@@ -42,6 +42,7 @@ pub const HEAVEN_PROGRAM_ID: Address = address!("HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5
 pub const ALDRIN_PROGRAM_ID: Address = address!("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
 pub const ALDRIN_V2_PROGRAM_ID: Address = address!("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
 pub const SCALE_AMM_PROGRAM_ID: Address = address!("SCALEwAvEK5gtkdHiFzXfPgtk2YwJxPDzaV3aDmR7tA");
+pub const SCALE_VMM_PROGRAM_ID: Address = address!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const INSTRUCTIONS_SYSVAR_ID: Address = address!("Sysvar1nstructions1111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
@@ -634,6 +635,10 @@ pub fn heaven_fixtures_dir() -> String {
 
 pub fn scale_amm_fixtures_dir() -> String {
     format!("{}/fixtures/swap/scale-amm", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn scale_vmm_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/scale-vmm", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]
