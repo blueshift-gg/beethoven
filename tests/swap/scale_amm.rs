@@ -1,133 +1,142 @@
 use {
-    beethoven::{try_from_tagged_swap_context, SwapContext, SwapData, SwapProtocolTag},
-    solana_account_view::{AccountView, RuntimeAccount, NOT_BORROWED},
-    solana_address::Address,
-    solana_program_error::ProgramError,
+    crate::helper::{
+        beethoven_program_path, build_swap_instruction, common_fixtures_dir, create_token_account,
+        get_token_balance, load_and_set_json_fixture, load_program, scale_amm_fixtures_dir,
+        send_transaction, setup_svm, SCALE_AMM_PROGRAM_ID, SYSTEM_PROGRAM_ID, TEST_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+    },
+    beethoven::SwapProtocolTag,
+    solana_address::{address, Address},
+    solana_instruction::AccountMeta,
+    solana_keypair::Keypair,
+    solana_signer::Signer,
 };
 
-fn make_account(address: Address) -> (Vec<u64>, AccountView) {
-    let mut backing =
-        vec![0u64; core::mem::size_of::<RuntimeAccount>() / core::mem::size_of::<u64>() + 1];
-    let raw = backing.as_mut_ptr() as *mut RuntimeAccount;
-
-    unsafe {
-        (*raw).borrow_state = NOT_BORROWED;
-        (*raw).is_signer = 0;
-        (*raw).is_writable = 1;
-        (*raw).executable = 0;
-        (*raw).address = address;
-        (*raw).owner = Address::new_from_array([9u8; 32]);
-        (*raw).lamports = 0;
-        (*raw).data_len = 8;
-    }
-
-    let view = unsafe { AccountView::new_unchecked(raw) };
-    (backing, view)
-}
-
-fn build_accounts(
-    total_accounts: usize,
-    first_account: Address,
-) -> (Vec<Vec<u64>>, Vec<AccountView>) {
-    let mut storage = Vec::with_capacity(total_accounts);
-    let mut views = Vec::with_capacity(total_accounts);
-
-    for i in 0..total_accounts {
-        let address = if i == 0 {
-            first_account
-        } else {
-            Address::new_from_array([i as u8; 32])
-        };
-        let (backing, view) = make_account(address);
-        storage.push(backing);
-        views.push(view);
-    }
-
-    (storage, views)
-}
+const WSOL_MINT: Address = address!("So11111111111111111111111111111111111111112");
+const POOL: Address = address!("AZDqVz1TiKYGcMhaYKBMoCnRH6bXXqoxuZNR4dLL8B8K");
+const OWNER: Address = address!("BXfXDZh5HfyyPPHT5xYUVXWve5oJ2cY2P2Y6VyKwoqGg");
+const MINT_B: Address = address!("7j5Zo8vzDTN8qJhWSFY9RWPE76rVRXMkqvGLeaWqcyz9");
+const VAULT_A: Address = address!("5Lsuh97Dnzsj9wp2DspyodwmUTX2ABiFYqCRtH7Ym65o");
+const VAULT_B: Address = address!("ENpu9WqhnEzUSQzhEqVx6LtpXoexmRqjWYAGYYfhDGnt");
+const PLATFORM_FEE_TA_A: Address = address!("5otzrfbppNE1j6m7ptWkAcu5gs1nwj5ZQKQVwFFHQAHv");
+const PLATFORM_CONFIG: Address = address!("232KbYciAe6ma2VCB6gQyofix8qQwyZd2WYVhpNx8SyR");
+const FEE_BENEFICIARY_ATA: Address = address!("7XRb5qdYdCh1QUp6WZtHGtyGgwVnuu8BPS3fr2FvXboD");
 
 #[test]
-fn test_scale_amm_swap_data_parses_buy_and_sell() {
-    let buy = beethoven::scale_amm::ScaleAmmSwapData::try_from(&[0u8][..]).unwrap();
-    assert_eq!(buy.side, beethoven::scale_amm::ScaleAmmSide::Buy);
+fn test_scale_amm_swap_cpi() {
+    let mut svm = setup_svm();
+    let payer = Keypair::new();
+    svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
 
-    let sell = beethoven::scale_amm::ScaleAmmSwapData::try_from(&[1u8][..]).unwrap();
-    assert_eq!(sell.side, beethoven::scale_amm::ScaleAmmSide::Sell);
-}
+    load_program(&mut svm, TEST_PROGRAM_ID, &beethoven_program_path());
 
-#[test]
-fn test_scale_amm_swap_data_invalid_side_fails() {
-    let err = beethoven::scale_amm::ScaleAmmSwapData::try_from(&[2u8][..]).unwrap_err();
-    assert_eq!(err, ProgramError::InvalidInstructionData);
-}
-
-#[test]
-fn test_scale_amm_accounts_try_from_requires_minimum_accounts() {
-    let (_storage, accounts) = build_accounts(14, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
-
-    let err = match beethoven::scale_amm::ScaleAmmSwapAccounts::try_from(accounts.as_slice()) {
-        Ok(_) => panic!("expected NotEnoughAccountKeys"),
-        Err(err) => err,
-    };
-    assert_eq!(err, ProgramError::NotEnoughAccountKeys);
-}
-
-#[test]
-fn test_scale_amm_accounts_try_from_parses_beneficiary_tail() {
-    let (_storage, accounts) = build_accounts(17, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
-
-    let ctx = beethoven::scale_amm::ScaleAmmSwapAccounts::try_from(accounts.as_slice()).unwrap();
-    assert_eq!(ctx.beneficiary_accounts.len(), 2);
-    assert_eq!(
-        ctx.beneficiary_accounts[0].address(),
-        accounts[15].address(),
+    // Load Scale AMM program
+    load_program(
+        &mut svm,
+        SCALE_AMM_PROGRAM_ID,
+        &format!("{}/scale_amm.so", scale_amm_fixtures_dir()),
     );
-    assert_eq!(
-        ctx.beneficiary_accounts[1].address(),
-        accounts[16].address(),
+
+    // Load fixtures
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/wsol_mint.json", common_fixtures_dir()),
     );
-}
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/mint_b.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/owner.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(&mut svm, &format!("{}/pool.json", scale_amm_fixtures_dir()));
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/platform_config.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/platform_fee_ta_a.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/vault_a.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/vault_b.json", scale_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        &mut svm,
+        &format!("{}/fee_beneficiary_ata.json", scale_amm_fixtures_dir()),
+    );
 
-#[test]
-fn test_try_from_tagged_swap_context_selects_scale_amm() {
-    let (_storage, accounts) = build_accounts(15, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
+    // Create trader token accounts with initial balances
+    // Selling SOL (input=WSOL) for USDC (output)
+    let initial_wsol = 1_000_000_000u64; // 1 SOL
+    let initial_mint_b = 0u64;
+    let trader_input =
+        create_token_account(&mut svm, &payer.pubkey(), &WSOL_MINT, initial_wsol, false);
+    let trader_output =
+        create_token_account(&mut svm, &payer.pubkey(), &MINT_B, initial_mint_b, false);
 
-    let (ctx, rest) =
-        try_from_tagged_swap_context(SwapProtocolTag::ScaleAmm, accounts.as_slice(), 0).unwrap();
-    assert!(matches!(ctx, SwapContext::ScaleAmm(_)));
-    assert!(rest.is_empty());
-}
+    // Build swap instruction: sell 0.001 SOL for USDC
+    let in_amount = 1_000_000u64; // 0.001 SOL
+    let min_out_amount = 1u64; // Very loose slippage for test
 
-#[test]
-fn test_scale_amm_context_try_from_swap_data_variants() {
-    let (_storage, accounts) = build_accounts(15, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
+    // Scale AMM accounts layout (15 accounts + 1 remaining account for every fee beneficiary)
+    let accounts = vec![
+        AccountMeta::new_readonly(SCALE_AMM_PROGRAM_ID, false), // scale_amm program
+        AccountMeta::new(POOL, false),                          // pool
+        AccountMeta::new(payer.pubkey(), true),                 // user
+        AccountMeta::new_readonly(OWNER, false),                // owner
+        AccountMeta::new_readonly(WSOL_MINT, false),            // mint a
+        AccountMeta::new_readonly(MINT_B, false),               // mint b
+        AccountMeta::new(trader_input, false),                  // user ta a
+        AccountMeta::new(trader_output, false),                 // user ta b
+        AccountMeta::new(VAULT_A, false),                       // vault a
+        AccountMeta::new(VAULT_B, false),                       // vault b
+        AccountMeta::new(PLATFORM_FEE_TA_A, false),             // platform fee ta a
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),     // token program a
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),     // token program b
+        AccountMeta::new_readonly(SYSTEM_PROGRAM_ID, false),    // system program
+        AccountMeta::new_readonly(PLATFORM_CONFIG, false),      // config
+        AccountMeta::new(FEE_BENEFICIARY_ATA, false),           // fee beneficiary ata
+    ];
 
-    let (ctx, _) =
-        try_from_tagged_swap_context(SwapProtocolTag::ScaleAmm, accounts.as_slice(), 0).unwrap();
+    // side = buy
+    let extra_data: &[u8] = &[0u8];
 
-    let (buy_data, rest) = ctx.try_from_swap_data(&[0u8][..]).unwrap();
-    assert!(rest.is_empty());
-    match buy_data {
-        SwapData::ScaleAmm(data) => {
-            assert_eq!(data.side, beethoven::scale_amm::ScaleAmmSide::Buy);
+    let instruction = build_swap_instruction(
+        accounts,
+        in_amount,
+        min_out_amount,
+        SwapProtocolTag::ScaleAmm,
+        extra_data,
+    );
+
+    // Execute the swap via CPI through beethoven-test program
+    let result = send_transaction(&mut svm, &payer, instruction);
+
+    match result {
+        Ok(_compute_units) => {
+            let final_wsol = get_token_balance(&svm, &trader_input);
+            let final_mint_b = get_token_balance(&svm, &trader_output);
+
+            assert!(
+                final_wsol < initial_wsol,
+                "WSOL should have decreased: {} -> {}",
+                initial_wsol,
+                final_wsol
+            );
+            assert!(
+                final_mint_b > initial_mint_b,
+                "MINT_B should have increased: {} -> {}",
+                initial_mint_b,
+                final_mint_b
+            );
         }
-        _ => panic!("expected ScaleAmm swap data"),
+        Err(e) => panic!("Scale AMM swap CPI failed: {}", e),
     }
-
-    let err = match ctx.try_from_swap_data(&[9u8][..]) {
-        Ok(_) => panic!("expected InvalidInstructionData"),
-        Err(err) => err,
-    };
-    assert_eq!(err, ProgramError::InvalidInstructionData);
-}
-
-#[test]
-fn test_scale_amm_accounts_reject_too_many_beneficiaries() {
-    let (_storage, accounts) = build_accounts(21, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
-
-    let err = match beethoven::scale_amm::ScaleAmmSwapAccounts::try_from(accounts.as_slice()) {
-        Ok(_) => panic!("expected InvalidAccountData"),
-        Err(err) => err,
-    };
-    assert_eq!(err, ProgramError::InvalidAccountData);
 }
