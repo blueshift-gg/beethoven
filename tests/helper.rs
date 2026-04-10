@@ -34,6 +34,10 @@ pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const METEORA_DAMM_PROGRAM_ID: Address =
+    address!("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB");
+pub const METEORA_DYNAMIC_VAULT_PROGRAM_ID: Address =
+    address!("24Uqj9JCLxUeoC3hGfh5W3s9FM9uCHDS2SG3LYwBpyTi");
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
@@ -545,6 +549,10 @@ pub fn manifest_fixtures_dir() -> String {
 
 pub fn omnipair_fixtures_dir() -> String {
     format!("{}/fixtures/swap/omnipair", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn meteora_damm_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/meteora-damm", env!("CARGO_MANIFEST_DIR"))
 }
 
 pub fn hadron_fixtures_dir() -> String {

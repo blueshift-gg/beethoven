@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    MeteoraDamm = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::MeteoraDamm),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::MeteoraDamm => 15,
         }
     }
 }
@@ -137,6 +140,9 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 
+    #[cfg(feature = "meteora_damm-swap")]
+    MeteoraDamm(crate::meteora_damm::MeteoraDammSwapAccounts<'info>),
+
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapAccounts<'info>),
 
@@ -181,6 +187,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "meteora_damm-swap")]
+    MeteoraDamm(()),
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapData),
@@ -300,6 +309,9 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
+
+            #[cfg(feature = "meteora_damm-swap")]
+            SwapContext::MeteoraDamm(_) => Ok((SwapData::MeteoraDamm(()), data)),
 
             #[cfg(feature = "hadron-swap")]
             SwapContext::Hadron(_) => {
@@ -544,6 +556,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
                 crate::omnipair::Omnipair::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "meteora_damm-swap")]
+            (SwapContext::MeteoraDamm(accounts), SwapData::MeteoraDamm(())) => {
+                crate::meteora_damm::MeteoraDamm::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -816,6 +839,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::MeteoraDamm => {
+            #[cfg(feature = "meteora_damm-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::meteora_damm::METEORA_DAMM_PROGRAM_ID,
+                )?;
+                let ctx = crate::meteora_damm::MeteoraDammSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::MeteoraDamm(ctx), rest))
+            }
+            #[cfg(not(feature = "meteora_damm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
