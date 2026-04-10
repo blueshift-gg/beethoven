@@ -511,6 +511,7 @@ dependencies = [
  "beethoven-deposit-marginfi",
  "beethoven-swap-aldrin",
  "beethoven-swap-aldrin-v2",
+ "beethoven-swap-fusion-amm",
  "beethoven-swap-futarchy",
  "beethoven-swap-gamma",
  "beethoven-swap-hadron",
@@ -627,6 +628,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-aldrin-v2"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-fusion-amm"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

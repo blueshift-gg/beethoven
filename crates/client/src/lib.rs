@@ -51,6 +51,10 @@ pub const SYSVAR_CLOCK_ID: Address =
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
+/// Memo Program ID
+pub const MEMO_PROGRAM_ID: Address =
+    Address::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+
 /// Determine which token program owns a mint by checking the account owner.
 #[cfg(feature = "resolve")]
 pub async fn get_token_program_for_mint(
@@ -167,4 +171,30 @@ pub fn read_u8(data: &[u8], offset: usize) -> Result<u8, ClientError> {
         )));
     }
     Ok(data[offset])
+}
+
+pub fn read_u16_le(data: &[u8], offset: usize) -> Result<u16, ClientError> {
+    let end = offset + 2;
+    if data.len() < end {
+        return Err(ClientError::InvalidAccountData(
+            "fusion pool data too short for spacing".into(),
+        ));
+    }
+    Ok(u16::from_le_bytes(data[offset..end].try_into().map_err(
+        |_| ClientError::InvalidAccountData("spacing".into()),
+    )?))
+}
+
+pub fn read_i32_le(data: &[u8], offset: usize) -> Result<i32, ClientError> {
+    let end = offset
+        .checked_add(4)
+        .ok_or_else(|| ClientError::InvalidAccountData("offset overflow".into()))?;
+    if data.len() < end {
+        return Err(ClientError::InvalidAccountData(
+            "fusion pool data too short for tick".into(),
+        ));
+    }
+    Ok(i32::from_le_bytes(data[offset..end].try_into().map_err(
+        |_| ClientError::InvalidAccountData("tick bytes".into()),
+    )?))
 }
