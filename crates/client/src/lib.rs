@@ -40,6 +40,10 @@ pub const SYSTEM_PROGRAM_ID: Address = Address::from_str_const("1111111111111111
 pub const SYSVAR_INSTRUCTIONS_ID: Address =
     Address::from_str_const("Sysvar1nstructions1111111111111111111111111");
 
+/// Sysvar Clock ID
+pub const SYSVAR_CLOCK_ID: Address =
+    Address::from_str_const("SysvarC1ock11111111111111111111111111111111");
+
 /// Associated Token Program ID
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");

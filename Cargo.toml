@@ -12,7 +12,7 @@ default = ["deposit", "swap"]
 upstream-bpf = []
 
 # Action groups
-deposit = ["kamino-deposit", "jupiter-deposit"]
+deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit"]
 swap = [
     "perena-swap",
     "solfi-swap",
@@ -26,12 +26,15 @@ swap = [
     "scale_amm-swap",
     "scale_vmm-swap",
     "omnipair-swap",
+    "hadron-swap",
     "meteora_dlmm-swap",
 ]
 
 # Deposit protocols
 kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
+drift-deposit = ["dep:beethoven-deposit-drift"]
+marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
@@ -46,6 +49,7 @@ gamma-swap = ["dep:beethoven-swap-gamma"]
 scale_amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale_vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
+hadron-swap = ["dep:beethoven-swap-hadron"]
 meteora_dlmm-swap = ["dep:beethoven-swap-meteora-dlmm"]
 
 [dependencies]
@@ -58,6 +62,8 @@ solana-program-error = "3.0.0"
 # Optional protocol crates
 beethoven-deposit-kamino = { path = "crates/deposit/kamino", optional = true }
 beethoven-deposit-jupiter = { path = "crates/deposit/jupiter", optional = true }
+beethoven-deposit-drift = { path = "crates/deposit/drift", optional = true }
+beethoven-deposit-marginfi = { path = "crates/deposit/marginfi", optional = true }
 beethoven-swap-perena = { path = "crates/swap/perena", optional = true }
 beethoven-swap-solfi = { path = "crates/swap/solfi", optional = true }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2", optional = true }
@@ -70,6 +76,7 @@ beethoven-swap-gamma = { path = "crates/swap/gamma", optional = true }
 beethoven-swap-scale-amm = { path = "crates/swap/scale-amm", optional = true }
 beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm", optional = true }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair", optional = true }
+beethoven-swap-hadron = { path = "crates/swap/hadron", optional = true }
 beethoven-swap-meteora-dlmm = { path = "crates/swap/meteora-dlmm", optional = true }
 
 [workspace]
@@ -77,6 +84,8 @@ members = [
     "crates/core",
     "crates/deposit/kamino",
     "crates/deposit/jupiter",
+    "crates/deposit/drift",
+    "crates/deposit/marginfi",
     "crates/swap/perena",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
@@ -89,6 +98,7 @@ members = [
     "crates/swap/scale-amm",
     "crates/swap/scale-vmm",
     "crates/swap/omnipair",
+    "crates/swap/hadron",
     "crates/swap/meteora-dlmm",
     "program-test",
     "crates/client",
@@ -96,7 +106,7 @@ members = [
 
 [dev-dependencies]
 base64 = "0.22"
-litesvm = "0.9.1"
+litesvm = "0.11.0"
 serde_json = "1"
 solana-account = "3.3.0"
 solana-clock = "3.0.0"
@@ -110,9 +120,14 @@ solana-signer = "3.0.0"
 solana-transaction = "3.0.2"
 solana-compute-budget-instruction = "3.1.7"
 spl-token-interface = "2"
-mollusk-svm = "0.10.1"
-mollusk-svm-programs-token = "0.10.1"
-beethoven-client = { path = "crates/client", features = ["manifest", "gamma", "resolve"] }
+mollusk-svm = "0.11.0"
+mollusk-svm-programs-token = "0.11.0"
+beethoven-client = { path = "crates/client", features = [
+    "manifest",
+    "gamma",
+    "hadron",
+    "resolve",
+] }
 solana-rpc-client = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 

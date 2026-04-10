@@ -1,4 +1,5 @@
 mod gamma;
+mod hadron;
 mod manifest;
 mod multi_swap;
 mod omnipair;

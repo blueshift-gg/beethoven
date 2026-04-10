@@ -13,6 +13,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "hadron")]
+pub mod hadron;
+
 #[cfg(feature = "meteora_dlmm")]
 pub mod meteora_dlmm;
 
@@ -46,6 +49,13 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Address> },
+
+    #[cfg(feature = "hadron")]
+    Hadron {
+        config: Address,
+        fee_recipient: Address,
+        expiration: i64,
+    },
 
     #[cfg(feature = "meteora_dlmm")]
     MeteoraDlmm { lb_pair: Address },
@@ -99,6 +109,24 @@ pub async fn resolve_swap(
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "hadron")]
+        SwapProtocol::Hadron {
+            config,
+            fee_recipient,
+            expiration,
+        } => {
+            hadron::resolve(
+                rpc,
+                config,
+                mint_a,
+                mint_b,
+                user,
+                fee_recipient,
+                *expiration,
+            )
+            .await
         }
 
         #[cfg(feature = "meteora_dlmm")]

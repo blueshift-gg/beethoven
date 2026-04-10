@@ -22,6 +22,7 @@ pub enum SwapProtocolTag {
     ScaleVmm = 10,
     Omnipair = 11,
     MeteoraDlmm = 12,
+    Hadron = 13,
 }
 
 impl SwapProtocolTag {
@@ -40,6 +41,7 @@ impl SwapProtocolTag {
             10 => Ok(Self::ScaleVmm),
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::MeteoraDlmm),
+            13 => Ok(Self::Hadron),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -59,11 +61,15 @@ impl SwapProtocolTag {
             Self::ScaleVmm => 22,
             Self::Omnipair => 15,
             Self::MeteoraDlmm => 17,
+            Self::Hadron => 16,
         }
     }
 
     pub const fn uses_remaining_accounts_len(self) -> bool {
-        matches!(self, Self::ScaleAmm | Self::ScaleVmm | Self::MeteoraDlmm)
+        matches!(
+            self,
+            Self::ScaleAmm | Self::ScaleVmm | Self::MeteoraDlmm | Self::Hadron
+        )
     }
 
     pub const fn consumes_all_remaining_data(self) -> bool {
@@ -142,6 +148,9 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 
+    #[cfg(feature = "hadron-swap")]
+    Hadron(crate::hadron::HadronSwapAccounts<'info>),
+
     #[cfg(feature = "meteora_dlmm-swap")]
     MeteoraDlmm(crate::meteora_dlmm::MeteoraDlmmSwapAccounts<'info>),
 }
@@ -183,6 +192,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
+
+    #[cfg(feature = "hadron-swap")]
+    Hadron(crate::hadron::HadronSwapData),
 
     #[cfg(feature = "meteora_dlmm-swap")]
     MeteoraDlmm(()),
@@ -301,6 +313,19 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
 
+            #[cfg(feature = "hadron-swap")]
+            SwapContext::Hadron(_) => {
+                let n = crate::hadron::HadronSwapData::DATA_LEN;
+                if data.len() < n {
+                    return Err(ProgramError::InvalidInstructionData);
+                }
+                let (mine, rest) = data.split_at(n);
+                Ok((
+                    SwapData::Hadron(crate::hadron::HadronSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
+
             #[cfg(feature = "meteora_dlmm-swap")]
             SwapContext::MeteoraDlmm(_) => Ok((SwapData::MeteoraDlmm(()), data)),
 
@@ -372,6 +397,11 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             (SwapContext::Omnipair(accounts), SwapData::Omnipair(())) => {
                 Ok(crate::omnipair::Omnipair::token_accounts(accounts, &()))
+            }
+
+            #[cfg(feature = "hadron-swap")]
+            (SwapContext::Hadron(accounts), SwapData::Hadron(d)) => {
+                Ok(crate::hadron::Hadron::token_accounts(accounts, d))
             }
 
             #[cfg(feature = "meteora_dlmm-swap")]
@@ -523,6 +553,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     &(),
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "hadron-swap")]
+            (SwapContext::Hadron(accounts), SwapData::Hadron(d)) => {
+                crate::hadron::Hadron::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
                     signer_seeds,
                 )
             }
@@ -696,6 +737,15 @@ pub fn try_from_swap_context<'info>(
         )?;
         let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
         return Ok((SwapContext::Omnipair(ctx), rest));
+    }
+
+    #[cfg(feature = "hadron-swap")]
+    if address_eq(
+        detector_account.address(),
+        &crate::hadron::HADRON_PROGRAM_ID,
+    ) {
+        let ctx = crate::hadron::HadronSwapAccounts::try_from(accounts)?;
+        return Ok((SwapContext::Hadron(ctx), &[]));
     }
 
     #[cfg(feature = "meteora_dlmm-swap")]
@@ -929,6 +979,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Err(ProgramError::InvalidInstructionData)
             }
         }
+
+        SwapProtocolTag::Hadron => {
+            #[cfg(feature = "hadron-swap")]
+            {
+                validate_tagged_program_account(
+                    detector_account,
+                    &crate::hadron::HADRON_PROGRAM_ID,
+                )?;
+                let ctx = crate::hadron::HadronSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Hadron(ctx), rest))
+            }
+            #[cfg(not(feature = "hadron-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
     }
 }
 
@@ -961,6 +1027,12 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(crate::jupiter::JupiterEarnDepositAccounts<'info>),
+
+    #[cfg(feature = "drift-deposit")]
+    Drift(crate::drift::DriftDepositAccounts<'info>),
+
+    #[cfg(feature = "marginfi-deposit")]
+    Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -969,12 +1041,16 @@ pub enum DepositData {
     Kamino(()),
     #[cfg(feature = "jupiter-deposit")]
     Jupiter(()),
+    #[cfg(feature = "drift-deposit")]
+    Drift(crate::drift::DriftDepositData),
+    #[cfg(feature = "marginfi-deposit")]
+    Marginfi(crate::marginfi::MarginfiDepositData),
 }
 
 impl<'a> DepositContext<'a> {
     pub fn try_from_deposit_data(
         &self,
-        _data: &'a [u8],
+        data: &'a [u8],
     ) -> Result<(DepositData, &'a [u8]), ProgramError> {
         match self {
             #[cfg(feature = "kamino-deposit")]
@@ -982,6 +1058,18 @@ impl<'a> DepositContext<'a> {
 
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(_) => Ok((DepositData::Jupiter(()), &[])),
+
+            #[cfg(feature = "drift-deposit")]
+            DepositContext::Drift(_) => Ok((
+                DepositData::Drift(crate::drift::DriftDepositData::try_from(data)?),
+                &[],
+            )),
+
+            #[cfg(feature = "marginfi-deposit")]
+            DepositContext::Marginfi(_) => Ok((
+                DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
+                &[],
+            )),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -996,7 +1084,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
     fn deposit_signed(
         ctx: &Self::Accounts,
         amount: u64,
-        _data: &Self::Data,
+        data: &Self::Data,
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         match ctx {
@@ -1008,6 +1096,24 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             #[cfg(feature = "jupiter-deposit")]
             DepositContext::Jupiter(accounts) => {
                 crate::jupiter::JupiterEarn::deposit_signed(accounts, amount, &(), signer_seeds)
+            }
+
+            #[cfg(feature = "drift-deposit")]
+            DepositContext::Drift(accounts) => {
+                if let DepositData::Drift(data) = data {
+                    crate::drift::Drift::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
+            }
+
+            #[cfg(feature = "marginfi-deposit")]
+            DepositContext::Marginfi(accounts) => {
+                if let DepositData::Marginfi(data) = data {
+                    crate::marginfi::Marginfi::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
             }
 
             #[allow(unreachable_patterns)]
@@ -1041,6 +1147,21 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::jupiter::JupiterEarnDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Jupiter(ctx));
+    }
+
+    #[cfg(feature = "drift-deposit")]
+    if address_eq(detector_account.address(), &crate::drift::DRIFT_PROGRAM_ID) {
+        let ctx = crate::drift::DriftDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::Drift(ctx));
+    }
+
+    #[cfg(feature = "marginfi-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::marginfi::MARGINFI_PROGRAM_ID,
+    ) {
+        let ctx = crate::marginfi::MarginfiDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::Marginfi(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

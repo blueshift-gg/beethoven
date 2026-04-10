@@ -2,11 +2,15 @@
 
 // Re-export core traits
 pub use beethoven_core::{Deposit, Swap, SwapTokenAccounts};
+#[cfg(feature = "drift-deposit")]
+pub use beethoven_deposit_drift as drift;
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags
 #[cfg(feature = "kamino-deposit")]
 pub use beethoven_deposit_kamino as kamino;
+#[cfg(feature = "marginfi-deposit")]
+pub use beethoven_deposit_marginfi as marginfi;
 #[cfg(feature = "aldrin-swap")]
 pub use beethoven_swap_aldrin as aldrin;
 #[cfg(feature = "aldrin_v2-swap")]
@@ -15,6 +19,8 @@ pub use beethoven_swap_aldrin_v2 as aldrin_v2;
 pub use beethoven_swap_futarchy as futarchy;
 #[cfg(feature = "gamma-swap")]
 pub use beethoven_swap_gamma as gamma;
+#[cfg(feature = "hadron-swap")]
+pub use beethoven_swap_hadron as hadron;
 #[cfg(feature = "heaven-swap")]
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
