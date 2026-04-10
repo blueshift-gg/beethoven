@@ -7,12 +7,18 @@ use solana_instruction::AccountMeta;
 #[cfg(feature = "resolve")]
 use solana_rpc_client::nonblocking::rpc_client::RpcClient;
 
+#[cfg(feature = "defi_tuna")]
+pub mod defi_tuna;
+
 /// Top-level deposit protocol selector.
 ///
 /// Each variant carries the protocol-specific config and data needed
 /// to resolve accounts. When `pool`/`market` is `None`, the resolver
 /// discovers it via `getProgramAccounts` with memcmp filters on the mints.
-pub enum DepositProtocol {}
+pub enum DepositProtocol {
+    #[cfg(feature = "defi_tuna")]
+    DefiTuna { vault: Address },
+}
 
 /// Resolve accounts and data for a deposit protocol.
 ///
@@ -20,9 +26,12 @@ pub enum DepositProtocol {}
 /// the Beethoven on-chain program.
 /// #[cfg(feature = "resolve")]
 pub async fn resolve_deposit(
-    _rpc: &RpcClient,
-    _protocol: &DepositProtocol,
-    _user: &Address,
+    rpc: &RpcClient,
+    protocol: &DepositProtocol,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
-    todo!()
+    match protocol {
+        #[cfg(feature = "defi_tuna")]
+        DepositProtocol::DefiTuna { vault } => defi_tuna::resolve(rpc, vault, user).await,
+    }
 }

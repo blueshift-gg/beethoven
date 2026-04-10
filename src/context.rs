@@ -838,6 +838,8 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
+    #[cfg(feature = "defi-tuna-deposit")]
+    DefiTuna(crate::defi_tuna::DefiTunaDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -850,6 +852,8 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
+    #[cfg(feature = "defi-tuna-deposit")]
+    DefiTuna(()),
 }
 
 impl<'a> DepositContext<'a> {
@@ -875,6 +879,9 @@ impl<'a> DepositContext<'a> {
                 DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
                 &[],
             )),
+
+            #[cfg(feature = "defi-tuna-deposit")]
+            DepositContext::DefiTuna(_) => Ok((DepositData::DefiTuna(()), &[])),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -916,6 +923,15 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             DepositContext::Marginfi(accounts) => {
                 if let DepositData::Marginfi(data) = data {
                     crate::marginfi::Marginfi::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
+            }
+
+            #[cfg(feature = "defi-tuna-deposit")]
+            DepositContext::DefiTuna(accounts) => {
+                if let DepositData::DefiTuna(()) = data {
+                    crate::defi_tuna::DefiTuna::deposit_signed(accounts, amount, &(), signer_seeds)
                 } else {
                     Err(ProgramError::InvalidInstructionData)
                 }
@@ -967,6 +983,15 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::marginfi::MarginfiDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Marginfi(ctx));
+    }
+
+    #[cfg(feature = "defi-tuna-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::defi_tuna::DEFI_TUNA_PROGRAM_ID,
+    ) {
+        let ctx = crate::defi_tuna::DefiTunaDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::DefiTuna(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

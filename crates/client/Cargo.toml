@@ -25,7 +25,9 @@ swap = [
     "solfi-v2",
 ]
 
-deposit = []
+deposit = [
+    "defi_tuna",
+]
 
 resolve = [
     "dep:solana-rpc-client",
@@ -49,6 +51,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
+defi_tuna = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }
