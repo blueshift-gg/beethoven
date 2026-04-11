@@ -61,7 +61,7 @@ async fn test_scale_amm_resolve_with_known_pool() {
     // Mint a
     assert_eq!(accounts[4].pubkey, WSOL_MINT, "mint_a");
 
-    // Mint a
+    // Mint b
     assert_eq!(accounts[5].pubkey, MINT_B, "mint_b");
 
     // User ta a
@@ -107,4 +107,95 @@ async fn test_scale_amm_resolve_with_known_pool() {
         "fee_beneficiary_ata"
     );
     assert!(accounts[15].is_writable);
+}
+
+#[tokio::test]
+async fn test_scale_amm_resolve_flipped_mints() {
+    let rpc = RpcClient::new(get_rpc_url());
+    let user = Address::from_str_const("11111111111111111111111111111112");
+
+    let (accounts, data) = resolve_swap(
+        &rpc,
+        &SwapProtocol::ScaleAmm {
+            pool: Some(POOL),
+            // sell
+            side: 1,
+        },
+        &WSOL_MINT,
+        &MINT_B,
+        &user,
+    )
+    .await
+    .unwrap();
+
+    // Protocol program ID
+    assert_eq!(
+        accounts[0].pubkey, SCALE_AMM_PROGRAM_ID,
+        "scale_amm program"
+    );
+
+    // Pool
+    assert_eq!(accounts[1].pubkey, POOL, "pool");
+    assert!(accounts[1].is_writable);
+
+    // User
+    assert_eq!(accounts[2].pubkey, user, "user");
+    assert!(accounts[2].is_signer);
+    assert!(accounts[2].is_writable);
+
+    // Owner
+    assert_eq!(accounts[3].pubkey, OWNER, "owner");
+
+    // Mint a
+    assert_eq!(accounts[4].pubkey, WSOL_MINT, "mint_a");
+
+    // Mint b
+    assert_eq!(accounts[5].pubkey, MINT_B, "mint_b");
+
+    // User ta a
+    let expected_user_ta_a = get_associated_token_address(&user, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[6].pubkey, expected_user_ta_a, "user_ta_a ATA");
+    assert!(accounts[6].is_writable);
+
+    // User ta b
+    let expected_user_ta_b = get_associated_token_address(&user, &MINT_B, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[7].pubkey, expected_user_ta_b, "user_ta_b ATA");
+    assert!(accounts[7].is_writable);
+
+    // Vault a
+    assert_eq!(accounts[8].pubkey, VAULT_A, "vault_a ATA");
+    assert!(accounts[8].is_writable);
+
+    // Vault b
+    assert_eq!(accounts[9].pubkey, VAULT_B, "vault_b ATA");
+    assert!(accounts[9].is_writable);
+
+    // Platform fee ta a
+    assert_eq!(
+        accounts[10].pubkey, PLATFORM_FEE_TA_A,
+        "platform_fee_ta_a ATA"
+    );
+    assert!(accounts[10].is_writable);
+
+    // Token program a
+    assert_eq!(accounts[11].pubkey, TOKEN_PROGRAM_ID, "token_program_a");
+
+    // Token program b
+    assert_eq!(accounts[12].pubkey, TOKEN_PROGRAM_ID, "token_program_b");
+
+    // System program
+    assert_eq!(accounts[13].pubkey, SYSTEM_PROGRAM_ID, "system program");
+
+    // Config
+    assert_eq!(accounts[14].pubkey, PLATFORM_CONFIG, "config");
+
+    // Fee beneficiary accounts
+    assert_eq!(
+        accounts[15].pubkey, FEE_BENEFICIARY_ATA,
+        "fee_beneficiary_ata"
+    );
+    assert!(accounts[15].is_writable);
+
+    // side
+    assert_eq!(data, vec![1u8]);
 }

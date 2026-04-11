@@ -165,34 +165,34 @@ pub async fn resolve(
         });
     }
 
-    let token_program_a = get_token_program_for_mint(rpc, mint_a).await?;
-    let token_program_b = get_token_program_for_mint(rpc, mint_b).await?;
+    let token_program_a = get_token_program_for_mint(rpc, &pool_mint_a).await?;
+    let token_program_b = get_token_program_for_mint(rpc, &pool_mint_b).await?;
 
-    let user_ta_a = get_associated_token_address(user, mint_a, &token_program_a);
-    let user_ta_b = get_associated_token_address(user, mint_b, &token_program_b);
+    let user_ta_a = get_associated_token_address(user, &pool_mint_a, &token_program_a);
+    let user_ta_b = get_associated_token_address(user, &pool_mint_b, &token_program_b);
 
-    let vault_a = pool_vault_pda(&pool_pubkey, mint_a);
-    let vault_b = pool_vault_pda(&pool_pubkey, mint_b);
+    let vault_a = pool_vault_pda(&pool_pubkey, &pool_mint_a);
+    let vault_b = pool_vault_pda(&pool_pubkey, &pool_mint_b);
 
     let config = config_pda();
     let config_account = rpc.get_account(&config).await?;
     let fee_beneficiary_wallet =
         read_pubkey(&config_account.data, OFFSET_PLATFORM_CONFIG_FEE_BENEFICIARY)?;
     let platform_fee_ta_a =
-        get_associated_token_address(&fee_beneficiary_wallet, mint_a, &token_program_a);
+        get_associated_token_address(&fee_beneficiary_wallet, &pool_mint_a, &token_program_a);
 
     let beneficiary_wallets = read_fee_beneficiary_wallets(&pool_data)?;
     let beneficiary_accounts = beneficiary_wallets
         .into_iter()
-        .map(|w| get_associated_token_address(&w, mint_a, &token_program_a))
+        .map(|w| get_associated_token_address(&w, &pool_mint_a, &token_program_a))
         .collect::<Vec<_>>();
 
     let input = ScaleAmmSwapInput {
         pool: pool_pubkey,
         user: *user,
         owner: pool_owner,
-        mint_a: *mint_a,
-        mint_b: *mint_b,
+        mint_a: pool_mint_a,
+        mint_b: pool_mint_b,
         user_ta_a,
         user_ta_b,
         vault_a,

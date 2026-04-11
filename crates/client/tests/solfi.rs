@@ -81,3 +81,68 @@ async fn test_solfi_resolve_with_known_market() {
     // is_quote_to_base
     assert_eq!(data, vec![1u8]);
 }
+
+#[tokio::test]
+async fn test_solfi_resolve_flipped_mints() {
+    let rpc = RpcClient::new(get_rpc_url());
+    let user = Address::from_str_const("11111111111111111111111111111112");
+
+    let (accounts, data) = resolve_swap(
+        &rpc,
+        &SwapProtocol::SolFi {
+            market: Some(MARKET),
+            is_quote_to_base: false,
+        },
+        &USDC_MINT,
+        &WETH_MINT,
+        &user,
+    )
+    .await
+    .unwrap();
+
+    // Protocol program ID
+    assert_eq!(accounts[0].pubkey, SOLFI_PROGRAM_ID, "solfi program");
+
+    // Token transfer authority
+    assert_eq!(accounts[1].pubkey, user, "token transfer authority");
+    assert!(accounts[1].is_signer);
+    assert!(accounts[1].is_writable);
+
+    // Market
+    assert_eq!(accounts[2].pubkey, MARKET, "market");
+    assert!(accounts[2].is_writable);
+
+    // Base vault
+    assert_eq!(accounts[3].pubkey, BASE_VAULT, "base vault");
+    assert!(accounts[3].is_writable);
+
+    // Quote vault
+    assert_eq!(accounts[4].pubkey, QUOTE_VAULT, "quote vault");
+    assert!(accounts[4].is_writable);
+
+    // User base ATA
+    let expected_user_base_ata = get_associated_token_address(&user, &WETH_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(accounts[5].pubkey, expected_user_base_ata, "user base ATA");
+    assert!(accounts[5].is_writable);
+
+    // User quote ATA
+    let expected_user_quote_ata =
+        get_associated_token_address(&user, &USDC_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(
+        accounts[6].pubkey, expected_user_quote_ata,
+        "user quote ATA"
+    );
+    assert!(accounts[6].is_writable);
+
+    // Token program
+    assert_eq!(accounts[7].pubkey, TOKEN_PROGRAM_ID, "token program");
+
+    // Instructions sysvar
+    assert_eq!(
+        accounts[8].pubkey, SYSVAR_INSTRUCTIONS_ID,
+        "instructions sysvar"
+    );
+
+    // is_quote_to_base
+    assert_eq!(data, vec![0u8]);
+}

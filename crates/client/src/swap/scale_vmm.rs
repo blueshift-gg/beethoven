@@ -191,21 +191,21 @@ pub async fn resolve(
         });
     }
 
-    let token_program_a = get_token_program_for_mint(rpc, mint_a).await?;
-    let token_program_b = get_token_program_for_mint(rpc, mint_b).await?;
+    let token_program_a = get_token_program_for_mint(rpc, &pair_mint_a).await?;
+    let token_program_b = get_token_program_for_mint(rpc, &pair_mint_b).await?;
 
-    let user_ta_a = get_associated_token_address(user, mint_a, &token_program_a);
-    let user_ta_b = get_associated_token_address(user, mint_b, &token_program_b);
+    let user_ta_a = get_associated_token_address(user, &pair_mint_a, &token_program_a);
+    let user_ta_b = get_associated_token_address(user, &pair_mint_b, &token_program_b);
 
-    let vault_a = vmm_vault_pda(&pair_pubkey, mint_a);
-    let vault_b = vmm_vault_pda(&pair_pubkey, mint_b);
+    let vault_a = vmm_vault_pda(&pair_pubkey, &pair_mint_a);
+    let vault_b = vmm_vault_pda(&pair_pubkey, &pair_mint_b);
 
     let config = config_pda();
     let config_account = rpc.get_account(&config).await?;
     let fee_beneficiary_wallet =
         read_pubkey(&config_account.data, OFFSET_PLATFORM_CONFIG_FEE_BENEFICIARY)?;
     let platform_fee_ta_a =
-        get_associated_token_address(&fee_beneficiary_wallet, mint_a, &token_program_a);
+        get_associated_token_address(&fee_beneficiary_wallet, &pair_mint_a, &token_program_a);
 
     let amm_pool = read_pubkey(&pair_data, OFFSET_PAIR_AMM_POOL)?;
     let amm_pool_account = rpc.get_account(&amm_pool).await?;
@@ -220,21 +220,21 @@ pub async fn resolve(
         });
     }
 
-    let amm_vault_a = amm_vault_pda(&amm_pool, mint_a);
-    let amm_vault_b = amm_vault_pda(&amm_pool, mint_b);
+    let amm_vault_a = amm_vault_pda(&amm_pool, &amm_pool_mint_a);
+    let amm_vault_b = amm_vault_pda(&amm_pool, &amm_pool_mint_b);
     let amm_config = amm_config_pda();
 
     let beneficiary_wallets = read_fee_beneficiary_wallets(&pair_data)?;
     let beneficiary_accounts = beneficiary_wallets
         .into_iter()
-        .map(|w| get_associated_token_address(&w, mint_a, &token_program_a))
+        .map(|w| get_associated_token_address(&w, &pair_mint_a, &token_program_a))
         .collect::<Vec<_>>();
 
     let input = ScaleVmmSwapInput {
         pair: pair_pubkey,
         user: *user,
-        mint_a: *mint_a,
-        mint_b: *mint_b,
+        mint_a: pair_mint_a,
+        mint_b: pair_mint_b,
         user_ta_a,
         user_ta_b,
         vault_a,
