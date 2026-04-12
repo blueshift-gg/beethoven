@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    NirvanaGovernance = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::NirvanaGovernance),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::NirvanaGovernance => 14,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "nirvana_governance-swap")]
+    NirvanaGovernance(crate::nirvana_governance::NirvanaGovernanceSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "nirvana_governance-swap")]
+    NirvanaGovernance(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,8 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "nirvana_governance-swap")]
+            SwapContext::NirvanaGovernance(_) => Ok((SwapData::NirvanaGovernance(()), &[])),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +585,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "nirvana_governance-swap")]
+            (SwapContext::NirvanaGovernance(accounts), SwapData::NirvanaGovernance(())) => {
+                crate::nirvana_governance::NirvanaGovernance::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +838,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::NirvanaGovernance => {
+            #[cfg(feature = "nirvana_governance-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::nirvana_governance::NIRVANA_GOVERNANCE_PROGRAM_ID,
+                )?;
+                let ctx = crate::nirvana_governance::NirvanaGovernanceSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::NirvanaGovernance(ctx), rest))
+            }
+            #[cfg(not(feature = "nirvana_governance-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
