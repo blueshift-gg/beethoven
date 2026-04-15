@@ -54,7 +54,7 @@ pub struct PhoenixLegacySwapData {
     pub max_counterpart_lots: u64,
     pub self_trade_behavior: u8,
     pub match_limit: Option<u64>,
-    pub client_order_id: u128,
+    pub client_order_id: [u8; 16],
     pub use_only_deposited_funds: bool,
     pub last_valid_slot: Option<u64>,
     pub last_valid_unix_timestamp_in_seconds: Option<u64>,
@@ -128,21 +128,12 @@ impl TryFrom<&[u8]> for PhoenixLegacySwapData {
         let self_trade_behavior = *data.get(off).ok_or(ProgramError::InvalidInstructionData)?;
         off += 1;
         let match_limit = read_opt_u64(data, &mut off)?;
-        let lo = u64::from_le_bytes(
-            data.get(off..off + 8)
-                .ok_or(ProgramError::InvalidInstructionData)?
-                .try_into()
-                .unwrap(),
-        );
-        off += 8;
-        let hi = u64::from_le_bytes(
-            data.get(off..off + 8)
-                .ok_or(ProgramError::InvalidInstructionData)?
-                .try_into()
-                .unwrap(),
-        );
-        off += 8;
-        let client_order_id = ((hi as u128) << 64) | (lo as u128);
+        let client_order_id: [u8; 16] = data
+            .get(off..off + 16)
+            .ok_or(ProgramError::InvalidInstructionData)?
+            .try_into()
+            .unwrap();
+        off += 16;
         let use_only_deposited_funds =
             *data.get(off).ok_or(ProgramError::InvalidInstructionData)? != 0;
         off += 1;
@@ -268,9 +259,17 @@ impl<'info> Swap<'info> for PhoenixLegacy {
             write_u64_le(ptr, &mut len, min_quote_lots_to_fill);
             write_u8(ptr, &mut len, data.self_trade_behavior);
             write_borsh_opt_u64(ptr, &mut len, data.match_limit);
-            let cid = data.client_order_id;
-            write_u64_le(ptr, &mut len, cid as u64);
-            write_u64_le(ptr, &mut len, (cid >> 64) as u64);
+            let cid = &data.client_order_id;
+            write_u64_le(
+                ptr,
+                &mut len,
+                u64::from_le_bytes(cid[0..8].try_into().unwrap()),
+            );
+            write_u64_le(
+                ptr,
+                &mut len,
+                u64::from_le_bytes(cid[8..16].try_into().unwrap()),
+            );
             write_u8(ptr, &mut len, data.use_only_deposited_funds as u8);
             write_borsh_opt_u64(ptr, &mut len, data.last_valid_slot);
             write_borsh_opt_u64(ptr, &mut len, data.last_valid_unix_timestamp_in_seconds);
