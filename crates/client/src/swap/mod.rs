@@ -56,13 +56,19 @@ pub enum SwapProtocol {
     Gamma { pool: Option<Address> },
 
     #[cfg(feature = "aldrin")]
-    Aldrin { pool: Option<Address>, side: u8 },
+    Aldrin {
+        pool: Option<Address>,
+        side: aldrin::Side,
+    },
 
     #[cfg(feature = "aldrin_v2")]
     AldrinV2 { pool: Option<Address>, side: u8 },
 
     #[cfg(feature = "futarchy")]
-    Futarchy { dao: Option<Address>, swap_type: u8 },
+    Futarchy {
+        dao: Option<Address>,
+        swap_type: futarchy::SwapType,
+    },
 
     #[cfg(feature = "manifest")]
     Manifest {
@@ -96,10 +102,16 @@ pub enum SwapProtocol {
     },
 
     #[cfg(feature = "scale_amm")]
-    ScaleAmm { pool: Option<Address>, side: u8 },
+    ScaleAmm {
+        pool: Option<Address>,
+        side: scale_amm::Side,
+    },
 
     #[cfg(feature = "scale_vmm")]
-    ScaleVmm { pair: Option<Address>, side: u8 },
+    ScaleVmm {
+        pair: Option<Address>,
+        side: scale_vmm::Side,
+    },
 
     #[cfg(feature = "solfi")]
     SolFi {
@@ -145,7 +157,7 @@ pub async fn resolve_swap(
 
         #[cfg(feature = "aldrin")]
         SwapProtocol::Aldrin { pool, side } => {
-            aldrin::resolve(rpc, pool.as_ref(), *side, mint_a, mint_b, user).await
+            aldrin::resolve(rpc, pool.as_ref(), side, mint_a, mint_b, user).await
         }
 
         #[cfg(feature = "aldrin_v2")]
@@ -155,7 +167,7 @@ pub async fn resolve_swap(
 
         #[cfg(feature = "futarchy")]
         SwapProtocol::Futarchy { dao, swap_type } => {
-            futarchy::resolve(rpc, dao.as_ref(), *swap_type, mint_a, mint_b, user).await
+            futarchy::resolve(rpc, dao.as_ref(), swap_type, mint_a, mint_b, user).await
         }
 
         #[cfg(feature = "manifest")]
@@ -230,12 +242,12 @@ pub async fn resolve_swap(
 
         #[cfg(all(feature = "resolve", feature = "scale_amm"))]
         SwapProtocol::ScaleAmm { pool, side } => {
-            scale_amm::resolve(rpc, pool.as_ref(), *side, mint_a, mint_b, user).await
+            scale_amm::resolve(rpc, pool.as_ref(), side, mint_a, mint_b, user).await
         }
 
         #[cfg(all(feature = "resolve", feature = "scale_vmm"))]
         SwapProtocol::ScaleVmm { pair, side } => {
-            scale_vmm::resolve(rpc, pair.as_ref(), *side, mint_a, mint_b, user).await
+            scale_vmm::resolve(rpc, pair.as_ref(), side, mint_a, mint_b, user).await
         }
 
         #[cfg(feature = "solfi")]

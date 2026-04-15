@@ -12,6 +12,17 @@ use {
 pub const FUTARCHY_PROGRAM_ID: Address =
     Address::from_str_const("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum SwapType {
+    Buy = 0,
+    Sell = 1,
+}
+
+pub fn build_extra_data(swap_type: SwapType) -> Vec<u8> {
+    vec![swap_type as u8]
+}
+
 // Futarchy Dao layout (from on-chain IDL: amm_v0.3.json)
 //
 // The Dao account embeds a FutarchyAmm, whose first field is a Borsh enum
@@ -63,18 +74,11 @@ fn compute_amm_field_offsets(
 pub async fn resolve(
     rpc: &RpcClient,
     dao: Option<&Address>,
-    swap_type: u8,
+    swap_type: &SwapType,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
-    if swap_type > 1 {
-        return Err(ClientError::InvalidAccountData(format!(
-            "Invalid futarchy swap_type: {} (expected 0 or 1)",
-            swap_type
-        )));
-    }
-
     // Futarchy requires an explicit DAO address — the embedded PoolState enum
     // makes getProgramAccounts with fixed memcmp offsets impractical.
     let dao_pubkey = dao.ok_or(ClientError::InvalidAccountData(
@@ -135,5 +139,5 @@ pub async fn resolve(
         AccountMeta::new_readonly(FUTARCHY_PROGRAM_ID, false),
     ];
 
-    Ok((accounts, vec![swap_type]))
+    Ok((accounts, build_extra_data(*swap_type)))
 }

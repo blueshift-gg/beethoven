@@ -33,6 +33,7 @@ const OFFSET_POOL_SIGNER: usize = 200;
 #[cfg(feature = "resolve")]
 const OFFSET_FEE_POOL_TOKEN_ACCOUNT: usize = 361;
 
+#[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum Side {
     Bid,
@@ -83,7 +84,7 @@ pub fn build_extra_data(side: Side) -> Vec<u8> {
 pub async fn resolve(
     rpc: &RpcClient,
     pool: Option<&Address>,
-    side: u8,
+    side: &Side,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
@@ -130,16 +131,5 @@ pub async fn resolve(
         user_quote_token_account: user_quote_ata,
     };
 
-    let side = match side {
-        0 => Side::Bid,
-        1 => Side::Ask,
-        _ => {
-            return Err(ClientError::InvalidAccountData(format!(
-                "Invalid Aldrin side: {}",
-                side
-            )))
-        }
-    };
-
-    Ok((build_accounts(&input), build_extra_data(side)))
+    Ok((build_accounts(&input), build_extra_data(*side)))
 }

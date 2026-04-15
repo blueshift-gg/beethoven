@@ -1,7 +1,7 @@
 use {
     beethoven_client::{
         get_associated_token_address, resolve_swap,
-        swap::scale_vmm::{SCALE_AMM_PROGRAM_ID, SCALE_VMM_PROGRAM_ID},
+        swap::scale_vmm::{Side, SCALE_AMM_PROGRAM_ID, SCALE_VMM_PROGRAM_ID},
         SwapProtocol, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::{address, Address},
@@ -33,8 +33,7 @@ async fn test_scale_vmm_resolve_with_known_pair() {
         &rpc,
         &SwapProtocol::ScaleVmm {
             pair: Some(PAIR),
-            // buy
-            side: 0,
+            side: Side::Buy,
         },
         &WSOL_MINT,
         &MINT_B,
@@ -128,8 +127,7 @@ async fn test_scale_vmm_resolve_flipped_mints() {
         &rpc,
         &SwapProtocol::ScaleVmm {
             pair: Some(PAIR),
-            // sell
-            side: 1,
+            side: Side::Sell,
         },
         &WSOL_MINT,
         &MINT_B,
@@ -214,5 +212,5 @@ async fn test_scale_vmm_resolve_flipped_mints() {
     assert_eq!(accounts[18].pubkey, AMM_CONFIG, "amm config");
 
     // side
-    assert_eq!(data, vec![1u8]);
+    assert_eq!(data, vec![Side::Sell as u8]);
 }

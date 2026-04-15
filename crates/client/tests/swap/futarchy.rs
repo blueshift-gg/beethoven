@@ -1,6 +1,7 @@
 use {
     beethoven_client::{
-        get_associated_token_address, resolve_swap, swap::futarchy::FUTARCHY_PROGRAM_ID,
+        get_associated_token_address, resolve_swap,
+        swap::futarchy::{SwapType, FUTARCHY_PROGRAM_ID},
         SwapProtocol, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
@@ -26,7 +27,7 @@ async fn test_futarchy_resolve_with_known_pair() {
         &rpc,
         &SwapProtocol::Futarchy {
             dao: Some(METADAO_DAO),
-            swap_type: 0,
+            swap_type: SwapType::Buy,
         },
         &USDC_MINT,
         &METADAO_MINT,
@@ -86,7 +87,7 @@ async fn test_futarchy_resolve_with_known_pair() {
     assert_eq!(accounts[7].pubkey, TOKEN_PROGRAM_ID, "token_program");
 
     // swap type = buy
-    assert_eq!(data, vec![0u8]);
+    assert_eq!(data, vec![SwapType::Buy as u8]);
 }
 
 #[tokio::test]
@@ -98,7 +99,7 @@ async fn test_futarchy_resolve_flipped_mints() {
         &rpc,
         &SwapProtocol::Futarchy {
             dao: Some(METADAO_DAO),
-            swap_type: 1,
+            swap_type: SwapType::Sell,
         },
         &METADAO_MINT,
         &USDC_MINT,
@@ -158,5 +159,5 @@ async fn test_futarchy_resolve_flipped_mints() {
     assert_eq!(accounts[7].pubkey, TOKEN_PROGRAM_ID, "token_program");
 
     // swap type = sell
-    assert_eq!(data, vec![1u8]);
+    assert_eq!(data, vec![SwapType::Sell as u8]);
 }

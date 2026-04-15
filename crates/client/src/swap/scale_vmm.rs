@@ -13,6 +13,13 @@ pub const SCALE_VMM_PROGRAM_ID: Address =
 pub const SCALE_AMM_PROGRAM_ID: Address =
     Address::from_str_const("SCALEwAvEK5gtkdHiFzXfPgtk2YwJxPDzaV3aDmR7tA");
 
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum Side {
+    Buy = 0,
+    Sell = 1,
+}
+
 // FeeBeneficiary struct layout offsets
 // Layout: [32 wallet] [2 share_bps]
 #[cfg(feature = "resolve")]
@@ -102,8 +109,8 @@ pub fn build_accounts(input: &ScaleVmmSwapInput) -> Vec<AccountMeta> {
 }
 
 /// Scale VMM extra data: [side]
-pub fn build_extra_data(side: u8) -> Vec<u8> {
-    vec![side]
+pub fn build_extra_data(side: Side) -> Vec<u8> {
+    vec![side as u8]
 }
 
 #[cfg(feature = "resolve")]
@@ -148,18 +155,11 @@ fn read_fee_beneficiary_wallets(pair_data: &[u8]) -> Result<Vec<Address>, Client
 pub async fn resolve(
     rpc: &RpcClient,
     pair: Option<&Address>,
-    side: u8,
+    side: &Side,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
-    if side > 1 {
-        return Err(ClientError::InvalidAccountData(format!(
-            "Invalid scale_vmm side: {} (expected 0=Buy or 1=Sell)",
-            side
-        )));
-    }
-
     let (pair_pubkey, pair_data) = match pair {
         Some(addr) => {
             let account = rpc.get_account(addr).await?;
@@ -251,5 +251,5 @@ pub async fn resolve(
         beneficiary_accounts,
     };
 
-    Ok((build_accounts(&input), build_extra_data(side)))
+    Ok((build_accounts(&input), build_extra_data(*side)))
 }

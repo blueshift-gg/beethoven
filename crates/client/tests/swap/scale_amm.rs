@@ -1,6 +1,7 @@
 use {
     beethoven_client::{
-        get_associated_token_address, resolve_swap, swap::scale_amm::SCALE_AMM_PROGRAM_ID,
+        get_associated_token_address, resolve_swap,
+        swap::scale_amm::{Side, SCALE_AMM_PROGRAM_ID},
         SwapProtocol, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::{address, Address},
@@ -30,8 +31,7 @@ async fn test_scale_amm_resolve_with_known_pool() {
         &rpc,
         &SwapProtocol::ScaleAmm {
             pool: Some(POOL),
-            // buy
-            side: 0,
+            side: Side::Buy,
         },
         &WSOL_MINT,
         &MINT_B,
@@ -118,8 +118,7 @@ async fn test_scale_amm_resolve_flipped_mints() {
         &rpc,
         &SwapProtocol::ScaleAmm {
             pool: Some(POOL),
-            // sell
-            side: 1,
+            side: Side::Sell,
         },
         &WSOL_MINT,
         &MINT_B,
@@ -197,5 +196,5 @@ async fn test_scale_amm_resolve_flipped_mints() {
     assert!(accounts[15].is_writable);
 
     // side
-    assert_eq!(data, vec![1u8]);
+    assert_eq!(data, vec![Side::Sell as u8]);
 }

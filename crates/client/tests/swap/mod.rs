@@ -1,3 +1,12 @@
+mod aldrin;
+mod aldrin_v2;
+mod futarchy;
 mod gamma_discover;
+mod heaven;
 mod manifest;
 mod omnipair;
+mod perena;
+mod scale_amm;
+mod scale_vmm;
+mod solfi;
+mod solfi_v2;

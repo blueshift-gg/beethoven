@@ -1,7 +1,8 @@
 use {
     beethoven_client::{
-        get_associated_token_address, resolve_swap, swap::aldrin::ALDRIN_PROGRAM_ID, SwapProtocol,
-        TOKEN_PROGRAM_ID,
+        get_associated_token_address, resolve_swap,
+        swap::aldrin::{Side, ALDRIN_PROGRAM_ID},
+        SwapProtocol, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -31,8 +32,7 @@ async fn test_aldrin_resolve_with_known_pool() {
         &rpc,
         &SwapProtocol::Aldrin {
             pool: Some(POOL),
-            // ask
-            side: 1,
+            side: Side::Ask,
         },
         &WSOL_MINT,
         &USDC_MINT,
@@ -98,7 +98,7 @@ async fn test_aldrin_resolve_with_known_pool() {
     assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID, "token program");
 
     // ask = 1
-    assert_eq!(data, vec![1u8]);
+    assert_eq!(data, vec![Side::Ask as u8]);
 }
 
 #[tokio::test]
@@ -111,8 +111,7 @@ async fn test_aldrin_resolve_flipped_mints() {
         &rpc,
         &SwapProtocol::Aldrin {
             pool: Some(POOL),
-            // bid
-            side: 0,
+            side: Side::Bid,
         },
         &WSOL_MINT,
         &USDC_MINT,
@@ -177,5 +176,5 @@ async fn test_aldrin_resolve_flipped_mints() {
     assert_eq!(accounts[10].pubkey, TOKEN_PROGRAM_ID, "token program");
 
     // bid = 0
-    assert_eq!(data, vec![0u8]);
+    assert_eq!(data, vec![Side::Bid as u8]);
 }
