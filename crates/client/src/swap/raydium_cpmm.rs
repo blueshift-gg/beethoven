@@ -100,16 +100,20 @@ pub async fn resolve(
     let token_1_vault = read_pubkey(&pool_data, OFFSET_TOKEN_1_VAULT)?;
     let observation_key = read_pubkey(&pool_data, OFFSET_OBSERVATION_KEY)?;
 
-    let (input_vault, output_vault, input_mint, output_mint) = if *mint_a == token_0_mint {
-        (token_0_vault, token_1_vault, token_0_mint, token_1_mint)
-    } else if *mint_a == token_1_mint {
-        (token_1_vault, token_0_vault, token_1_mint, token_0_mint)
-    } else {
-        return Err(crate::error::ClientError::MintMismatch {
-            expected: format!("{} or {}", token_0_mint, token_1_mint),
-            got: mint_a.to_string(),
-        });
-    };
+    let (input_vault, output_vault, input_mint, output_mint) =
+        if *mint_a == token_0_mint && *mint_b == token_1_mint {
+            (token_0_vault, token_1_vault, token_0_mint, token_1_mint)
+        } else if *mint_a == token_1_mint && *mint_b == token_0_mint {
+            (token_1_vault, token_0_vault, token_1_mint, token_0_mint)
+        } else {
+            return Err(crate::error::ClientError::MintMismatch {
+                expected: format!(
+                    "({}, {}) or ({}, {})",
+                    token_0_mint, token_1_mint, token_1_mint, token_0_mint
+                ),
+                got: format!("({}, {})", mint_a, mint_b),
+            });
+        };
 
     let input_token_program = if input_mint == token_0_mint {
         read_pubkey(&pool_data, OFFSET_TOKEN_0_PROGRAM)?
