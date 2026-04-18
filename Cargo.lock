@@ -825,6 +825,8 @@ version = "0.0.1"
 dependencies = [
  "beethoven",
  "pinocchio",
+ "pinocchio-token",
+ "pinocchio-token-2022",
  "solana-define-syscall 4.0.1",
 ]
 
@@ -2687,6 +2689,30 @@ dependencies = [
  "solana-account-view",
  "solana-address 2.6.0",
  "solana-define-syscall 4.0.1",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "pinocchio-token"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "febf3bbe37f4e2723b9b41a1768c6542a1ae1b1d7bcac27f892f30cabcf70ec4"
+dependencies = [
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "pinocchio-token-2022"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbe4f1997ce2443f99333d8ae2ee1075f9c94ed13ff941178663ae3601ad99ad"
+dependencies = [
+ "solana-account-view",
+ "solana-address 2.6.0",
  "solana-instruction-view",
  "solana-program-error",
 ]

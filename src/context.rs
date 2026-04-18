@@ -75,10 +75,10 @@ impl TryFrom<u8> for SwapProtocolTag {
 }
 
 fn validate_tagged_program_account(
-    detector_account: &AccountView,
+    program_account: &AccountView,
     expected_program_id: &Address,
 ) -> Result<(), ProgramError> {
-    if address_eq(detector_account.address(), expected_program_id) {
+    if address_eq(program_account.address(), expected_program_id) {
         Ok(())
     } else {
         Err(ProgramError::InvalidAccountData)
@@ -237,7 +237,6 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "heaven-swap")]
             SwapContext::Heaven(_) => {
                 // Heaven has variable-length data (direction + event).
-                // Consumes all remaining data — must be the last leg in multi-swap.
                 Ok((
                     SwapData::Heaven(crate::heaven::HeavenSwapData::try_from(data)?),
                     &[],
@@ -583,176 +582,6 @@ impl<'a> Swap<'a> for SwapContext<'a> {
     }
 }
 
-/// Detect the protocol from the first account, parse the swap context,
-/// and return both the context and the remaining (unconsumed) accounts.
-pub fn try_from_swap_context<'info>(
-    accounts: &'info [AccountView],
-) -> Result<(SwapContext<'info>, &'info [AccountView]), ProgramError> {
-    let detector_account = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
-
-    #[cfg(feature = "perena-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::perena::PERENA_PROGRAM_ID,
-    ) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::perena::PerenaSwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Perena(ctx), rest));
-    }
-
-    #[cfg(feature = "solfi-swap")]
-    if address_eq(detector_account.address(), &crate::solfi::SOLFI_PROGRAM_ID) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::solfi::SolFiSwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::solfi::SolFiSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::SolFi(ctx), rest));
-    }
-
-    #[cfg(feature = "solfi_v2-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::solfi_v2::SOLFI_V2_PROGRAM_ID,
-    ) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::solfi_v2::SolFiV2SwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::solfi_v2::SolFiV2SwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::SolFiV2(ctx), rest));
-    }
-
-    #[cfg(feature = "manifest-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::manifest::MANIFEST_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::manifest::ManifestSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::manifest::ManifestSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Manifest(ctx), rest));
-    }
-
-    #[cfg(feature = "heaven-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::heaven::HEAVEN_PROGRAM_ID,
-    ) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::heaven::HeavenSwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::heaven::HeavenSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Heaven(ctx), rest));
-    }
-
-    #[cfg(feature = "aldrin-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::aldrin::ALDRIN_PROGRAM_ID,
-    ) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::aldrin::AldrinSwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::aldrin::AldrinSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Aldrin(ctx), rest));
-    }
-
-    #[cfg(feature = "aldrin_v2-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::aldrin_v2::ALDRIN_V2_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::aldrin_v2::AldrinV2SwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::aldrin_v2::AldrinV2SwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::AldrinV2(ctx), rest));
-    }
-
-    #[cfg(feature = "futarchy-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::futarchy::FUTARCHY_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::futarchy::FutarchySwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::futarchy::FutarchySwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Futarchy(ctx), rest));
-    }
-
-    #[cfg(feature = "gamma-swap")]
-    if address_eq(detector_account.address(), &crate::gamma::GAMMA_PROGRAM_ID) {
-        let (mine, rest) =
-            split_accounts_checked(accounts, crate::gamma::GammaSwapAccounts::NUM_ACCOUNTS)?;
-        let ctx = crate::gamma::GammaSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Gamma(ctx), rest));
-    }
-
-    #[cfg(feature = "scale_amm-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::scale_amm::SCALE_AMM_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::scale_amm::ScaleAmmSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::ScaleAmm(ctx), rest));
-    }
-
-    #[cfg(feature = "scale_vmm-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::scale_vmm::SCALE_VMM_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::scale_vmm::ScaleVmmSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::ScaleVmm(ctx), rest));
-    }
-
-    #[cfg(feature = "omnipair-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::omnipair::OMNIPAIR_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::omnipair::OmnipairSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::Omnipair(ctx), rest));
-    }
-
-    #[cfg(feature = "hadron-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::hadron::HADRON_PROGRAM_ID,
-    ) {
-        let ctx = crate::hadron::HadronSwapAccounts::try_from(accounts)?;
-        return Ok((SwapContext::Hadron(ctx), &[]));
-    }
-
-    #[cfg(feature = "raydium-cpmm-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::raydium_cpmm::RaydiumCpmmSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::raydium_cpmm::RaydiumCpmmSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::RaydiumCpmm(ctx), rest));
-    }
-
-    Err(ProgramError::InvalidAccountData)
-}
-
 pub fn try_from_tagged_swap_context<'info>(
     tag: SwapProtocolTag,
     accounts: &'info [AccountView],
@@ -764,14 +593,14 @@ pub fn try_from_tagged_swap_context<'info>(
         .ok_or(ProgramError::InvalidInstructionData)?;
 
     let (mine, rest) = split_accounts_checked(accounts, consumed_accounts)?;
-    let detector_account = mine.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let program_account = mine.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     match tag {
         SwapProtocolTag::Perena => {
             #[cfg(feature = "perena-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::perena::PERENA_PROGRAM_ID,
                 )?;
                 let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
@@ -786,7 +615,7 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::SolFi => {
             #[cfg(feature = "solfi-swap")]
             {
-                validate_tagged_program_account(detector_account, &crate::solfi::SOLFI_PROGRAM_ID)?;
+                validate_tagged_program_account(program_account, &crate::solfi::SOLFI_PROGRAM_ID)?;
                 let ctx = crate::solfi::SolFiSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::SolFi(ctx), rest))
             }
@@ -800,7 +629,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "solfi_v2-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::solfi_v2::SOLFI_V2_PROGRAM_ID,
                 )?;
                 let ctx = crate::solfi_v2::SolFiV2SwapAccounts::try_from(mine)?;
@@ -816,7 +645,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "manifest-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::manifest::MANIFEST_PROGRAM_ID,
                 )?;
                 let ctx = crate::manifest::ManifestSwapAccounts::try_from(mine)?;
@@ -832,7 +661,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "heaven-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::heaven::HEAVEN_PROGRAM_ID,
                 )?;
                 let ctx = crate::heaven::HeavenSwapAccounts::try_from(mine)?;
@@ -848,7 +677,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "aldrin-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::aldrin::ALDRIN_PROGRAM_ID,
                 )?;
                 let ctx = crate::aldrin::AldrinSwapAccounts::try_from(mine)?;
@@ -864,7 +693,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "aldrin_v2-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::aldrin_v2::ALDRIN_V2_PROGRAM_ID,
                 )?;
                 let ctx = crate::aldrin_v2::AldrinV2SwapAccounts::try_from(mine)?;
@@ -880,7 +709,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "futarchy-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::futarchy::FUTARCHY_PROGRAM_ID,
                 )?;
                 let ctx = crate::futarchy::FutarchySwapAccounts::try_from(mine)?;
@@ -895,7 +724,7 @@ pub fn try_from_tagged_swap_context<'info>(
         SwapProtocolTag::Gamma => {
             #[cfg(feature = "gamma-swap")]
             {
-                validate_tagged_program_account(detector_account, &crate::gamma::GAMMA_PROGRAM_ID)?;
+                validate_tagged_program_account(program_account, &crate::gamma::GAMMA_PROGRAM_ID)?;
                 let ctx = crate::gamma::GammaSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::Gamma(ctx), rest))
             }
@@ -909,7 +738,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "scale_amm-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::scale_amm::SCALE_AMM_PROGRAM_ID,
                 )?;
                 let ctx = crate::scale_amm::ScaleAmmSwapAccounts::try_from(mine)?;
@@ -925,7 +754,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "scale_vmm-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::scale_vmm::SCALE_VMM_PROGRAM_ID,
                 )?;
                 let ctx = crate::scale_vmm::ScaleVmmSwapAccounts::try_from(mine)?;
@@ -941,7 +770,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "omnipair-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::omnipair::OMNIPAIR_PROGRAM_ID,
                 )?;
                 let ctx = crate::omnipair::OmnipairSwapAccounts::try_from(mine)?;
@@ -957,7 +786,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "hadron-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::hadron::HADRON_PROGRAM_ID,
                 )?;
                 let ctx = crate::hadron::HadronSwapAccounts::try_from(mine)?;
@@ -973,7 +802,7 @@ pub fn try_from_tagged_swap_context<'info>(
             #[cfg(feature = "raydium-cpmm-swap")]
             {
                 validate_tagged_program_account(
-                    detector_account,
+                    program_account,
                     &crate::raydium_cpmm::RAYDIUM_CPMM_PROGRAM_ID,
                 )?;
                 let ctx = crate::raydium_cpmm::RaydiumCpmmSwapAccounts::try_from(mine)?;
@@ -985,26 +814,6 @@ pub fn try_from_tagged_swap_context<'info>(
             }
         }
     }
-}
-
-pub fn swap_signed(
-    accounts: &[AccountView],
-    in_amount: u64,
-    minimum_out_amount: u64,
-    data: &SwapData<'_>,
-    signer_seeds: &[Signer],
-) -> ProgramResult {
-    let (ctx, _remaining) = try_from_swap_context(accounts)?;
-    SwapContext::swap_signed(&ctx, in_amount, minimum_out_amount, data, signer_seeds)
-}
-
-pub fn swap(
-    accounts: &[AccountView],
-    in_amount: u64,
-    minimum_out_amount: u64,
-    data: &SwapData<'_>,
-) -> ProgramResult {
-    swap_signed(accounts, in_amount, minimum_out_amount, data, &[])
 }
 
 // Deposit context - similar pattern

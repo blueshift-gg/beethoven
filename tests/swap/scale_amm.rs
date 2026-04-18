@@ -1,5 +1,5 @@
 use {
-    beethoven::{try_from_swap_context, SwapContext, SwapData},
+    beethoven::{try_from_tagged_swap_context, SwapContext, SwapData, SwapProtocolTag},
     solana_account_view::{AccountView, RuntimeAccount, NOT_BORROWED},
     solana_address::Address,
     solana_program_error::ProgramError,
@@ -90,10 +90,11 @@ fn test_scale_amm_accounts_try_from_parses_beneficiary_tail() {
 }
 
 #[test]
-fn test_try_from_swap_context_selects_scale_amm() {
+fn test_try_from_tagged_swap_context_selects_scale_amm() {
     let (_storage, accounts) = build_accounts(15, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
 
-    let (ctx, rest) = try_from_swap_context(accounts.as_slice()).unwrap();
+    let (ctx, rest) =
+        try_from_tagged_swap_context(SwapProtocolTag::ScaleAmm, accounts.as_slice(), 0).unwrap();
     assert!(matches!(ctx, SwapContext::ScaleAmm(_)));
     assert!(rest.is_empty());
 }
@@ -102,7 +103,8 @@ fn test_try_from_swap_context_selects_scale_amm() {
 fn test_scale_amm_context_try_from_swap_data_variants() {
     let (_storage, accounts) = build_accounts(15, beethoven::scale_amm::SCALE_AMM_PROGRAM_ID);
 
-    let (ctx, _) = try_from_swap_context(accounts.as_slice()).unwrap();
+    let (ctx, _) =
+        try_from_tagged_swap_context(SwapProtocolTag::ScaleAmm, accounts.as_slice(), 0).unwrap();
 
     let (buy_data, rest) = ctx.try_from_swap_data(&[0u8][..]).unwrap();
     assert!(rest.is_empty());

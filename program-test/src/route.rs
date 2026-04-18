@@ -2,10 +2,9 @@ use {
     crate::swap::parse_tagged_swap_context_and_data,
     beethoven::{Swap, SwapContext},
     pinocchio::{error::ProgramError, AccountView, ProgramResult},
+    pinocchio_token::state::TokenAccount as SplTokenAccount,
+    pinocchio_token_2022::state::TokenAccount as Token2022Account,
 };
-
-const TOKEN_ACCOUNT_AMOUNT_OFFSET: usize = 64;
-const TOKEN_ACCOUNT_AMOUNT_END: usize = TOKEN_ACCOUNT_AMOUNT_OFFSET + 8;
 
 /// Route instruction data layout (after discriminator):
 ///
@@ -40,16 +39,15 @@ impl<'a> TryFrom<&'a [u8]> for RouteInstructionData<'a> {
 }
 
 fn read_token_account_amount(account: &AccountView) -> Result<u64, ProgramError> {
-    if account.data_len() < TOKEN_ACCOUNT_AMOUNT_END {
-        return Err(ProgramError::InvalidAccountData);
+    if account.owned_by(&pinocchio_token::ID) {
+        return Ok(unsafe { SplTokenAccount::from_account_view_unchecked(account)? }.amount());
     }
 
-    let data = unsafe { account.borrow_unchecked() };
-    Ok(u64::from_le_bytes(
-        data[TOKEN_ACCOUNT_AMOUNT_OFFSET..TOKEN_ACCOUNT_AMOUNT_END]
-            .try_into()
-            .unwrap(),
-    ))
+    if account.owned_by(&pinocchio_token_2022::ID) {
+        return Ok(unsafe { Token2022Account::from_account_view_unchecked(account)? }.amount());
+    }
+
+    Err(ProgramError::InvalidAccountData)
 }
 
 pub fn process(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
