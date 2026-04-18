@@ -17,7 +17,7 @@ deposit = [
     "jupiter-deposit",
     "drift-deposit",
     "marginfi-deposit",
-    "carrot_boost-deposit",
+    "carrot-boost-deposit",
 ]
 swap = [
     "perena-swap",
@@ -40,7 +40,7 @@ kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
-carrot_boost-deposit = ["dep:beethoven-deposit-carrot-boost"]
+carrot-boost-deposit = ["dep:beethoven-deposit-carrot-boost"]
 
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
@@ -131,7 +131,7 @@ beethoven-client = { path = "crates/client", features = [
     "manifest",
     "gamma",
     "hadron",
-    "carrot_boost",
+    "carrot-boost",
     "resolve",
 ] }
 solana-rpc-client = "3"

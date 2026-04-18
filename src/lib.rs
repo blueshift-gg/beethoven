@@ -2,7 +2,7 @@
 
 // Re-export core traits
 pub use beethoven_core::{Deposit, Swap};
-#[cfg(feature = "carrot_boost-deposit")]
+#[cfg(feature = "carrot-boost-deposit")]
 pub use beethoven_deposit_carrot_boost as carrot_boost;
 #[cfg(feature = "drift-deposit")]
 pub use beethoven_deposit_drift as drift;

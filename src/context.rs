@@ -596,7 +596,7 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
-    #[cfg(feature = "carrot_boost-deposit")]
+    #[cfg(feature = "carrot-boost-deposit")]
     CarrotBoost(crate::carrot_boost::CarrotBoostDepositAccounts<'info>),
 }
 
@@ -610,7 +610,7 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
-    #[cfg(feature = "carrot_boost-deposit")]
+    #[cfg(feature = "carrot-boost-deposit")]
     CarrotBoost(crate::carrot_boost::CarrotBoostDepositData),
 }
 
@@ -638,7 +638,7 @@ impl<'a> DepositContext<'a> {
                 &[],
             )),
 
-            #[cfg(feature = "carrot_boost-deposit")]
+            #[cfg(feature = "carrot-boost-deposit")]
             DepositContext::CarrotBoost(_) => Ok((
                 DepositData::CarrotBoost(crate::carrot_boost::CarrotBoostDepositData::try_from(
                     data,
@@ -691,7 +691,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
                 }
             }
 
-            #[cfg(feature = "carrot_boost-deposit")]
+            #[cfg(feature = "carrot-boost-deposit")]
             DepositContext::CarrotBoost(accounts) => {
                 if let DepositData::CarrotBoost(data) = data {
                     crate::carrot_boost::CarrotBoost::deposit_signed(
@@ -753,7 +753,7 @@ pub fn try_from_deposit_context<'info>(
         return Ok(DepositContext::Marginfi(ctx));
     }
 
-    #[cfg(feature = "carrot_boost-deposit")]
+    #[cfg(feature = "carrot-boost-deposit")]
     if address_eq(
         detector_account.address(),
         &crate::carrot_boost::CARROT_BOOST_PROGRAM_ID,

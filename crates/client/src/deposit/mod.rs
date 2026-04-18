@@ -7,7 +7,7 @@ use solana_instruction::AccountMeta;
 #[cfg(feature = "resolve")]
 use solana_rpc_client::nonblocking::rpc_client::RpcClient;
 
-#[cfg(feature = "carrot_boost")]
+#[cfg(feature = "carrot-boost")]
 pub mod carrot_boost;
 
 /// Top-level deposit protocol selector.
@@ -16,7 +16,7 @@ pub mod carrot_boost;
 /// to resolve accounts. When `pool`/`market` is `None`, the resolver
 /// discovers it via `getProgramAccounts` with memcmp filters on the mints.
 pub enum DepositProtocol {
-    #[cfg(feature = "carrot_boost")]
+    #[cfg(feature = "carrot-boost")]
     CarrotBoost {
         clend_account: Address,
         bank: Address,
@@ -35,7 +35,7 @@ pub async fn resolve_deposit(
     user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     match protocol {
-        #[cfg(feature = "carrot_boost")]
+        #[cfg(feature = "carrot-boost")]
         DepositProtocol::CarrotBoost {
             clend_account,
             bank,

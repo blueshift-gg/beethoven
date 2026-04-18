@@ -17,7 +17,7 @@ swap = [
     "hadron",
 ]
 
-deposit = ["carrot_boost"]
+deposit = ["carrot-boost"]
 
 resolve = [
     "dep:solana-rpc-client",
@@ -32,7 +32,7 @@ futarchy = []
 gamma = []
 omnipair = []
 hadron = []
-carrot_boost = []
+carrot-boost = []
 
 [dependencies]
 solana-address = { version = "2", features = ["curve25519"] }
