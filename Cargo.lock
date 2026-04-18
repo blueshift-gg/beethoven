@@ -566,7 +566,6 @@ dependencies = [
  "beethoven-swap-hadron",
  "beethoven-swap-heaven",
  "beethoven-swap-manifest",
- "beethoven-swap-meteora-dlmm",
  "beethoven-swap-omnipair",
  "beethoven-swap-perena",
  "beethoven-swap-scale-amm",
@@ -733,17 +732,6 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-manifest"
-version = "0.0.1"
-dependencies = [
- "beethoven-core",
- "solana-account-view",
- "solana-address 2.5.0",
- "solana-instruction-view",
- "solana-program-error",
-]
-
-[[package]]
-name = "beethoven-swap-meteora-dlmm"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

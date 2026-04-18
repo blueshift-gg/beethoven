@@ -21,8 +21,7 @@ pub enum SwapProtocolTag {
     ScaleAmm = 9,
     ScaleVmm = 10,
     Omnipair = 11,
-    MeteoraDlmm = 12,
-    Hadron = 13,
+    Hadron = 12,
 }
 
 impl SwapProtocolTag {
@@ -40,8 +39,7 @@ impl SwapProtocolTag {
             9 => Ok(Self::ScaleAmm),
             10 => Ok(Self::ScaleVmm),
             11 => Ok(Self::Omnipair),
-            12 => Ok(Self::MeteoraDlmm),
-            13 => Ok(Self::Hadron),
+            12 => Ok(Self::Hadron),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -60,16 +58,12 @@ impl SwapProtocolTag {
             Self::ScaleAmm => 15,
             Self::ScaleVmm => 22,
             Self::Omnipair => 15,
-            Self::MeteoraDlmm => 17,
             Self::Hadron => 16,
         }
     }
 
     pub const fn uses_remaining_accounts_len(self) -> bool {
-        matches!(
-            self,
-            Self::ScaleAmm | Self::ScaleVmm | Self::MeteoraDlmm | Self::Hadron
-        )
+        matches!(self, Self::ScaleAmm | Self::ScaleVmm | Self::Hadron)
     }
 
     pub const fn consumes_all_remaining_data(self) -> bool {
@@ -150,9 +144,6 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapAccounts<'info>),
-
-    #[cfg(feature = "meteora_dlmm-swap")]
-    MeteoraDlmm(crate::meteora_dlmm::MeteoraDlmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -195,9 +186,6 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapData),
-
-    #[cfg(feature = "meteora_dlmm-swap")]
-    MeteoraDlmm(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -316,18 +304,12 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "hadron-swap")]
             SwapContext::Hadron(_) => {
                 let n = crate::hadron::HadronSwapData::DATA_LEN;
-                if data.len() < n {
-                    return Err(ProgramError::InvalidInstructionData);
-                }
-                let (mine, rest) = data.split_at(n);
+                let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Hadron(crate::hadron::HadronSwapData::try_from(mine)?),
                     rest,
                 ))
             }
-
-            #[cfg(feature = "meteora_dlmm-swap")]
-            SwapContext::MeteoraDlmm(_) => Ok((SwapData::MeteoraDlmm(()), data)),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -403,11 +385,6 @@ impl<'a> SwapContext<'a> {
             (SwapContext::Hadron(accounts), SwapData::Hadron(d)) => {
                 Ok(crate::hadron::Hadron::token_accounts(accounts, d))
             }
-
-            #[cfg(feature = "meteora_dlmm-swap")]
-            (SwapContext::MeteoraDlmm(accounts), SwapData::MeteoraDlmm(())) => Ok(
-                crate::meteora_dlmm::MeteoraDlmm::token_accounts(accounts, &()),
-            ),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -564,17 +541,6 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     d,
-                    signer_seeds,
-                )
-            }
-
-            #[cfg(feature = "meteora_dlmm-swap")]
-            (SwapContext::MeteoraDlmm(accounts), SwapData::MeteoraDlmm(())) => {
-                crate::meteora_dlmm::MeteoraDlmm::swap_signed(
-                    accounts,
-                    in_amount,
-                    minimum_out_amount,
-                    &(),
                     signer_seeds,
                 )
             }
@@ -746,19 +712,6 @@ pub fn try_from_swap_context<'info>(
     ) {
         let ctx = crate::hadron::HadronSwapAccounts::try_from(accounts)?;
         return Ok((SwapContext::Hadron(ctx), &[]));
-    }
-
-    #[cfg(feature = "meteora_dlmm-swap")]
-    if address_eq(
-        detector_account.address(),
-        &crate::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
-    ) {
-        let (mine, rest) = split_accounts_checked(
-            accounts,
-            crate::meteora_dlmm::MeteoraDlmmSwapAccounts::NUM_ACCOUNTS,
-        )?;
-        let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(mine)?;
-        return Ok((SwapContext::MeteoraDlmm(ctx), rest));
     }
 
     Err(ProgramError::InvalidAccountData)
@@ -959,22 +912,6 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::Omnipair(ctx), rest))
             }
             #[cfg(not(feature = "omnipair-swap"))]
-            {
-                Err(ProgramError::InvalidInstructionData)
-            }
-        }
-
-        SwapProtocolTag::MeteoraDlmm => {
-            #[cfg(feature = "meteora_dlmm-swap")]
-            {
-                validate_tagged_program_account(
-                    detector_account,
-                    &crate::meteora_dlmm::METEORA_DLMM_PROGRAM_ID,
-                )?;
-                let ctx = crate::meteora_dlmm::MeteoraDlmmSwapAccounts::try_from(mine)?;
-                Ok((SwapContext::MeteoraDlmm(ctx), rest))
-            }
-            #[cfg(not(feature = "meteora_dlmm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

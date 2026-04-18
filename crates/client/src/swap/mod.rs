@@ -16,9 +16,6 @@ pub mod omnipair;
 #[cfg(feature = "hadron")]
 pub mod hadron;
 
-#[cfg(feature = "meteora_dlmm")]
-pub mod meteora_dlmm;
-
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -56,9 +53,6 @@ pub enum SwapProtocol {
         fee_recipient: Address,
         expiration: i64,
     },
-
-    #[cfg(feature = "meteora_dlmm")]
-    MeteoraDlmm { lb_pair: Address },
 }
 
 /// A single step in a multi-swap composition.
@@ -127,11 +121,6 @@ pub async fn resolve_swap(
                 *expiration,
             )
             .await
-        }
-
-        #[cfg(feature = "meteora_dlmm")]
-        SwapProtocol::MeteoraDlmm { lb_pair } => {
-            meteora_dlmm::resolve(rpc, lb_pair, mint_a, mint_b, user).await
         }
     }
 }
