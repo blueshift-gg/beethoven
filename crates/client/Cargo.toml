@@ -23,7 +23,7 @@ swap = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "meteora_damm_v2",
+    "meteora-damm-v2",
 ]
 
 deposit = []
@@ -50,7 +50,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
-meteora_damm_v2 = []
+meteora-damm-v2 = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }

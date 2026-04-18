@@ -190,7 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "meteora_damm_v2",
+    "meteora-damm-v2",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

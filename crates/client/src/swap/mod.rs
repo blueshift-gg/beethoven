@@ -22,7 +22,7 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
-#[cfg(feature = "meteora_damm_v2")]
+#[cfg(feature = "meteora-damm-v2")]
 pub mod meteora_damm_v2;
 
 #[cfg(feature = "perena")]
@@ -131,7 +131,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "meteora_damm_v2")]
+    #[cfg(feature = "meteora-damm-v2")]
     MeteoraDammV2 { pool: Option<Address> },
 }
 
@@ -291,7 +291,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "meteora_damm_v2")]
+        #[cfg(feature = "meteora-damm-v2")]
         SwapProtocol::MeteoraDammV2 { pool } => {
             meteora_damm_v2::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
