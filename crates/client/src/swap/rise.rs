@@ -7,11 +7,14 @@ use {
 pub const RISE_PROGRAM_ID: Address = address!("RiseZSHaLdj7pfn1tisUoSdG2i3QcVz9sQKuaRG9rar");
 pub const MAYFLOWER_PROGRAM_ID: Address = address!("AVMmmRzwc2kETQNhPiFVnyu62HrgsQXTD6D7SnSfEz7v");
 pub const MAY_LOG_ACCOUNT: Address = address!("EKVkmuwDKRKHw85NPTbKSKuS75EY4NLcxe1qzSPixLdy");
+// rise tenant, may tenant and rise tenant seed are hardcoded in SDK
+// https://github.com/riserich/SDK/blob/main/src/constants.ts
+pub const RISE_TENANT: Address = address!("5scY2JGWLnBubCMbWrn1gi8FQEP8SPjvQ1hfjW4ktYUb");
+pub const MAY_TENANT: Address = address!("HeBDu9g5EN6qdDJWijHHpxYuMBE6aWvy1BmzFyEa7Q7C");
+pub const RISE_TENANT_SEED: Address = address!("Eg4Akr8HRv3gy4MaSp3zgKgC5qnN1V5ZTqAjhT54xJ9L");
 
 // Market account layout offsets
 // Layout: [8 discriminator] [32 tenant] [32 market_data] [32 mint_token] [32 mint_main] ...
-#[cfg(feature = "resolve")]
-const OFFSET_MARKET_TENANT: usize = 8;
 #[cfg(feature = "resolve")]
 const OFFSET_MARKET_MARKET_META: usize = 40;
 #[cfg(feature = "resolve")]
@@ -19,10 +22,10 @@ const OFFSET_MARKET_MINT_TOKEN: usize = 72;
 #[cfg(feature = "resolve")]
 const OFFSET_MARKET_MINT_MAIN: usize = 104;
 
-// Tenant account layout offsets
-// Layout: [8 discriminator] [32 admin] [4 tally_cooldown_seconds] [8 last_tally_timestamp] [32 seed] ...
+// MarketMeta account layout offsets
+// Layout: [8 discriminator] [32 mint_main] [32 mint_token] [32 mint_options] [32 market_group] ...
 #[cfg(feature = "resolve")]
-const OFFSET_TENANT_SEED: usize = 52;
+const OFFSET_MARKET_META_MAY_MARKET_GROUP: usize = 104;
 
 pub enum RiseInstruction {
     BuyWithExactCashIn {
@@ -37,10 +40,8 @@ pub enum RiseInstruction {
 
 pub struct RiseBaseAccounts {
     signer: Address,
-    tenant: Address,
     market: Address,
     cash_escrow: Address,
-    may_tenant: Address,
     may_market_group: Address,
     market_meta: Address,
     may_market: Address,
@@ -71,10 +72,10 @@ pub fn build_accounts(input: &RiseSwapInput) -> Vec<AccountMeta> {
     let mut accounts = vec![
         AccountMeta::new_readonly(RISE_PROGRAM_ID, false),
         AccountMeta::new(input.base.signer, true),
-        AccountMeta::new(input.base.tenant, false),
+        AccountMeta::new(RISE_TENANT, false),
         AccountMeta::new(input.base.market, false),
         AccountMeta::new(input.base.cash_escrow, false),
-        AccountMeta::new_readonly(input.base.may_tenant, false),
+        AccountMeta::new_readonly(MAY_TENANT, false),
         AccountMeta::new_readonly(input.base.may_market_group, false),
         AccountMeta::new(input.base.market_meta, false),
         AccountMeta::new(input.base.may_market, false),
@@ -167,22 +168,17 @@ pub async fn resolve(
         });
     }
 
-    let tenant = read_pubkey(&market_data, OFFSET_MARKET_TENANT)?;
-    let tenant_data = rpc.get_account(&tenant).await?.data;
-    let tenant_seed = read_pubkey(&tenant_data, OFFSET_TENANT_SEED)?;
     let cash_escrow =
         Address::find_program_address(&[b"cash_escrow", market_pubkey.as_ref()], &RISE_PROGRAM_ID)
             .0;
-    let may_tenant =
-        Address::find_program_address(&[b"tenant", tenant_seed.as_ref()], &MAYFLOWER_PROGRAM_ID).0;
-    let may_market_group = Address::find_program_address(
-        &[b"market_group", tenant_seed.as_ref()],
+    let market_meta = read_pubkey(&market_data, OFFSET_MARKET_MARKET_META)?;
+    let may_market = Address::find_program_address(
+        &[b"market_linear", market_meta.as_ref()],
         &MAYFLOWER_PROGRAM_ID,
     )
     .0;
-    let may_market =
-        Address::find_program_address(&[b"market", tenant_seed.as_ref()], &MAYFLOWER_PROGRAM_ID).0;
-    let market_meta = read_pubkey(&market_data, OFFSET_MARKET_MARKET_META)?;
+    let market_meta_data = rpc.get_account(&market_meta).await?.data;
+    let may_market_group = read_pubkey(&market_meta_data, OFFSET_MARKET_META_MAY_MARKET_GROUP)?;
     let mint_main_token_program = get_token_program_for_mint(rpc, mint_main).await?;
     let token_dst = get_associated_token_address(user, mint_token, &TOKEN_PROGRAM_ID);
     let main_src = get_associated_token_address(user, mint_main, &mint_main_token_program);
@@ -209,18 +205,23 @@ pub async fn resolve(
     let team_escrow =
         Address::find_program_address(&[b"team_escrow", mint_main.as_ref()], &RISE_PROGRAM_ID).0;
 
+    // only buy_with_exact_cash_in has extra instruction args and requires tenant_seed
+    let is_buy = new_shoulder_end.is_some()
+        && floor_increase_ratio.is_some()
+        && max_new_floor.is_some()
+        && max_area_shrinkage_tolerance_units.is_some()
+        && min_liq_ratio.is_some();
+
     let input = RiseSwapInput {
         base: RiseBaseAccounts {
             signer: *user,
-            tenant,
             market: market_pubkey,
             cash_escrow,
-            may_tenant,
             may_market_group,
             market_meta,
             may_market,
         },
-        tenant_seed: Some(tenant_seed),
+        tenant_seed: if is_buy { Some(RISE_TENANT_SEED) } else { None },
         leg: RiseLegAccounts {
             mint_token: *mint_token,
             mint_main: *mint_main,
