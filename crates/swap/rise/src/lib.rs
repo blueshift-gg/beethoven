@@ -152,7 +152,7 @@ pub struct RiseSwapAccounts<'info> {
 }
 
 impl RiseSwapAccounts<'_> {
-    pub const NUM_ACCOUNTS: usize = 23;
+    pub const MIN_NUM_ACCOUNTS: usize = 22;
 }
 
 impl<'info> TryFrom<&'info [AccountView]> for RiseSwapAccounts<'info> {
@@ -162,7 +162,7 @@ impl<'info> TryFrom<&'info [AccountView]> for RiseSwapAccounts<'info> {
         let rise_program = accounts.first().ok_or(ProgramError::NotEnoughAccountKeys)?;
 
         // check if account len is at least the minimum
-        if accounts.len() < NUM_ACCOUNTS_SELL_WITH_EXACT_TOKEN_IN {
+        if accounts.len() < Self::MIN_NUM_ACCOUNTS {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
