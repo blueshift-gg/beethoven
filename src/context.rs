@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "phoenix_legacy-swap")]
+    #[cfg(feature = "phoenix-legacy-swap")]
     PhoenixLegacy(crate::phoenix_legacy::PhoenixLegacySwapAccounts<'info>),
 }
 
@@ -194,7 +194,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "phoenix_legacy-swap")]
+    #[cfg(feature = "phoenix-legacy-swap")]
     PhoenixLegacy(crate::phoenix_legacy::PhoenixLegacySwapData),
 }
 
@@ -322,7 +322,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "phoenix_legacy-swap")]
+            #[cfg(feature = "phoenix-legacy-swap")]
             SwapContext::PhoenixLegacy(_) => {
                 let n = crate::phoenix_legacy::PhoenixLegacySwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -594,7 +594,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "phoenix_legacy-swap")]
+            #[cfg(feature = "phoenix-legacy-swap")]
             (SwapContext::PhoenixLegacy(accounts), SwapData::PhoenixLegacy(d)) => {
                 crate::phoenix_legacy::PhoenixLegacy::swap_signed(
                     accounts,
@@ -853,7 +853,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::PhoenixLegacy => {
-            #[cfg(feature = "phoenix_legacy-swap")]
+            #[cfg(feature = "phoenix-legacy-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -862,7 +862,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::phoenix_legacy::PhoenixLegacySwapAccounts::try_from(mine)?;
                 Ok((SwapContext::PhoenixLegacy(ctx), rest))
             }
-            #[cfg(not(feature = "phoenix_legacy-swap"))]
+            #[cfg(not(feature = "phoenix-legacy-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

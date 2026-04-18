@@ -28,7 +28,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
-    "phoenix_legacy-swap",
+    "phoenix-legacy-swap",
 ]
 
 # Deposit protocols
@@ -52,7 +52,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
-phoenix_legacy-swap = ["dep:beethoven-swap-phoenix-legacy"]
+phoenix-legacy-swap = ["dep:beethoven-swap-phoenix-legacy"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -190,7 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "phoenix_legacy",
+    "phoenix-legacy",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

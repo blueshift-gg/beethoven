@@ -40,7 +40,7 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
-#[cfg(feature = "phoenix_legacy")]
+#[cfg(feature = "phoenix-legacy")]
 pub mod phoenix_legacy;
 
 use solana_address::Address;
@@ -131,7 +131,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "phoenix_legacy")]
+    #[cfg(feature = "phoenix-legacy")]
     PhoenixLegacy { market: Option<Address>, side: u8 },
 }
 
@@ -291,7 +291,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "phoenix_legacy")]
+        #[cfg(feature = "phoenix-legacy")]
         SwapProtocol::PhoenixLegacy { market, side } => {
             phoenix_legacy::resolve(rpc, market.as_ref(), *side, mint_a, mint_b, user).await
         }
