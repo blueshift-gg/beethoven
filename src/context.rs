@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "raydium_amm_v4-swap")]
+    #[cfg(feature = "raydium-amm-v4-swap")]
     RaydiumAmmV4(crate::raydium_amm_v4::RaydiumAmmV4SwapAccounts<'info>),
 }
 
@@ -194,7 +194,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "raydium_amm_v4-swap")]
+    #[cfg(feature = "raydium-amm-v4-swap")]
     RaydiumAmmV4(()),
 }
 
@@ -322,7 +322,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "raydium_amm_v4-swap")]
+            #[cfg(feature = "raydium-amm-v4-swap")]
             SwapContext::RaydiumAmmV4(_) => Ok((SwapData::RaydiumAmmV4(()), data)),
 
             #[allow(unreachable_patterns)]
@@ -585,7 +585,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "raydium_amm_v4-swap")]
+            #[cfg(feature = "raydium-amm-v4-swap")]
             (SwapContext::RaydiumAmmV4(accounts), SwapData::RaydiumAmmV4(())) => {
                 crate::raydium_amm_v4::RaydiumAmmV4::swap_signed(
                     accounts,
@@ -844,7 +844,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::RaydiumAmmV4 => {
-            #[cfg(feature = "raydium_amm_v4-swap")]
+            #[cfg(feature = "raydium-amm-v4-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -853,7 +853,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::raydium_amm_v4::RaydiumAmmV4SwapAccounts::try_from(mine)?;
                 Ok((SwapContext::RaydiumAmmV4(ctx), rest))
             }
-            #[cfg(not(feature = "raydium_amm_v4-swap"))]
+            #[cfg(not(feature = "raydium-amm-v4-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

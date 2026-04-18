@@ -40,7 +40,7 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
-#[cfg(feature = "raydium_amm_v4")]
+#[cfg(feature = "raydium-amm-v4")]
 pub mod raydium_amm_v4;
 
 use solana_address::Address;
@@ -131,7 +131,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "raydium_amm_v4")]
+    #[cfg(feature = "raydium-amm-v4")]
     RaydiumAmmV4 { amm: Option<Address> },
 }
 
@@ -291,7 +291,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "raydium_amm_v4")]
+        #[cfg(feature = "raydium-amm-v4")]
         SwapProtocol::RaydiumAmmV4 { amm } => {
             raydium_amm_v4::resolve(rpc, amm.as_ref(), mint_a, mint_b, user).await
         }
