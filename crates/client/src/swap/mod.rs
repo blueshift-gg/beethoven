@@ -1,6 +1,9 @@
 #[cfg(feature = "manifest")]
 pub mod manifest;
 
+#[cfg(feature = "meteora-dynamic-bonding-curve")]
+pub mod meteora_dynamic_bonding_curve;
+
 #[cfg(feature = "aldrin")]
 pub mod aldrin;
 
@@ -75,6 +78,13 @@ pub enum SwapProtocol {
     Manifest {
         market: Option<Address>,
         is_exact_in: bool,
+    },
+
+    #[cfg(feature = "meteora-dynamic-bonding-curve")]
+    MeteoraDynamicBondingCurve {
+        pool: Option<Address>,
+        referral_token_account: Option<Address>,
+        swap_mode: meteora_dynamic_bonding_curve::SwapMode,
     },
 
     #[cfg(feature = "omnipair")]
@@ -177,6 +187,24 @@ pub async fn resolve_swap(
             market,
             is_exact_in,
         } => manifest::resolve(rpc, market.as_ref(), *is_exact_in, mint_a, mint_b, user).await,
+
+        #[cfg(feature = "meteora-dynamic-bonding-curve")]
+        SwapProtocol::MeteoraDynamicBondingCurve {
+            pool,
+            referral_token_account,
+            swap_mode,
+        } => {
+            meteora_dynamic_bonding_curve::resolve(
+                rpc,
+                pool.as_ref(),
+                referral_token_account.as_ref(),
+                *swap_mode,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
 
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
