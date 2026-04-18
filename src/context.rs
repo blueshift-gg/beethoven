@@ -217,14 +217,10 @@ impl<'a> SwapContext<'a> {
             }
 
             #[cfg(feature = "rise-swap")]
-            SwapContext::Rise(_) => {
-                let n = crate::rise::RiseSwapData::DATA_LEN;
-                let (mine, rest) = split_data_checked(data, n)?;
-                Ok((
-                    SwapData::Rise(crate::rise::RiseSwapData::try_from(mine)?),
-                    rest,
-                ))
-            }
+            SwapContext::Rise(_) => Ok((
+                SwapData::Rise(crate::rise::RiseSwapData::try_from(data)?),
+                &[],
+            )),
 
             #[cfg(feature = "solfi-swap")]
             SwapContext::SolFi(_) => {
