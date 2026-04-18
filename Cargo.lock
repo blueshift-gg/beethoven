@@ -565,6 +565,7 @@ dependencies = [
  "beethoven-swap-gamma",
  "beethoven-swap-hadron",
  "beethoven-swap-heaven",
+ "beethoven-swap-hylo-exchange",
  "beethoven-swap-manifest",
  "beethoven-swap-omnipair",
  "beethoven-swap-perena",
@@ -720,6 +721,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-heaven"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-hylo-exchange"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

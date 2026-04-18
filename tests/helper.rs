@@ -22,6 +22,8 @@ use {
 pub const TEST_PROGRAM_ID: Address = Address::new_from_array([0x01; 32]);
 pub const TOKEN_PROGRAM_ID: Address = address!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 pub const TOKEN_2022_PROGRAM_ID: Address = address!("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
+    address!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
@@ -34,6 +36,8 @@ pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+pub const HYLO_EXCHANGE_PROGRAM_ID: Address =
+    address!("HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
@@ -505,6 +509,10 @@ pub fn hadron_fixtures_dir() -> String {
 
 pub fn raydium_cpmm_fixtures_dir() -> String {
     format!("{}/fixtures/swap/raydium-cpmm", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn hylo_exchange_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/hylo-exchange", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]
