@@ -21,7 +21,7 @@ pub mod hadron;
 
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
-#[cfg(feature = "saros_amm")]
+#[cfg(feature = "saros-amm")]
 pub mod saros_amm;
 
 #[cfg(feature = "perena")]
@@ -130,7 +130,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "saros_amm")]
+    #[cfg(feature = "saros-amm")]
     SarosAmm { swap_info: Option<Address> },
 }
 
@@ -290,7 +290,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "saros_amm")]
+        #[cfg(feature = "saros-amm")]
         SwapProtocol::SarosAmm { swap_info } => {
             saros_amm::resolve(rpc, swap_info.as_ref(), mint_a, mint_b, user).await
         }

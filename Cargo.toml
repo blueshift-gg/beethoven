@@ -28,7 +28,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
-    "saros_amm-swap",
+    "saros-amm-swap",
 ]
 
 # Deposit protocols
@@ -52,7 +52,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
-saros_amm-swap = ["dep:beethoven-swap-saros-amm"]
+saros-amm-swap = ["dep:beethoven-swap-saros-amm"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -194,7 +194,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "saros_amm",
+    "saros-amm",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

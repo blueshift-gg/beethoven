@@ -145,7 +145,7 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
-    #[cfg(feature = "saros_amm-swap")]
+    #[cfg(feature = "saros-amm-swap")]
     SarosAmm(crate::saros_amm::SarosAmmSwapAccounts<'info>),
 }
 
@@ -192,7 +192,7 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
-    #[cfg(feature = "saros_amm-swap")]
+    #[cfg(feature = "saros-amm-swap")]
     SarosAmm(()),
 }
 
@@ -320,7 +320,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "saros_amm-swap")]
+            #[cfg(feature = "saros-amm-swap")]
             SwapContext::SarosAmm(_) => Ok((SwapData::SarosAmm(()), data)),
 
             #[allow(unreachable_patterns)]
@@ -583,7 +583,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "saros_amm-swap")]
+            #[cfg(feature = "saros-amm-swap")]
             (SwapContext::SarosAmm(accounts), SwapData::SarosAmm(())) => {
                 crate::saros_amm::SarosAmm::swap_signed(
                     accounts,
@@ -842,7 +842,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::SarosAmm => {
-            #[cfg(feature = "saros_amm-swap")]
+            #[cfg(feature = "saros-amm-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -851,7 +851,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::saros_amm::SarosAmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::SarosAmm(ctx), rest))
             }
-            #[cfg(not(feature = "saros_amm-swap"))]
+            #[cfg(not(feature = "saros-amm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
