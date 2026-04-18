@@ -145,7 +145,7 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
-    #[cfg(feature = "raydium_clmm-swap")]
+    #[cfg(feature = "raydium-clmm-swap")]
     RaydiumClmm(crate::raydium_clmm::RaydiumClmmSwapAccounts<'info>),
 }
 
@@ -192,7 +192,7 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
-    #[cfg(feature = "raydium_clmm-swap")]
+    #[cfg(feature = "raydium-clmm-swap")]
     RaydiumClmm(crate::raydium_clmm::RaydiumClmmSwapData),
 }
 
@@ -320,7 +320,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "raydium_clmm-swap")]
+            #[cfg(feature = "raydium-clmm-swap")]
             SwapContext::RaydiumClmm(_) => {
                 let n = crate::raydium_clmm::RaydiumClmmSwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -422,7 +422,7 @@ impl<'a> SwapContext<'a> {
                 crate::raydium_cpmm::RaydiumCpmm::token_accounts(accounts, &()),
             ),
 
-            #[cfg(feature = "raydium_clmm-swap")]
+            #[cfg(feature = "raydium-clmm-swap")]
             (SwapContext::RaydiumClmm(accounts), SwapData::RaydiumClmm(d)) => Ok(
                 crate::raydium_clmm::RaydiumClmm::token_accounts(accounts, d),
             ),
@@ -597,7 +597,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "raydium_clmm-swap")]
+            #[cfg(feature = "raydium-clmm-swap")]
             (SwapContext::RaydiumClmm(accounts), SwapData::RaydiumClmm(d)) => {
                 crate::raydium_clmm::RaydiumClmm::swap_signed(
                     accounts,
@@ -856,7 +856,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::RaydiumClmm => {
-            #[cfg(feature = "raydium_clmm-swap")]
+            #[cfg(feature = "raydium-clmm-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -865,7 +865,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::raydium_clmm::RaydiumClmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::RaydiumClmm(ctx), rest))
             }
-            #[cfg(not(feature = "raydium_clmm-swap"))]
+            #[cfg(not(feature = "raydium-clmm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
