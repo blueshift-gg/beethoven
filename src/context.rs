@@ -838,7 +838,7 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
-    #[cfg(feature = "perena_bankineco-deposit")]
+    #[cfg(feature = "perena-bankineco-deposit")]
     PerenaBankineco(crate::perena_bankineco::BankinecoDepositAccounts<'info>),
 }
 
@@ -852,7 +852,7 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
-    #[cfg(feature = "perena_bankineco-deposit")]
+    #[cfg(feature = "perena-bankineco-deposit")]
     PerenaBankineco(crate::perena_bankineco::BankinecoDepositData),
 }
 
@@ -880,7 +880,7 @@ impl<'a> DepositContext<'a> {
                 &[],
             )),
 
-            #[cfg(feature = "perena_bankineco-deposit")]
+            #[cfg(feature = "perena-bankineco-deposit")]
             DepositContext::PerenaBankineco(_) => Ok((
                 DepositData::PerenaBankineco(
                     crate::perena_bankineco::BankinecoDepositData::try_from(data)?,
@@ -933,7 +933,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
                 }
             }
 
-            #[cfg(feature = "perena_bankineco-deposit")]
+            #[cfg(feature = "perena-bankineco-deposit")]
             DepositContext::PerenaBankineco(accounts) => {
                 if let DepositData::PerenaBankineco(data) = data {
                     crate::perena_bankineco::Bankineco::deposit_signed(
@@ -995,7 +995,7 @@ pub fn try_from_deposit_context<'info>(
         return Ok(DepositContext::Marginfi(ctx));
     }
 
-    #[cfg(feature = "perena_bankineco-deposit")]
+    #[cfg(feature = "perena-bankineco-deposit")]
     if address_eq(
         detector_account.address(),
         &crate::perena_bankineco::BANKINECO_PROGRAM_ID,

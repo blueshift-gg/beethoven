@@ -7,7 +7,7 @@ use solana_instruction::AccountMeta;
 #[cfg(feature = "resolve")]
 use solana_rpc_client::nonblocking::rpc_client::RpcClient;
 
-#[cfg(feature = "perena_bankineco")]
+#[cfg(feature = "perena-bankineco")]
 pub mod perena_bankineco;
 
 /// Top-level deposit protocol selector.
@@ -16,7 +16,7 @@ pub mod perena_bankineco;
 /// to resolve accounts. When `pool`/`market` is `None`, the resolver
 /// discovers it via `getProgramAccounts` with memcmp filters on the mints.
 pub enum DepositProtocol {
-    #[cfg(feature = "perena_bankineco")]
+    #[cfg(feature = "perena-bankineco")]
     PerenaBankineco {
         vault: Address,
         min_bank_mint_minted: u64,
@@ -34,7 +34,7 @@ pub async fn resolve_deposit(
     user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
     match protocol {
-        #[cfg(feature = "perena_bankineco")]
+        #[cfg(feature = "perena-bankineco")]
         DepositProtocol::PerenaBankineco {
             vault,
             min_bank_mint_minted,
