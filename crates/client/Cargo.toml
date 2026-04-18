@@ -15,7 +15,7 @@ swap = [
     "futarchy",
     "gamma",
     "omnipair",
-    "meteora_damm",
+    "meteora-damm",
     "hadron",
     "raydium-cpmm",
     "perena",
@@ -42,7 +42,7 @@ aldrin-v2 = []
 futarchy = []
 gamma = []
 omnipair = []
-meteora_damm = []
+meteora-damm = []
 hadron = []
 raydium-cpmm = []
 perena = []

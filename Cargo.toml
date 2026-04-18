@@ -26,7 +26,7 @@ swap = [
     "scale-amm-swap",
     "scale-vmm-swap",
     "omnipair-swap",
-    "meteora_damm-swap",
+    "meteora-damm-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
 ]
@@ -50,7 +50,7 @@ gamma-swap = ["dep:beethoven-swap-gamma"]
 scale-amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
-meteora_damm-swap = ["dep:beethoven-swap-meteora-damm"]
+meteora-damm-swap = ["dep:beethoven-swap-meteora-damm"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
 
@@ -181,7 +181,7 @@ beethoven-client = { workspace = true, features = [
     "aldrin-v2",
     "futarchy",
     "gamma",
-    "meteora_damm",
+    "meteora-damm",
     "hadron",
     "raydium-cpmm",
     "omnipair",

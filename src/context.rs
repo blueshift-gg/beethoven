@@ -140,7 +140,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(crate::omnipair::OmnipairSwapAccounts<'info>),
 
-    #[cfg(feature = "meteora_damm-swap")]
+    #[cfg(feature = "meteora-damm-swap")]
     MeteoraDamm(crate::meteora_damm::MeteoraDammSwapAccounts<'info>),
 
     #[cfg(feature = "hadron-swap")]
@@ -188,7 +188,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "omnipair-swap")]
     Omnipair(()),
 
-    #[cfg(feature = "meteora_damm-swap")]
+    #[cfg(feature = "meteora-damm-swap")]
     MeteoraDamm(()),
 
     #[cfg(feature = "hadron-swap")]
@@ -310,7 +310,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "omnipair-swap")]
             SwapContext::Omnipair(_) => Ok((SwapData::Omnipair(()), data)),
 
-            #[cfg(feature = "meteora_damm-swap")]
+            #[cfg(feature = "meteora-damm-swap")]
             SwapContext::MeteoraDamm(_) => Ok((SwapData::MeteoraDamm(()), data)),
 
             #[cfg(feature = "hadron-swap")]
@@ -564,7 +564,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "meteora_damm-swap")]
+            #[cfg(feature = "meteora-damm-swap")]
             (SwapContext::MeteoraDamm(accounts), SwapData::MeteoraDamm(())) => {
                 crate::meteora_damm::MeteoraDamm::swap_signed(
                     accounts,
@@ -845,7 +845,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::MeteoraDamm => {
-            #[cfg(feature = "meteora_damm-swap")]
+            #[cfg(feature = "meteora-damm-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -854,7 +854,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::meteora_damm::MeteoraDammSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::MeteoraDamm(ctx), rest))
             }
-            #[cfg(not(feature = "meteora_damm-swap"))]
+            #[cfg(not(feature = "meteora-damm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
