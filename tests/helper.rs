@@ -276,28 +276,31 @@ pub fn create_mock_account_at(svm: &mut LiteSVM, pubkey: Address, owner: &Addres
 // Instruction Builders
 // =============================================================================
 
-fn append_tagged_protocol_data(
+fn append_swap_leg_header(
     data: &mut Vec<u8>,
     protocol_tag: SwapProtocolTag,
     accounts_len: usize,
+    extra_data_len: usize,
 ) {
+    let fixed_account_count = protocol_tag.fixed_account_count();
+    assert!(
+        accounts_len >= fixed_account_count,
+        "protocol account list is shorter than its fixed prefix",
+    );
+
+    let remaining_accounts_len = accounts_len - fixed_account_count;
+    assert!(
+        remaining_accounts_len <= u8::MAX as usize,
+        "remaining account count does not fit in u8",
+    );
+    assert!(
+        extra_data_len <= u16::MAX as usize,
+        "extra data length does not fit in u16",
+    );
+
     data.push(protocol_tag as u8);
-
-    if protocol_tag.uses_remaining_accounts_len() {
-        let fixed_account_count = protocol_tag.fixed_account_count();
-        assert!(
-            accounts_len >= fixed_account_count,
-            "protocol account list is shorter than its fixed prefix",
-        );
-
-        let remaining_accounts_len = accounts_len - fixed_account_count;
-        assert!(
-            remaining_accounts_len <= u8::MAX as usize,
-            "remaining account count does not fit in u8",
-        );
-
-        data.push(remaining_accounts_len as u8);
-    }
+    data.push(remaining_accounts_len as u8);
+    data.extend_from_slice(&(extra_data_len as u16).to_le_bytes());
 }
 
 pub fn build_deposit_instruction(
@@ -326,7 +329,7 @@ pub fn build_swap_instruction(
     let mut data = vec![discriminator::SWAP];
     data.extend_from_slice(&in_amount.to_le_bytes());
     data.extend_from_slice(&min_out_amount.to_le_bytes());
-    append_tagged_protocol_data(&mut data, protocol_tag, accounts.len());
+    append_swap_leg_header(&mut data, protocol_tag, accounts.len(), extra_data.len());
     data.extend_from_slice(extra_data);
 
     Instruction {
@@ -351,7 +354,12 @@ pub fn build_multi_swap_instruction(legs: Vec<SwapLeg>) -> Instruction {
     for leg in &legs {
         data.extend_from_slice(&leg.in_amount.to_le_bytes());
         data.extend_from_slice(&leg.min_out_amount.to_le_bytes());
-        append_tagged_protocol_data(&mut data, leg.protocol_tag, leg.accounts.len());
+        append_swap_leg_header(
+            &mut data,
+            leg.protocol_tag,
+            leg.accounts.len(),
+            leg.extra_data.len(),
+        );
         data.extend_from_slice(&leg.extra_data);
         all_accounts.extend(leg.accounts.clone());
     }
@@ -382,7 +390,12 @@ pub fn build_route_instruction(
     let mut all_accounts = Vec::new();
 
     for leg in &legs {
-        append_tagged_protocol_data(&mut data, leg.protocol_tag, leg.accounts.len());
+        append_swap_leg_header(
+            &mut data,
+            leg.protocol_tag,
+            leg.accounts.len(),
+            leg.extra_data.len(),
+        );
         data.extend_from_slice(&leg.extra_data);
         all_accounts.extend(leg.accounts.clone());
     }

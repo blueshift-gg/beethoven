@@ -13,9 +13,8 @@ const TOKEN_ACCOUNT_AMOUNT_END: usize = TOKEN_ACCOUNT_AMOUNT_OFFSET + 8;
 /// [8..16]  - minimum_final_out_amount (u64, little-endian)
 /// [16]     - num_legs (u8)
 /// Per leg (repeated num_legs times):
-///   [protocol_tag: u8]
-///   [remaining_accounts_len: u8] only for protocols with dynamic account tails
-///   [extra_data: protocol determines length]
+///   [swap_leg_header: 4 bytes]
+///   [extra_data: exact byte length from the header]
 pub struct RouteInstructionData<'a> {
     pub initial_in_amount: u64,
     pub minimum_final_out_amount: u64,
@@ -100,6 +99,10 @@ pub fn process(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
         previous_output_account = Some(output_token_account);
         remaining_accounts = parsed.remaining_accounts;
         remaining_data = parsed.remaining_data;
+    }
+
+    if !remaining_accounts.is_empty() || !remaining_data.is_empty() {
+        return Err(ProgramError::InvalidInstructionData);
     }
 
     Ok(())

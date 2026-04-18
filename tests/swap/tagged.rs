@@ -26,21 +26,6 @@ fn make_account(address: Address) -> (Vec<u64>, AccountView) {
     (backing, view)
 }
 
-fn set_account_owner_and_flags(
-    backing: &mut [u64],
-    owner: Address,
-    is_writable: bool,
-    executable: bool,
-) {
-    let raw = backing.as_mut_ptr() as *mut RuntimeAccount;
-
-    unsafe {
-        (*raw).owner = owner;
-        (*raw).is_writable = u8::from(is_writable);
-        (*raw).executable = u8::from(executable);
-    }
-}
-
 fn build_accounts(
     total_accounts: usize,
     first_account: Address,

@@ -10,12 +10,11 @@ use {
 /// Per swap (repeated num_swaps times):
 ///   [in_amount: u64 LE]
 ///   [min_out_amount: u64 LE]
-///   [protocol_tag: u8]
-///   [remaining_accounts_len: u8] only for protocols with dynamic account tails
-///   [extra_data: protocol determines length]
+///   [swap_leg_header: 4 bytes]
+///   [extra_data: exact byte length from the header]
 ///
 /// Accounts are a flat concatenation. Each swap consumes its fixed account
-/// prefix plus an explicit remaining-account tail when required.
+/// prefix plus the explicit remaining-account tail from the header.
 pub fn process(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     if data.is_empty() {
         return Err(ProgramError::InvalidInstructionData);
@@ -48,6 +47,10 @@ pub fn process(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
 
         remaining_accounts = parsed.remaining_accounts;
         remaining_data = parsed.remaining_data;
+    }
+
+    if !remaining_accounts.is_empty() || !remaining_data.is_empty() {
+        return Err(ProgramError::InvalidInstructionData);
     }
 
     Ok(())

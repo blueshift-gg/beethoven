@@ -64,14 +64,6 @@ impl SwapProtocolTag {
             Self::RaydiumCpmm => 14,
         }
     }
-
-    pub const fn uses_remaining_accounts_len(self) -> bool {
-        matches!(self, Self::ScaleAmm | Self::ScaleVmm | Self::Hadron)
-    }
-
-    pub const fn consumes_all_remaining_data(self) -> bool {
-        matches!(self, Self::Heaven)
-    }
 }
 
 impl TryFrom<u8> for SwapProtocolTag {
@@ -324,6 +316,16 @@ impl<'a> SwapContext<'a> {
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
+    }
+
+    pub fn try_from_swap_data_exact(&self, data: &'a [u8]) -> Result<SwapData<'a>, ProgramError> {
+        let (parsed, remaining_data) = self.try_from_swap_data(data)?;
+
+        if !remaining_data.is_empty() {
+            return Err(ProgramError::InvalidInstructionData);
+        }
+
+        Ok(parsed)
     }
 
     pub fn token_accounts(
