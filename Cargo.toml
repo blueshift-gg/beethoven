@@ -16,15 +16,15 @@ deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-depos
 swap = [
     "perena-swap",
     "solfi-swap",
-    "solfi_v2-swap",
+    "solfi-v2-swap",
     "manifest-swap",
     "heaven-swap",
     "aldrin-swap",
-    "aldrin_v2-swap",
+    "aldrin-v2-swap",
     "futarchy-swap",
     "gamma-swap",
-    "scale_amm-swap",
-    "scale_vmm-swap",
+    "scale-amm-swap",
+    "scale-vmm-swap",
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
@@ -39,15 +39,15 @@ marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
 solfi-swap = ["dep:beethoven-swap-solfi"]
-solfi_v2-swap = ["dep:beethoven-swap-solfi-v2"]
+solfi-v2-swap = ["dep:beethoven-swap-solfi-v2"]
 manifest-swap = ["dep:beethoven-swap-manifest"]
 heaven-swap = ["dep:beethoven-swap-heaven"]
 aldrin-swap = ["dep:beethoven-swap-aldrin"]
-aldrin_v2-swap = ["dep:beethoven-swap-aldrin-v2"]
+aldrin-v2-swap = ["dep:beethoven-swap-aldrin-v2"]
 futarchy-swap = ["dep:beethoven-swap-futarchy"]
 gamma-swap = ["dep:beethoven-swap-gamma"]
-scale_amm-swap = ["dep:beethoven-swap-scale-amm"]
-scale_vmm-swap = ["dep:beethoven-swap-scale-vmm"]
+scale-amm-swap = ["dep:beethoven-swap-scale-amm"]
+scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
@@ -177,18 +177,18 @@ mollusk-svm-programs-token.workspace = true
 beethoven-client = { workspace = true, features = [
     "manifest",
     "aldrin",
-    "aldrin_v2",
+    "aldrin-v2",
     "futarchy",
     "gamma",
     "hadron",
-    "raydium_cpmm",
+    "raydium-cpmm",
     "omnipair",
     "perena",
     "heaven",
-    "scale_amm",
-    "scale_vmm",
+    "scale-amm",
+    "scale-vmm",
     "solfi",
-    "solfi_v2",
+    "solfi-v2",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

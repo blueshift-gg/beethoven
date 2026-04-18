@@ -13,7 +13,7 @@ pub use beethoven_deposit_kamino as kamino;
 pub use beethoven_deposit_marginfi as marginfi;
 #[cfg(feature = "aldrin-swap")]
 pub use beethoven_swap_aldrin as aldrin;
-#[cfg(feature = "aldrin_v2-swap")]
+#[cfg(feature = "aldrin-v2-swap")]
 pub use beethoven_swap_aldrin_v2 as aldrin_v2;
 #[cfg(feature = "futarchy-swap")]
 pub use beethoven_swap_futarchy as futarchy;
@@ -31,13 +31,13 @@ pub use beethoven_swap_omnipair as omnipair;
 pub use beethoven_swap_perena as perena;
 #[cfg(feature = "raydium-cpmm-swap")]
 pub use beethoven_swap_raydium_cpmm as raydium_cpmm;
-#[cfg(feature = "scale_amm-swap")]
+#[cfg(feature = "scale-amm-swap")]
 pub use beethoven_swap_scale_amm as scale_amm;
-#[cfg(feature = "scale_vmm-swap")]
+#[cfg(feature = "scale-vmm-swap")]
 pub use beethoven_swap_scale_vmm as scale_vmm;
 #[cfg(feature = "solfi-swap")]
 pub use beethoven_swap_solfi as solfi;
-#[cfg(feature = "solfi_v2-swap")]
+#[cfg(feature = "solfi-v2-swap")]
 pub use beethoven_swap_solfi_v2 as solfi_v2;
 
 // Context enums and convenience functions

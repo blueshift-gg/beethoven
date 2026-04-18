@@ -11,18 +11,18 @@ default = ["swap", "deposit", "resolve"]
 swap = [
     "manifest",
     "aldrin",
-    "aldrin_v2",
+    "aldrin-v2",
     "futarchy",
     "gamma",
     "omnipair",
     "hadron",
-    "raydium_cpmm",
+    "raydium-cpmm",
     "perena",
     "heaven",
-    "scale_amm",
-    "scale_vmm",
+    "scale-amm",
+    "scale-vmm",
     "solfi",
-    "solfi_v2",
+    "solfi-v2",
 ]
 
 deposit = []
@@ -37,18 +37,18 @@ resolve = [
 
 manifest = []
 aldrin = []
-aldrin_v2 = []
+aldrin-v2 = []
 futarchy = []
 gamma = []
 omnipair = []
 hadron = []
-raydium_cpmm = []
+raydium-cpmm = []
 perena = []
 heaven = []
-scale_amm = []
-scale_vmm = []
+scale-amm = []
+scale-vmm = []
 solfi = []
-solfi_v2 = []
+solfi-v2 = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }
