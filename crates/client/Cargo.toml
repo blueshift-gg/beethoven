@@ -16,7 +16,7 @@ swap = [
     "omnipair",
     "hadron",
     "raydium_cpmm",
-    "hylo_exchange",
+    "hylo-exchange",
 ]
 
 deposit = []
@@ -35,7 +35,7 @@ gamma = []
 omnipair = []
 hadron = []
 raydium_cpmm = []
-hylo_exchange = []
+hylo-exchange = []
 
 [dependencies]
 solana-address = { version = "2", features = ["curve25519"] }

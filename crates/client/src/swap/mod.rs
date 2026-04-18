@@ -19,7 +19,7 @@ pub mod hadron;
 #[cfg(feature = "raydium_cpmm")]
 pub mod raydium_cpmm;
 
-#[cfg(feature = "hylo_exchange")]
+#[cfg(feature = "hylo-exchange")]
 pub mod hylo_exchange;
 
 use solana_address::Address;
@@ -59,11 +59,11 @@ pub enum SwapProtocol {
         fee_recipient: Address,
         expiration: i64,
     },
-    
+
     #[cfg(feature = "raydium_cpmm")]
     RaydiumCpmm { pool: Option<Address> },
 
-    #[cfg(feature = "hylo_exchange")]
+    #[cfg(feature = "hylo-exchange")]
     HyloExchange { swap_type: u8 },
 }
 
@@ -140,7 +140,7 @@ pub async fn resolve_swap(
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
 
-        #[cfg(feature = "hylo_exchange")]
+        #[cfg(feature = "hylo-exchange")]
         SwapProtocol::HyloExchange { swap_type } => {
             hylo_exchange::resolve(rpc, *swap_type, mint_a, mint_b, user).await
         }

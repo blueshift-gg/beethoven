@@ -64,7 +64,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "hylo_exchange-swap")]
+    #[cfg(feature = "hylo-exchange-swap")]
     HyloExchange(crate::hylo_exchange::HyloExchangeSwapAccounts<'info>),
 }
 
@@ -112,7 +112,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "hylo_exchange-swap")]
+    #[cfg(feature = "hylo-exchange-swap")]
     HyloExchange(crate::hylo_exchange::HyloExchangeSwapData),
 }
 
@@ -245,7 +245,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
 
-            #[cfg(feature = "hylo_exchange-swap")]
+            #[cfg(feature = "hylo-exchange-swap")]
             SwapContext::HyloExchange(_) => {
                 let n = crate::hylo_exchange::HyloExchangeSwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -427,7 +427,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "hylo_exchange-swap")]
+            #[cfg(feature = "hylo-exchange-swap")]
             (SwapContext::HyloExchange(accounts), SwapData::HyloExchange(d)) => {
                 crate::hylo_exchange::HyloExchange::swap_signed(
                     accounts,
@@ -620,7 +620,7 @@ pub fn try_from_swap_context<'info>(
         return Ok((SwapContext::RaydiumCpmm(ctx), rest));
     }
 
-    #[cfg(feature = "hylo_exchange-swap")]
+    #[cfg(feature = "hylo-exchange-swap")]
     if address_eq(
         detector_account.address(),
         &crate::hylo_exchange::HYLO_EXCHANGE_PROGRAM_ID,
