@@ -22,7 +22,7 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
-#[cfg(feature = "pump_amm")]
+#[cfg(feature = "pump-amm")]
 pub mod pump_amm;
 
 #[cfg(feature = "perena")]
@@ -131,7 +131,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "pump_amm")]
+    #[cfg(feature = "pump-amm")]
     PumpAmm {
         pool: Option<Address>,
         track_volume: Option<bool>,
@@ -295,7 +295,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "pump_amm")]
+        #[cfg(feature = "pump-amm")]
         SwapProtocol::PumpAmm {
             pool,
             track_volume,

@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
-    #[cfg(feature = "pump_amm-swap")]
+    #[cfg(feature = "pump-amm-swap")]
     PumpAmm(crate::pump_amm::PumpAmmSwapAccounts<'info>),
 }
 
@@ -193,7 +193,7 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
-    #[cfg(feature = "pump_amm-swap")]
+    #[cfg(feature = "pump-amm-swap")]
     PumpAmm(crate::pump_amm::PumpAmmSwapData),
 }
 
@@ -321,7 +321,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "pump_amm-swap")]
+            #[cfg(feature = "pump-amm-swap")]
             SwapContext::PumpAmm(_) => {
                 let n = crate::pump_amm::PumpAmmSwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -591,7 +591,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "pump_amm-swap")]
+            #[cfg(feature = "pump-amm-swap")]
             (SwapContext::PumpAmm(accounts), SwapData::PumpAmm(d)) => {
                 crate::pump_amm::PumpAmm::swap_signed(
                     accounts,
@@ -850,7 +850,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::PumpAmm => {
-            #[cfg(feature = "pump_amm-swap")]
+            #[cfg(feature = "pump-amm-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -859,7 +859,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::pump_amm::PumpAmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::PumpAmm(ctx), rest))
             }
-            #[cfg(not(feature = "pump_amm-swap"))]
+            #[cfg(not(feature = "pump-amm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
