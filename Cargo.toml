@@ -28,7 +28,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
-    "nirvana_governance-swap",
+    "nirvana-governance-swap",
 ]
 
 # Deposit protocols
@@ -52,7 +52,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
-nirvana_governance-swap = ["dep:beethoven-swap-nirvana-governance"]
+nirvana-governance-swap = ["dep:beethoven-swap-nirvana-governance"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -190,7 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "nirvana_governance",
+    "nirvana-governance",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

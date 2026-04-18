@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "nirvana_governance-swap")]
+    #[cfg(feature = "nirvana-governance-swap")]
     NirvanaGovernance(crate::nirvana_governance::NirvanaGovernanceSwapAccounts<'info>),
 }
 
@@ -194,7 +194,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "nirvana_governance-swap")]
+    #[cfg(feature = "nirvana-governance-swap")]
     NirvanaGovernance(()),
 }
 
@@ -322,7 +322,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "nirvana_governance-swap")]
+            #[cfg(feature = "nirvana-governance-swap")]
             SwapContext::NirvanaGovernance(_) => Ok((SwapData::NirvanaGovernance(()), &[])),
 
             #[allow(unreachable_patterns)]
@@ -585,7 +585,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "nirvana_governance-swap")]
+            #[cfg(feature = "nirvana-governance-swap")]
             (SwapContext::NirvanaGovernance(accounts), SwapData::NirvanaGovernance(())) => {
                 crate::nirvana_governance::NirvanaGovernance::swap_signed(
                     accounts,
@@ -844,7 +844,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::NirvanaGovernance => {
-            #[cfg(feature = "nirvana_governance-swap")]
+            #[cfg(feature = "nirvana-governance-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -853,7 +853,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::nirvana_governance::NirvanaGovernanceSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::NirvanaGovernance(ctx), rest))
             }
-            #[cfg(not(feature = "nirvana_governance-swap"))]
+            #[cfg(not(feature = "nirvana-governance-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

@@ -25,7 +25,7 @@ pub use beethoven_swap_hadron as hadron;
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
 pub use beethoven_swap_manifest as manifest;
-#[cfg(feature = "nirvana_governance-swap")]
+#[cfg(feature = "nirvana-governance-swap")]
 pub use beethoven_swap_nirvana_governance as nirvana_governance;
 #[cfg(feature = "omnipair-swap")]
 pub use beethoven_swap_omnipair as omnipair;

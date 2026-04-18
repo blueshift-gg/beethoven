@@ -40,7 +40,7 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
-#[cfg(feature = "nirvana_governance")]
+#[cfg(feature = "nirvana-governance")]
 pub mod nirvana_governance;
 
 use solana_address::Address;
@@ -131,7 +131,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "nirvana_governance")]
+    #[cfg(feature = "nirvana-governance")]
     NirvanaGovernance { is_buy: bool },
 }
 
@@ -291,7 +291,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "nirvana_governance")]
+        #[cfg(feature = "nirvana-governance")]
         SwapProtocol::NirvanaGovernance { is_buy } => {
             nirvana_governance::resolve(rpc, *is_buy, mint_a, mint_b, user).await
         }
