@@ -33,6 +33,8 @@ pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMF
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
+pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
+    address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
@@ -298,9 +300,14 @@ fn append_tagged_protocol_data(
     }
 }
 
-pub fn build_deposit_instruction(accounts: Vec<AccountMeta>, amount: u64) -> Instruction {
+pub fn build_deposit_instruction(
+    accounts: Vec<AccountMeta>,
+    amount: u64,
+    extra_data: &[u8],
+) -> Instruction {
     let mut data = vec![discriminator::DEPOSIT];
     data.extend_from_slice(&amount.to_le_bytes());
+    data.extend_from_slice(extra_data);
 
     Instruction {
         program_id: TEST_PROGRAM_ID,
@@ -563,6 +570,10 @@ pub fn omnipair_fixtures_dir() -> String {
 
 pub fn hadron_fixtures_dir() -> String {
     format!("{}/fixtures/swap/hadron", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn raydium_cpmm_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/raydium-cpmm", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]
