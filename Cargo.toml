@@ -28,7 +28,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
-    "orca_whirlpool-swap",
+    "orca-whirlpool-swap",
 ]
 
 # Deposit protocols
@@ -52,7 +52,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
-orca_whirlpool-swap = ["dep:beethoven-swap-orca-whirlpool"]
+orca-whirlpool-swap = ["dep:beethoven-swap-orca-whirlpool"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -187,7 +187,7 @@ beethoven-client = { workspace = true, features = [
     "gamma",
     "hadron",
     "raydium-cpmm",
-    "orca_whirlpool",
+    "orca-whirlpool",
     "omnipair",
     "perena",
     "heaven",

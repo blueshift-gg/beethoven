@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "orca_whirlpool-swap")]
+    #[cfg(feature = "orca-whirlpool-swap")]
     OrcaWhirlpool(crate::orca_whirlpool::OrcaWhirlpoolSwapAccounts<'info>),
 }
 
@@ -194,7 +194,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "orca_whirlpool-swap")]
+    #[cfg(feature = "orca-whirlpool-swap")]
     OrcaWhirlpool(crate::orca_whirlpool::OrcaWhirlpoolSwapData<'a>),
 }
 
@@ -322,7 +322,7 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
-            #[cfg(feature = "orca_whirlpool-swap")]
+            #[cfg(feature = "orca-whirlpool-swap")]
             SwapContext::OrcaWhirlpool(_) => {
                 let n = crate::orca_whirlpool::OrcaWhirlpoolSwapData::encoded_len(data)?;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -594,7 +594,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "orca_whirlpool-swap")]
+            #[cfg(feature = "orca-whirlpool-swap")]
             (SwapContext::OrcaWhirlpool(accounts), SwapData::OrcaWhirlpool(d)) => {
                 crate::orca_whirlpool::OrcaWhirlpool::swap_signed(
                     accounts,
@@ -853,7 +853,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::OrcaWhirlpool => {
-            #[cfg(feature = "orca_whirlpool-swap")]
+            #[cfg(feature = "orca-whirlpool-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -862,7 +862,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::orca_whirlpool::OrcaWhirlpoolSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::OrcaWhirlpool(ctx), rest))
             }
-            #[cfg(not(feature = "orca_whirlpool-swap"))]
+            #[cfg(not(feature = "orca-whirlpool-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

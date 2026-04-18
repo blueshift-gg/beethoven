@@ -17,7 +17,7 @@ swap = [
     "omnipair",
     "hadron",
     "raydium-cpmm",
-    "orca_whirlpool",
+    "orca-whirlpool",
     "perena",
     "heaven",
     "scale-amm",
@@ -44,7 +44,7 @@ gamma = []
 omnipair = []
 hadron = []
 raydium-cpmm = []
-orca_whirlpool = []
+orca-whirlpool = []
 perena = []
 heaven = []
 scale-amm = []

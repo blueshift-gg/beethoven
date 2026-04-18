@@ -40,10 +40,10 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
-#[cfg(feature = "orca_whirlpool")]
+#[cfg(feature = "orca-whirlpool")]
 pub mod orca_whirlpool;
 
-#[cfg(feature = "orca_whirlpool")]
+#[cfg(feature = "orca-whirlpool")]
 use crate::swap::orca_whirlpool::RemainingAccountsInfo;
 use solana_address::Address;
 #[cfg(feature = "resolve")]
@@ -132,7 +132,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "orca_whirlpool")]
+    #[cfg(feature = "orca-whirlpool")]
     OrcaWhirlpool {
         whirlpool: Option<Address>,
         sqrt_price_limit: u128,
@@ -298,7 +298,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "orca_whirlpool")]
+        #[cfg(feature = "orca-whirlpool")]
         SwapProtocol::OrcaWhirlpool {
             whirlpool,
             sqrt_price_limit,
