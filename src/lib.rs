@@ -31,7 +31,7 @@ pub use beethoven_swap_omnipair as omnipair;
 pub use beethoven_swap_perena as perena;
 #[cfg(feature = "raydium-cpmm-swap")]
 pub use beethoven_swap_raydium_cpmm as raydium_cpmm;
-#[cfg(feature = "saros_dlmm-swap")]
+#[cfg(feature = "saros-dlmm-swap")]
 pub use beethoven_swap_saros_dlmm as saros_dlmm;
 #[cfg(feature = "scale-amm-swap")]
 pub use beethoven_swap_scale_amm as scale_amm;

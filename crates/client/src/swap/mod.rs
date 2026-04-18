@@ -21,7 +21,7 @@ pub mod hadron;
 
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
-#[cfg(feature = "saros_dlmm")]
+#[cfg(feature = "saros-dlmm")]
 pub mod saros_dlmm;
 
 #[cfg(feature = "perena")]
@@ -130,7 +130,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "saros_dlmm")]
+    #[cfg(feature = "saros-dlmm")]
     SarosDlmm {
         pair: Option<Address>,
         swap_for_y: bool,
@@ -294,7 +294,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "saros_dlmm")]
+        #[cfg(feature = "saros-dlmm")]
         SwapProtocol::SarosDlmm {
             pair,
             swap_for_y,
