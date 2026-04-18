@@ -21,7 +21,7 @@ pub mod hadron;
 
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
-#[cfg(feature = "stabble_weighted")]
+#[cfg(feature = "stabble-weighted")]
 pub mod stabble_weighted;
 
 #[cfg(feature = "perena")]
@@ -130,7 +130,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "stabble_weighted")]
+    #[cfg(feature = "stabble-weighted")]
     StabbleWeighted { pool: Address },
 }
 
@@ -290,7 +290,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "stabble_weighted")]
+        #[cfg(feature = "stabble-weighted")]
         SwapProtocol::StabbleWeighted { pool } => {
             stabble_weighted::resolve(rpc, pool, mint_a, mint_b, user).await
         }
