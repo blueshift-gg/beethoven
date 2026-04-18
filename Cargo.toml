@@ -17,7 +17,7 @@ deposit = [
     "jupiter-deposit",
     "drift-deposit",
     "marginfi-deposit",
-    "hylo_stability_pool-deposit",
+    "hylo-stability-pool-deposit",
 ]
 swap = [
     "perena-swap",
@@ -41,7 +41,7 @@ kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
-hylo_stability_pool-deposit = ["dep:beethoven-deposit-hylo-stability-pool"]
+hylo-stability-pool-deposit = ["dep:beethoven-deposit-hylo-stability-pool"]
 
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
@@ -195,7 +195,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
-    "hylo_stability_pool",
+    "hylo-stability-pool",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

@@ -26,7 +26,7 @@ swap = [
 ]
 
 deposit = [
-    "hylo_stability_pool",
+    "hylo-stability-pool",
 ]
 
 resolve = [
@@ -51,7 +51,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
-hylo_stability_pool = []
+hylo-stability-pool = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }

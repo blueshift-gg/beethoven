@@ -838,7 +838,7 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
-    #[cfg(feature = "hylo_stability_pool-deposit")]
+    #[cfg(feature = "hylo-stability-pool-deposit")]
     HyloStabilityPool(crate::hylo_stability_pool::HyloStabilityPoolDepositAccounts<'info>),
 }
 
@@ -852,7 +852,7 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
-    #[cfg(feature = "hylo_stability_pool-deposit")]
+    #[cfg(feature = "hylo-stability-pool-deposit")]
     HyloStabilityPool(()),
 }
 
@@ -880,7 +880,7 @@ impl<'a> DepositContext<'a> {
                 &[],
             )),
 
-            #[cfg(feature = "hylo_stability_pool-deposit")]
+            #[cfg(feature = "hylo-stability-pool-deposit")]
             DepositContext::HyloStabilityPool(_) => Ok((DepositData::HyloStabilityPool(()), &[])),
 
             #[allow(unreachable_patterns)]
@@ -928,7 +928,7 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
                 }
             }
 
-            #[cfg(feature = "hylo_stability_pool-deposit")]
+            #[cfg(feature = "hylo-stability-pool-deposit")]
             DepositContext::HyloStabilityPool(accounts) => {
                 if let DepositData::HyloStabilityPool(()) = data {
                     crate::hylo_stability_pool::HyloStabilityPool::deposit_signed(
@@ -990,7 +990,7 @@ pub fn try_from_deposit_context<'info>(
         return Ok(DepositContext::Marginfi(ctx));
     }
 
-    #[cfg(feature = "hylo_stability_pool-deposit")]
+    #[cfg(feature = "hylo-stability-pool-deposit")]
     if address_eq(
         detector_account.address(),
         &crate::hylo_stability_pool::HYLO_STABILITY_PROGRAM_ID,
