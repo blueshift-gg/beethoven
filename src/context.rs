@@ -146,7 +146,7 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 
-    #[cfg(feature = "fusion_amm-swap")]
+    #[cfg(feature = "fusion-amm-swap")]
     FusionAmm(crate::fusion_amm::FusionAmmSwapAccounts<'info>),
 }
 
@@ -194,7 +194,7 @@ pub enum SwapData<'a> {
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 
-    #[cfg(feature = "fusion_amm-swap")]
+    #[cfg(feature = "fusion-amm-swap")]
     FusionAmm(crate::fusion_amm::FusionAmmSwapData<'a>),
 }
 
@@ -323,7 +323,7 @@ impl<'a> SwapContext<'a> {
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
 
-            #[cfg(feature = "fusion_amm-swap")]
+            #[cfg(feature = "fusion-amm-swap")]
             SwapContext::FusionAmm(_) => {
                 let n = crate::fusion_amm::FusionAmmSwapData::encoded_len(data)?;
                 let (mine, rest) = split_data_checked(data, n)?;
@@ -593,7 +593,7 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
-            #[cfg(feature = "fusion_amm-swap")]
+            #[cfg(feature = "fusion-amm-swap")]
             (SwapContext::FusionAmm(accounts), SwapData::FusionAmm(d)) => {
                 crate::fusion_amm::FusionAmm::swap_signed(
                     accounts,
@@ -852,7 +852,7 @@ pub fn try_from_tagged_swap_context<'info>(
         }
 
         SwapProtocolTag::FusionAmm => {
-            #[cfg(feature = "fusion_amm-swap")]
+            #[cfg(feature = "fusion-amm-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
@@ -861,7 +861,7 @@ pub fn try_from_tagged_swap_context<'info>(
                 let ctx = crate::fusion_amm::FusionAmmSwapAccounts::try_from(mine)?;
                 Ok((SwapContext::FusionAmm(ctx), rest))
             }
-            #[cfg(not(feature = "fusion_amm-swap"))]
+            #[cfg(not(feature = "fusion-amm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

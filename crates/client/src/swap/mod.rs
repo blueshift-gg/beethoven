@@ -40,10 +40,10 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
-#[cfg(feature = "fusion_amm")]
+#[cfg(feature = "fusion-amm")]
 pub mod fusion_amm;
 
-#[cfg(feature = "fusion_amm")]
+#[cfg(feature = "fusion-amm")]
 use crate::swap::fusion_amm::RemainingAccountsInfo;
 use solana_address::Address;
 #[cfg(feature = "resolve")]
@@ -133,7 +133,7 @@ pub enum SwapProtocol {
         is_quote_to_base: bool,
     },
 
-    #[cfg(feature = "fusion_amm")]
+    #[cfg(feature = "fusion-amm")]
     FusionAmm {
         fusion_pool: Option<Address>,
         sqrt_price_limit: u128,
@@ -299,7 +299,7 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "fusion_amm")]
+        #[cfg(feature = "fusion-amm")]
         SwapProtocol::FusionAmm {
             fusion_pool,
             sqrt_price_limit,
