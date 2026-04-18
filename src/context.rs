@@ -139,6 +139,7 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapAccounts<'info>),
+
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 }
@@ -183,6 +184,7 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapData),
+
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
 }
