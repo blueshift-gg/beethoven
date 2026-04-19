@@ -46,17 +46,12 @@ pub(crate) struct SwapLegHeader {
     pub extra_data_len: usize,
 }
 
-fn split_data_checked<'a>(
-    data: &'a [u8],
-    count: usize,
-) -> Result<(&'a [u8], &'a [u8]), ProgramError> {
+fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), ProgramError> {
     data.split_at_checked(count)
         .ok_or(ProgramError::InvalidInstructionData)
 }
 
-pub(crate) fn parse_swap_leg_header<'a>(
-    data: &'a [u8],
-) -> Result<(SwapLegHeader, &'a [u8]), ProgramError> {
+pub(crate) fn parse_swap_leg_header(data: &[u8]) -> Result<(SwapLegHeader, &[u8]), ProgramError> {
     let (header_bytes, remaining_data) = split_data_checked(data, SWAP_LEG_HEADER_LEN)?;
     let protocol_tag = SwapProtocolTag::from_byte(header_bytes[0])?;
     let remaining_accounts_len = header_bytes[1] as usize;
