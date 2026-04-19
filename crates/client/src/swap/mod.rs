@@ -1,3 +1,6 @@
+#[cfg(feature = "alphaq")]
+pub mod alphaq;
+
 #[cfg(feature = "manifest")]
 pub mod manifest;
 
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,12 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "alphaq")]
+    AlphaQ {
+        market: Option<Address>,
+        market_state: Address,
     },
 }
 
@@ -283,6 +293,12 @@ pub async fn resolve_swap(
             )
             .await
         }
+
+        #[cfg(feature = "alphaq")]
+        SwapProtocol::AlphaQ {
+            market,
+            market_state,
+        } => alphaq::resolve(rpc, market.as_ref(), market_state, mint_a, mint_b, user).await,
     }
 }
 

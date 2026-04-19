@@ -1,5 +1,6 @@
 mod aldrin;
 mod aldrin_v2;
+mod alphaq;
 mod futarchy;
 mod gamma;
 mod hadron;

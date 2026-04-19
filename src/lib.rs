@@ -15,6 +15,8 @@ pub use beethoven_deposit_marginfi as marginfi;
 pub use beethoven_swap_aldrin as aldrin;
 #[cfg(feature = "aldrin-v2-swap")]
 pub use beethoven_swap_aldrin_v2 as aldrin_v2;
+#[cfg(feature = "alphaq-swap")]
+pub use beethoven_swap_alphaq as alphaq;
 #[cfg(feature = "futarchy-swap")]
 pub use beethoven_swap_futarchy as futarchy;
 #[cfg(feature = "gamma-swap")]
