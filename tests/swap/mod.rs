@@ -6,6 +6,7 @@ mod hadron;
 mod heaven;
 mod manifest;
 mod multi_swap;
+mod obric_v2;
 mod omnipair;
 mod perena;
 mod raydium_cpmm;
