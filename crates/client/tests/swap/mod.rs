@@ -8,5 +8,6 @@ mod omnipair;
 mod perena;
 mod scale_amm;
 mod scale_vmm;
+mod scorch;
 mod solfi;
 mod solfi_v2;

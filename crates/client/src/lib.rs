@@ -47,6 +47,10 @@ pub const SYSVAR_INSTRUCTIONS_ID: Address =
 pub const SYSVAR_CLOCK_ID: Address =
     Address::from_str_const("SysvarC1ock11111111111111111111111111111111");
 
+/// Memo Program Id
+pub const MEMO_PROGRAM_ID: Address =
+    Address::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+
 /// Associated Token Program ID
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
