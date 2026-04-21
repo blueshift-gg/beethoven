@@ -5,6 +5,7 @@ mod gamma_discover;
 mod heaven;
 mod manifest;
 mod omnipair;
+mod onre;
 mod perena;
 mod scale_amm;
 mod scale_vmm;
