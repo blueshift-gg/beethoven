@@ -523,6 +523,7 @@ dependencies = [
  "beethoven-swap-scale-vmm",
  "beethoven-swap-solfi",
  "beethoven-swap-solfi-v2",
+ "beethoven-swap-voltr",
  "litesvm",
  "serde_json",
  "solana-account",
@@ -759,6 +760,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-solfi-v2"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-voltr"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
