@@ -4,6 +4,7 @@ mod futarchy;
 mod gamma;
 mod hadron;
 mod heaven;
+mod huma_finance;
 mod manifest;
 mod multi_swap;
 mod omnipair;
