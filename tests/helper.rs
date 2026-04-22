@@ -522,9 +522,19 @@ pub fn get_token_balance(svm: &LiteSVM, token_account: &Address) -> u64 {
     let account = svm
         .get_account(token_account)
         .expect("Token account not found");
-    TokenAccount::unpack(&account.data)
-        .expect("Failed to unpack token account")
-        .amount
+
+    if account.owner != TOKEN_PROGRAM_ID && account.owner != TOKEN_2022_PROGRAM_ID {
+        panic!("Account is not owned by a token program");
+    }
+
+    // SPL Token and Token-2022 token accounts store `amount` at bytes [64..72].
+    if account.data.len() < 72 {
+        panic!("Token account data too short");
+    }
+
+    let mut amount_bytes = [0u8; 8];
+    amount_bytes.copy_from_slice(&account.data[64..72]);
+    u64::from_le_bytes(amount_bytes)
 }
 
 pub fn get_rpc_url() -> String {
