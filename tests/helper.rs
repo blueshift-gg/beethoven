@@ -43,6 +43,8 @@ pub const ALDRIN_PROGRAM_ID: Address = address!("AMM55ShdkoGRB5jVYPjWziwk8m5Mpwy
 pub const ALDRIN_V2_PROGRAM_ID: Address = address!("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
 pub const SCALE_AMM_PROGRAM_ID: Address = address!("SCALEwAvEK5gtkdHiFzXfPgtk2YwJxPDzaV3aDmR7tA");
 pub const SCALE_VMM_PROGRAM_ID: Address = address!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
+pub const ORE_LST_PROGRAM_ID: Address = address!("LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y");
+pub const ORE_STAKE_PROGRAM_ID: Address = address!("STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const INSTRUCTIONS_SYSVAR_ID: Address = address!("Sysvar1nstructions1111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
@@ -589,6 +591,10 @@ pub fn solfi_fixtures_dir() -> String {
 
 pub fn solfi_v2_fixtures_dir() -> String {
     format!("{}/fixtures/swap/solfi-v2", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn ore_lst_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/ore-lst", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]

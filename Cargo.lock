@@ -517,6 +517,7 @@ dependencies = [
  "beethoven-swap-heaven",
  "beethoven-swap-manifest",
  "beethoven-swap-omnipair",
+ "beethoven-swap-ore-lst",
  "beethoven-swap-perena",
  "beethoven-swap-raydium-cpmm",
  "beethoven-swap-scale-amm",
@@ -529,6 +530,7 @@ dependencies = [
  "solana-account-view",
  "solana-address 2.6.0",
  "solana-clock",
+ "solana-compute-budget",
  "solana-instruction",
  "solana-instruction-view",
  "solana-keypair",
@@ -693,6 +695,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-omnipair"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-ore-lst"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
