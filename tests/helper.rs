@@ -35,6 +35,14 @@ pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMF
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
+pub const FRAUDSWORTH_TAX_PROGRAM_ID: Address =
+    address!("43fZGRtmEsP7ExnJE1dbTbNjaP1ncvVmMPusSeksWGEj");
+pub const FRAUDSWORTH_AMM_PROGRAM_ID: Address =
+    address!("5JsSAL3kJDUWD4ZveYXYZmgm1eVqueesTZVdAvtZg8cR");
+pub const FRAUDSWORTH_STAKING_PROGRAM_ID: Address =
+    address!("12b3t1cNiAUoYLiWFEnFa4w6qYxVAiqCWU7KZuzLPYtH");
+pub const FRAUDSWORTH_TRANSFER_HOOK_PROGRAM_ID: Address =
+    address!("CiQPQrmQh6BPhb9k7dFnsEs5gKPgdrvNKFc5xie5xVGd");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
 pub const FUTARCHY_PROGRAM_ID: Address = address!("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
@@ -565,6 +573,13 @@ pub fn omnipair_fixtures_dir() -> String {
 
 pub fn hadron_fixtures_dir() -> String {
     format!("{}/fixtures/swap/hadron", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn fraudsworth_tax_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/swap/fraudsworth-tax",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 pub fn raydium_cpmm_fixtures_dir() -> String {

@@ -16,6 +16,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "fraudsworth-tax")]
+pub mod fraudsworth_tax;
+
 #[cfg(feature = "hadron")]
 pub mod hadron;
 
@@ -89,6 +92,10 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
+    #[cfg(feature = "fraudsworth-tax")]
+    FraudsworthTax { is_buy: bool, is_crime: bool },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -204,6 +211,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "raydium-cpmm")]
         SwapProtocol::RaydiumCpmm { pool } => {
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "fraudsworth-tax")]
+        SwapProtocol::FraudsworthTax { is_buy, is_crime } => {
+            fraudsworth_tax::resolve(rpc, user, *is_buy, *is_crime).await
         }
 
         #[cfg(feature = "perena")]

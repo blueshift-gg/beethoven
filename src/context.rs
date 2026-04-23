@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    FraudsworthTax = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::FraudsworthTax),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::FraudsworthTax => 25,
         }
     }
 }
@@ -140,6 +143,9 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapAccounts<'info>),
 
+    #[cfg(feature = "fraudsworth-tax-swap")]
+    FraudsworthTax(crate::fraudsworth_tax::FraudsworthTaxSwapAccounts<'info>),
+
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
 }
@@ -184,6 +190,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "hadron-swap")]
     Hadron(crate::hadron::HadronSwapData),
+
+    #[cfg(feature = "fraudsworth-tax-swap")]
+    FraudsworthTax(crate::fraudsworth_tax::FraudsworthTaxSwapData),
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
@@ -307,6 +316,18 @@ impl<'a> SwapContext<'a> {
                 let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Hadron(crate::hadron::HadronSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
+
+            #[cfg(feature = "fraudsworth-tax-swap")]
+            SwapContext::FraudsworthTax(_) => {
+                let n = crate::fraudsworth_tax::FraudsworthTaxSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::FraudsworthTax(
+                        crate::fraudsworth_tax::FraudsworthTaxSwapData::try_from(mine)?,
+                    ),
                     rest,
                 ))
             }
@@ -555,6 +576,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
             #[cfg(feature = "hadron-swap")]
             (SwapContext::Hadron(accounts), SwapData::Hadron(d)) => {
                 crate::hadron::Hadron::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "fraudsworth-tax-swap")]
+            (SwapContext::FraudsworthTax(accounts), SwapData::FraudsworthTax(d)) => {
+                crate::fraudsworth_tax::FraudsworthTax::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -816,6 +848,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::FraudsworthTax => {
+            #[cfg(feature = "fraudsworth-tax-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::fraudsworth_tax::FRAUDSWORTH_TAX_PROGRAM_ID,
+                )?;
+                let ctx = crate::fraudsworth_tax::FraudsworthTaxSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::FraudsworthTax(ctx), rest))
+            }
+            #[cfg(not(feature = "fraudsworth-tax-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

@@ -1,5 +1,6 @@
 mod aldrin;
 mod aldrin_v2;
+mod fraudsworth_tax;
 mod futarchy;
 mod gamma;
 mod hadron;
