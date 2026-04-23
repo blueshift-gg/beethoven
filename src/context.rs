@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    SolvFinance = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::SolvFinance),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::SolvFinance => 11,
         }
     }
 }
@@ -110,6 +113,9 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "solfi-v2-swap")]
     SolFiV2(crate::solfi_v2::SolFiV2SwapAccounts<'info>),
 
+    #[cfg(feature = "solv-finance-swap")]
+    SolvFinance(crate::solv_finance::SolvFinanceSwapAccounts<'info>),
+
     #[cfg(feature = "manifest-swap")]
     Manifest(crate::manifest::ManifestSwapAccounts<'info>),
 
@@ -154,6 +160,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "solfi-v2-swap")]
     SolFiV2(crate::solfi_v2::SolFiV2SwapData),
+
+    #[cfg(feature = "solv-finance-swap")]
+    SolvFinance(()),
 
     #[cfg(feature = "manifest-swap")]
     Manifest(crate::manifest::ManifestSwapData),
@@ -225,6 +234,9 @@ impl<'a> SwapContext<'a> {
                     rest,
                 ))
             }
+
+            #[cfg(feature = "solv-finance-swap")]
+            SwapContext::SolvFinance(_) => Ok((SwapData::SolvFinance(()), data)),
 
             #[cfg(feature = "manifest-swap")]
             SwapContext::Manifest(_) => {
@@ -449,6 +461,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     in_amount,
                     minimum_out_amount,
                     d,
+                    signer_seeds,
+                )
+            }
+
+            #[cfg(feature = "solv-finance-swap")]
+            (SwapContext::SolvFinance(accounts), SwapData::SolvFinance(())) => {
+                crate::solv_finance::SolvFinance::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
                     signer_seeds,
                 )
             }
@@ -816,6 +839,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::SolvFinance => {
+            #[cfg(feature = "solv-finance-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::solv_finance::SOLV_FINANCE_PROGRAM_ID,
+                )?;
+                let ctx = crate::solv_finance::SolvFinanceSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::SolvFinance(ctx), rest))
+            }
+            #[cfg(not(feature = "solv-finance-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

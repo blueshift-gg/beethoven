@@ -39,6 +39,8 @@ pub use beethoven_swap_scale_vmm as scale_vmm;
 pub use beethoven_swap_solfi as solfi;
 #[cfg(feature = "solfi-v2-swap")]
 pub use beethoven_swap_solfi_v2 as solfi_v2;
+#[cfg(feature = "solv-finance-swap")]
+pub use beethoven_swap_solv_finance as solv_finance;
 
 // Context enums and convenience functions
 mod context;
