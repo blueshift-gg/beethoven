@@ -537,6 +537,12 @@ pub fn get_token_balance(svm: &LiteSVM, token_account: &Address) -> u64 {
     u64::from_le_bytes(amount_bytes)
 }
 
+pub fn set_token_balance(svm: &mut LiteSVM, token_account: &Address, amount: u64) {
+    let mut account = svm.get_account(token_account).unwrap();
+    account.data[64..72].copy_from_slice(&amount.to_le_bytes());
+    svm.set_account(*token_account, account).unwrap();
+}
+
 pub fn get_rpc_url() -> String {
     std::env::var("RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string())
 }
