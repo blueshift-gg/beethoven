@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    FraudsworthConversionVault = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::FraudsworthConversionVault),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::FraudsworthConversionVault => 18,
         }
     }
 }
@@ -125,6 +128,11 @@ pub enum SwapContext<'info> {
     #[cfg(feature = "futarchy-swap")]
     Futarchy(crate::futarchy::FutarchySwapAccounts<'info>),
 
+    #[cfg(feature = "fraudsworth-conversion-vault-swap")]
+    FraudsworthConversionVault(
+        crate::fraudsworth_conversion_vault::FraudsworthConversionVaultSwapAccounts<'info>,
+    ),
+
     #[cfg(feature = "gamma-swap")]
     Gamma(crate::gamma::GammaSwapAccounts<'info>),
 
@@ -169,6 +177,11 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "futarchy-swap")]
     Futarchy(crate::futarchy::FutarchySwapData),
+
+    #[cfg(feature = "fraudsworth-conversion-vault-swap")]
+    FraudsworthConversionVault(
+        crate::fraudsworth_conversion_vault::FraudsworthConversionVaultSwapData,
+    ),
 
     #[cfg(feature = "gamma-swap")]
     Gamma(()),
@@ -271,6 +284,18 @@ impl<'a> SwapContext<'a> {
                 let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
                     SwapData::Futarchy(crate::futarchy::FutarchySwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
+
+            #[cfg(feature = "fraudsworth-conversion-vault-swap")]
+            SwapContext::FraudsworthConversionVault(_) => {
+                let n = crate::fraudsworth_conversion_vault::FraudsworthConversionVaultSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::FraudsworthConversionVault(
+                        crate::fraudsworth_conversion_vault::FraudsworthConversionVaultSwapData::try_from(mine)?,
+                    ),
                     rest,
                 ))
             }
@@ -507,6 +532,18 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     signer_seeds,
                 )
             }
+
+            #[cfg(feature = "fraudsworth-conversion-vault-swap")]
+            (
+                SwapContext::FraudsworthConversionVault(accounts),
+                SwapData::FraudsworthConversionVault(d),
+            ) => crate::fraudsworth_conversion_vault::FraudsworthConversionVault::swap_signed(
+                accounts,
+                in_amount,
+                minimum_out_amount,
+                d,
+                signer_seeds,
+            ),
 
             #[cfg(feature = "gamma-swap")]
             (SwapContext::Gamma(accounts), SwapData::Gamma(())) => {
@@ -816,6 +853,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::FraudsworthConversionVault => {
+            #[cfg(feature = "fraudsworth-conversion-vault-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::fraudsworth_conversion_vault::FRAUDSWORTH_CONVERSION_VAULT_PROGRAM_ID,
+                )?;
+                let ctx = crate::fraudsworth_conversion_vault::FraudsworthConversionVaultSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::FraudsworthConversionVault(ctx), rest))
+            }
+            #[cfg(not(feature = "fraudsworth-conversion-vault-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

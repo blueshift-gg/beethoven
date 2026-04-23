@@ -10,6 +10,9 @@ pub mod aldrin_v2;
 #[cfg(feature = "futarchy")]
 pub mod futarchy;
 
+#[cfg(feature = "fraudsworth-conversion-vault")]
+pub mod fraudsworth_conversion_vault;
+
 #[cfg(feature = "gamma")]
 pub mod gamma;
 
@@ -70,6 +73,9 @@ pub enum SwapProtocol {
         dao: Option<Address>,
         swap_type: futarchy::SwapType,
     },
+
+    #[cfg(feature = "fraudsworth-conversion-vault")]
+    FraudsworthConversionVault { pre_balance: u64 },
 
     #[cfg(feature = "manifest")]
     Manifest {
@@ -170,6 +176,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "futarchy")]
         SwapProtocol::Futarchy { dao, swap_type } => {
             futarchy::resolve(rpc, dao.as_ref(), swap_type, mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "fraudsworth-conversion-vault")]
+        SwapProtocol::FraudsworthConversionVault { pre_balance } => {
+            fraudsworth_conversion_vault::resolve(rpc, mint_a, mint_b, user, *pre_balance).await
         }
 
         #[cfg(feature = "manifest")]
