@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "meteora-dlmm")]
+pub mod meteora_dlmm;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "meteora-dlmm")]
+    MeteoraDlmm {
+        lb_pair: Option<Address>,
+        transfer_hook_x_accounts: Option<Vec<AccountMeta>>,
+        transfer_hook_y_accounts: Option<Vec<AccountMeta>>,
     },
 }
 
@@ -280,6 +291,24 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "meteora-dlmm")]
+        SwapProtocol::MeteoraDlmm {
+            lb_pair,
+            transfer_hook_x_accounts,
+            transfer_hook_y_accounts,
+        } => {
+            meteora_dlmm::resolve(
+                rpc,
+                lb_pair.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                transfer_hook_x_accounts.clone(),
+                transfer_hook_y_accounts.clone(),
             )
             .await
         }

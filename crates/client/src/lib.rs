@@ -51,6 +51,9 @@ pub const SYSVAR_CLOCK_ID: Address =
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
+pub const MEMO_PROGRAM_ID: Address =
+    Address::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+
 /// Determine which token program owns a mint by checking the account owner.
 #[cfg(feature = "resolve")]
 pub async fn get_token_program_for_mint(
@@ -167,4 +170,24 @@ pub fn read_u8(data: &[u8], offset: usize) -> Result<u8, ClientError> {
         )));
     }
     Ok(data[offset])
+}
+
+pub fn read_i32(data: &[u8], offset: usize) -> Result<i32, ClientError> {
+    if data.len() < offset + 4 {
+        return Err(ClientError::InvalidAccountData("read_i32".into()));
+    }
+    let bytes: [u8; 4] = data[offset..offset + 4]
+        .try_into()
+        .map_err(|_| ClientError::InvalidAccountData("i32".into()))?;
+    Ok(i32::from_le_bytes(bytes))
+}
+
+pub fn read_u64(data: &[u8], offset: usize) -> Result<u64, ClientError> {
+    if data.len() < offset + 8 {
+        return Err(ClientError::InvalidAccountData("read_u64".into()));
+    }
+    let bytes: [u8; 8] = data[offset..offset + 8]
+        .try_into()
+        .map_err(|_| ClientError::InvalidAccountData("u64".into()))?;
+    Ok(u64::from_le_bytes(bytes))
 }
