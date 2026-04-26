@@ -57,7 +57,7 @@ const EXTENSION_BIN_ARRAY_BITMAP_SIZE: u8 = 12;
 const BITMAP_TYPE_U1024_BITS: usize = 1024;
 
 #[cfg(feature = "resolve")]
-const DEFAULT_BIN_ARRAY_SWAP_COUNT: usize = 4;
+const DEFAULT_BIN_ARRAY_SWAP_COUNT: usize = 3;
 
 /// Pre-resolved addresses for building an Meteora DLMM swap instruction offline.
 pub struct MeteoraDlmmSwapInput {
@@ -517,12 +517,14 @@ pub fn build_accounts(input: &MeteoraDlmmSwapInput) -> Vec<AccountMeta> {
 ///
 /// Requires transfer hook accounts to be explicitly passed in as arguments.
 #[cfg(feature = "resolve")]
+#[allow(clippy::too_many_arguments)]
 pub async fn resolve(
     rpc: &RpcClient,
     lb_pair: Option<&Address>,
     mint_a: &Address,
     mint_b: &Address,
     user: &Address,
+    bin_array_count: Option<u8>,
     transfer_hook_x_accounts: Option<Vec<AccountMeta>>,
     transfer_hook_y_accounts: Option<Vec<AccountMeta>>,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
@@ -600,7 +602,9 @@ pub async fn resolve(
         lb_pair_bin_walk.active_id,
         &lb_pair_bin_walk.bin_array_bitmap,
         bitmap_extension.as_ref(),
-        DEFAULT_BIN_ARRAY_SWAP_COUNT,
+        bin_array_count
+            .map(|c| c as usize)
+            .unwrap_or(DEFAULT_BIN_ARRAY_SWAP_COUNT),
     );
     let bin_array_metas = fetch_bin_array_metas(rpc, &bin_array_pubkeys).await?;
 

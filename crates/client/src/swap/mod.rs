@@ -134,6 +134,7 @@ pub enum SwapProtocol {
     #[cfg(feature = "meteora-dlmm")]
     MeteoraDlmm {
         lb_pair: Option<Address>,
+        bin_array_count: Option<u8>,
         transfer_hook_x_accounts: Option<Vec<AccountMeta>>,
         transfer_hook_y_accounts: Option<Vec<AccountMeta>>,
     },
@@ -298,6 +299,7 @@ pub async fn resolve_swap(
         #[cfg(feature = "meteora-dlmm")]
         SwapProtocol::MeteoraDlmm {
             lb_pair,
+            bin_array_count,
             transfer_hook_x_accounts,
             transfer_hook_y_accounts,
         } => {
@@ -307,6 +309,7 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+                *bin_array_count,
                 transfer_hook_x_accounts.clone(),
                 transfer_hook_y_accounts.clone(),
             )

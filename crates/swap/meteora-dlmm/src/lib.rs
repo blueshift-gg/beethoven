@@ -122,6 +122,11 @@ impl<'info> Swap<'info> for MeteoraDlmm {
 
         let total_accounts = 16 + ctx.remaining_accounts.len();
 
+        if total_accounts > MAX_ACCOUNTS {
+            // TODO: replace with more semantically correct error
+            return Err(ProgramError::NotEnoughAccountKeys);
+        }
+
         let mut instruction_data = MaybeUninit::<[u8; MAX_IX_DATA]>::uninit();
         unsafe {
             let ptr = instruction_data.as_mut_ptr() as *mut u8;

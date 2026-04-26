@@ -30,6 +30,7 @@ async fn test_meteora_dlmm_resolve_with_known_lb_pair() {
         &rpc,
         &SwapProtocol::MeteoraDlmm {
             lb_pair: Some(LB_PAIR),
+            bin_array_count: Some(16),
             transfer_hook_x_accounts: None,
             transfer_hook_y_accounts: None,
         },
@@ -134,6 +135,7 @@ async fn test_meteora_dlmm_resolve_flipped_mints() {
         &rpc,
         &SwapProtocol::MeteoraDlmm {
             lb_pair: Some(LB_PAIR),
+            bin_array_count: Some(16),
             transfer_hook_x_accounts: None,
             transfer_hook_y_accounts: None,
         },
