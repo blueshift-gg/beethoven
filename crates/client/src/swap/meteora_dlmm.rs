@@ -9,8 +9,7 @@ use {
         discover_pool_with_flip, get_associated_token_address, get_token_program_for_mint,
         read_i32, read_pubkey, read_u64, ClientError,
     },
-    num_bigint::BigUint,
-    num_traits::{ToPrimitive, Zero},
+    ruint::aliases::{U1024, U512},
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
     spl_transfer_hook_interface::solana_pubkey::Pubkey,
 };
@@ -53,8 +52,6 @@ const MAX_BINS_PER_ARRAY: i64 = 70;
 const BIN_ARRAY_BITMAP_SIZE: i64 = 512;
 #[cfg(feature = "resolve")]
 const EXTENSION_BIN_ARRAY_BITMAP_SIZE: u8 = 12;
-#[cfg(feature = "resolve")]
-const BITMAP_TYPE_U1024_BITS: usize = 1024;
 
 #[cfg(feature = "resolve")]
 const DEFAULT_BIN_ARRAY_SWAP_COUNT: usize = 3;
@@ -161,9 +158,10 @@ fn parse_bin_array_bitmap_extension(data: &[u8]) -> Result<BitmapExtension, Clie
 }
 
 #[cfg(feature = "resolve")]
-fn bin_id_to_bin_array_index(bin_id: i64) -> i64 {
-    let div = bin_id / MAX_BINS_PER_ARRAY;
-    let rem = bin_id % MAX_BINS_PER_ARRAY;
+fn bin_id_to_bin_array_index(bin_id: i32) -> i32 {
+    let max_bins_per_array = MAX_BINS_PER_ARRAY as i32;
+    let div = bin_id / max_bins_per_array;
+    let rem = bin_id % max_bins_per_array;
     if bin_id < 0 && rem != 0 {
         div - 1
     } else {
@@ -172,197 +170,240 @@ fn bin_id_to_bin_array_index(bin_id: i64) -> i64 {
 }
 
 #[cfg(feature = "resolve")]
-fn get_bin_array_lower_upper_bin_id(bin_array_index: i64) -> (i64, i64) {
-    let lower = bin_array_index * MAX_BINS_PER_ARRAY;
-    let upper = lower + MAX_BINS_PER_ARRAY - 1;
-    (lower, upper)
+fn is_overflow_default_bin_array_bitmap(bin_array_index: i32) -> bool {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    !(-bitmap_size..=bitmap_size - 1).contains(&bin_array_index)
 }
 
 #[cfg(feature = "resolve")]
-fn is_overflow_default_bin_array_bitmap(bin_array_index: i64) -> bool {
-    !(-BIN_ARRAY_BITMAP_SIZE..=BIN_ARRAY_BITMAP_SIZE - 1).contains(&bin_array_index)
-}
-
-#[cfg(feature = "resolve")]
-fn extension_bitmap_range() -> (i64, i64) {
-    let factor = i64::from(EXTENSION_BIN_ARRAY_BITMAP_SIZE) + 1;
-    let min = -BIN_ARRAY_BITMAP_SIZE * factor;
-    let max = BIN_ARRAY_BITMAP_SIZE * factor - 1;
+fn extension_bitmap_range() -> (i32, i32) {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let factor = i32::from(EXTENSION_BIN_ARRAY_BITMAP_SIZE) + 1;
+    let min = -bitmap_size * factor;
+    let max = bitmap_size * factor - 1;
     (min, max)
 }
 
 #[cfg(feature = "resolve")]
-fn u512_from_u64x8_le(chunks: &[u64; 8]) -> BigUint {
-    let mut v = BigUint::zero();
-    for (i, &w) in chunks.iter().enumerate() {
-        v += BigUint::from(w) << (i * 64);
-    }
-    v
+fn get_bin_array_offset(bin_array_index: i32) -> Option<usize> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let offset = bin_array_index.checked_add(bitmap_size)?;
+    usize::try_from(offset).ok()
 }
 
 #[cfg(feature = "resolve")]
-fn u1024_from_u64x16_le(chunks: &[u64; 16]) -> BigUint {
-    let mut v = BigUint::zero();
-    for (i, &w) in chunks.iter().enumerate() {
-        v += BigUint::from(w) << (i * 64);
-    }
-    v
-}
-
-#[cfg(feature = "resolve")]
-fn bit_u1024(b: &BigUint, i: usize) -> bool {
-    if i >= BITMAP_TYPE_U1024_BITS {
-        return false;
-    }
-    (b >> i) & BigUint::from(1u32) != BigUint::zero()
-}
-
-#[cfg(feature = "resolve")]
-fn most_significant_bit(number: &BigUint, bit_length: usize) -> Option<u32> {
-    if number.is_zero() {
-        return None;
-    }
-    let highest_index = bit_length - 1;
-    for i in (0..bit_length).rev() {
-        if bit_u1024(number, i) {
-            return Some((highest_index - i) as u32);
-        }
-    }
-    None
-}
-
-#[cfg(feature = "resolve")]
-fn least_significant_bit(number: &BigUint, bit_length: usize) -> Option<u32> {
-    if number.is_zero() {
-        return None;
-    }
-    for i in 0..bit_length {
-        if bit_u1024(number, i) {
-            return Some(i as u32);
-        }
-    }
-    None
-}
-
-#[cfg(feature = "resolve")]
-fn get_bin_array_offset(bin_array_index: i64) -> usize {
-    let m = BIN_ARRAY_BITMAP_SIZE as u64;
-    if bin_array_index > 0 {
-        (bin_array_index as u64 % m) as usize
-    } else {
-        let t = (-(bin_array_index as i128 + 1)) as u64;
-        (t % m) as usize
-    }
-}
-
-#[cfg(feature = "resolve")]
-fn get_bitmap_offset(bin_array_index: i64) -> isize {
-    if bin_array_index > 0 {
-        (bin_array_index as i128 / 512 - 1) as isize
-    } else {
-        let t = -(bin_array_index as i128 + 1);
-        (t / 512 - 1) as isize
-    }
-}
-
-#[cfg(feature = "resolve")]
-fn ext_bitmap_row_index(bin_array_index: i64) -> usize {
-    get_bitmap_offset(bin_array_index).clamp(0, EXTENSION_BIN_ARRAY_BITMAP_SIZE as isize - 1)
-        as usize
-}
-
-#[cfg(feature = "resolve")]
-fn find_set_bit(start_index: i64, end_index: i64, ext: &BitmapExtension) -> Option<i64> {
-    if start_index <= end_index {
-        let mut i = start_index;
-        while i <= end_index {
-            let bin_array_offset = get_bin_array_offset(i);
-            let row = ext_bitmap_row_index(i);
-            let chunks = if i > 0 {
-                &ext.positive[row]
-            } else {
-                &ext.negative[row]
-            };
-            let bitmap = u512_from_u64x8_le(chunks);
-            if (bitmap >> bin_array_offset) & BigUint::from(1u32) != BigUint::zero() {
-                return Some(i);
-            }
-            i += 1;
-        }
-    } else {
-        let mut i = start_index;
-        while i >= end_index {
-            let bin_array_offset = get_bin_array_offset(i);
-            let row = ext_bitmap_row_index(i);
-            let chunks = if i > 0 {
-                &ext.positive[row]
-            } else {
-                &ext.negative[row]
-            };
-            let bitmap = u512_from_u64x8_le(chunks);
-            if (bitmap >> bin_array_offset) & BigUint::from(1u32) != BigUint::zero() {
-                return Some(i);
-            }
-            i -= 1;
-        }
-    }
-    None
-}
-
-#[cfg(feature = "resolve")]
-fn find_next_bin_array_index_with_liquidity(
+fn next_bin_array_index_with_liquidity_internal(
     swap_for_y: bool,
-    active_bin_id: i64,
+    start_array_index: i32,
     bin_array_bitmap: &[u64; 16],
-    bin_array_bitmap_extension: Option<&BitmapExtension>,
-) -> Option<i64> {
-    let lower_internal = -BIN_ARRAY_BITMAP_SIZE;
-    let upper_internal = BIN_ARRAY_BITMAP_SIZE - 1;
-    let mut start_bin_array_index = bin_id_to_bin_array_index(active_bin_id);
+) -> Option<(i32, bool)> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let min_bitmap_id = -bitmap_size;
+    let max_bitmap_id = bitmap_size - 1;
+    let array_offset = get_bin_array_offset(start_array_index)?;
+    let bitmap = U1024::from_limbs(*bin_array_bitmap);
 
-    loop {
-        if is_overflow_default_bin_array_bitmap(start_bin_array_index) {
-            let ext = bin_array_bitmap_extension?;
-            let (min_bin_array_index, max_bin_array_index) = extension_bitmap_range();
+    if swap_for_y {
+        let bitmap_range = usize::try_from(max_bitmap_id.checked_sub(min_bitmap_id)?).ok()?;
+        let shift = bitmap_range.checked_sub(array_offset)?;
+        let offset_bitmap = bitmap << shift;
 
-            if start_bin_array_index < 0 {
-                if swap_for_y {
-                    return find_set_bit(start_bin_array_index, min_bin_array_index, ext);
+        if offset_bitmap == U1024::ZERO {
+            Some((min_bitmap_id.checked_sub(1)?, false))
+        } else {
+            let next_bit = i32::try_from(offset_bitmap.leading_zeros()).ok()?;
+            Some((start_array_index.checked_sub(next_bit)?, true))
+        }
+    } else {
+        let offset_bitmap = bitmap >> array_offset;
+        if offset_bitmap == U1024::ZERO {
+            Some((max_bitmap_id.checked_add(1)?, false))
+        } else {
+            let next_bit = i32::try_from(offset_bitmap.trailing_zeros()).ok()?;
+            Some((start_array_index.checked_add(next_bit)?, true))
+        }
+    }
+}
+
+#[cfg(feature = "resolve")]
+fn get_bitmap_offset(bin_array_index: i32) -> Option<usize> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let offset = if bin_array_index > 0 {
+        bin_array_index.checked_div(bitmap_size)?.checked_sub(1)?
+    } else {
+        let t = bin_array_index.checked_add(1)?.checked_neg()?;
+        t.checked_div(bitmap_size)?.checked_sub(1)?
+    };
+    usize::try_from(offset).ok()
+}
+
+#[cfg(feature = "resolve")]
+fn bin_array_offset_in_bitmap(bin_array_index: i32) -> Option<usize> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    if bin_array_index > 0 {
+        usize::try_from(bin_array_index.checked_rem(bitmap_size)?).ok()
+    } else {
+        let t = bin_array_index.checked_add(1)?.checked_neg()?;
+        usize::try_from(t.checked_rem(bitmap_size)?).ok()
+    }
+}
+
+#[cfg(feature = "resolve")]
+fn to_bin_array_index(offset: usize, bin_array_offset: usize, is_positive: bool) -> Option<i32> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let offset_i32 = i32::try_from(offset).ok()?;
+    let bin_array_offset_i32 = i32::try_from(bin_array_offset).ok()?;
+
+    if is_positive {
+        Some(
+            (offset_i32 + 1)
+                .checked_mul(bitmap_size)?
+                .checked_add(bin_array_offset_i32)?,
+        )
+    } else {
+        Some(
+            ((offset_i32 + 1)
+                .checked_mul(bitmap_size)?
+                .checked_add(bin_array_offset_i32)?)
+            .checked_neg()?
+            .checked_sub(1)?,
+        )
+    }
+}
+
+#[cfg(feature = "resolve")]
+fn bit_in_extension(ext: &BitmapExtension, bin_array_index: i32) -> Option<bool> {
+    let offset = get_bitmap_offset(bin_array_index)?;
+    let bitmap = if bin_array_index < 0 {
+        U512::from_limbs(ext.negative[offset])
+    } else {
+        U512::from_limbs(ext.positive[offset])
+    };
+    let bit_offset = bin_array_offset_in_bitmap(bin_array_index)?;
+    Some(bitmap.bit(bit_offset))
+}
+
+#[cfg(feature = "resolve")]
+fn iter_bitmap_extension(ext: &BitmapExtension, start_index: i32, end_index: i32) -> Option<i32> {
+    if start_index == end_index {
+        return bit_in_extension(ext, start_index)?.then_some(start_index);
+    }
+
+    let ext_rows = usize::from(EXTENSION_BIN_ARRAY_BITMAP_SIZE);
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as usize;
+    let offset = get_bitmap_offset(start_index)?;
+    let start_offset = bin_array_offset_in_bitmap(start_index)?;
+
+    if start_index < 0 {
+        if start_index < end_index {
+            for i in (0..=offset).rev() {
+                let mut bitmap = U512::from_limbs(ext.negative[i]);
+                if i == offset {
+                    let shift = bitmap_size.checked_sub(start_offset)?.checked_sub(1)?;
+                    bitmap <<= shift;
+                    if bitmap == U512::ZERO {
+                        continue;
+                    }
+                    let offset_in_bitmap = start_offset
+                        .checked_sub(bitmap.leading_zeros())?
+                        .checked_sub(1)?;
+                    return to_bin_array_index(i, offset_in_bitmap, false);
                 }
-                if let Some(i) =
-                    find_set_bit(start_bin_array_index, -BIN_ARRAY_BITMAP_SIZE - 1, ext)
-                {
-                    return Some(i);
+                if bitmap == U512::ZERO {
+                    continue;
                 }
-                start_bin_array_index = -BIN_ARRAY_BITMAP_SIZE;
-            } else if swap_for_y {
-                if let Some(i) = find_set_bit(start_bin_array_index, BIN_ARRAY_BITMAP_SIZE, ext) {
-                    return Some(i);
-                }
-                start_bin_array_index = BIN_ARRAY_BITMAP_SIZE - 1;
-            } else {
-                return find_set_bit(start_bin_array_index, max_bin_array_index, ext);
+                let offset_in_bitmap = bitmap_size
+                    .checked_sub(bitmap.leading_zeros())?
+                    .checked_sub(1)?;
+                return to_bin_array_index(i, offset_in_bitmap, false);
             }
         } else {
-            let bitmap = u1024_from_u64x16_le(bin_array_bitmap);
-            let offset = (start_bin_array_index as i128) + (BIN_ARRAY_BITMAP_SIZE as i128);
-            let offset_u = offset.to_usize()?;
-
-            if swap_for_y {
-                let upper_bit_range = BITMAP_TYPE_U1024_BITS - 1 - offset_u;
-                let cropped_bitmap = bitmap << upper_bit_range;
-                if let Some(msb) = most_significant_bit(&cropped_bitmap, BITMAP_TYPE_U1024_BITS) {
-                    return Some(start_bin_array_index - msb as i64);
+            for i in offset..ext_rows {
+                let mut bitmap = U512::from_limbs(ext.negative[i]);
+                if i == offset {
+                    bitmap >>= start_offset;
+                    if bitmap == U512::ZERO {
+                        continue;
+                    }
+                    let offset_in_bitmap = start_offset
+                        .checked_add(bitmap.trailing_zeros())?
+                        .checked_sub(1)?;
+                    return to_bin_array_index(i, offset_in_bitmap, false);
                 }
-                start_bin_array_index = lower_internal - 1;
-            } else {
-                let lower_bit_range = offset_u;
-                let cropped_bitmap = bitmap >> lower_bit_range;
-                if let Some(lsb) = least_significant_bit(&cropped_bitmap, BITMAP_TYPE_U1024_BITS) {
-                    return Some(start_bin_array_index + lsb as i64);
+                if bitmap == U512::ZERO {
+                    continue;
                 }
-                start_bin_array_index = upper_internal + 1;
+                return to_bin_array_index(i, bitmap.trailing_zeros(), false);
             }
+        }
+    } else if start_index < end_index {
+        for i in offset..ext_rows {
+            let mut bitmap = U512::from_limbs(ext.positive[i]);
+            if i == offset {
+                bitmap >>= start_offset;
+                if bitmap == U512::ZERO {
+                    continue;
+                }
+                let offset_in_bitmap = start_offset
+                    .checked_add(bitmap.trailing_zeros())?
+                    .checked_sub(1)?;
+                return to_bin_array_index(i, offset_in_bitmap, true);
+            }
+            if bitmap == U512::ZERO {
+                continue;
+            }
+            return to_bin_array_index(i, bitmap.trailing_zeros(), true);
+        }
+    } else {
+        for i in (0..=offset).rev() {
+            let mut bitmap = U512::from_limbs(ext.positive[i]);
+            if i == offset {
+                let shift = bitmap_size.checked_sub(start_offset)?.checked_sub(1)?;
+                bitmap <<= shift;
+                if bitmap == U512::ZERO {
+                    continue;
+                }
+                let offset_in_bitmap = start_offset
+                    .checked_sub(bitmap.leading_zeros())?
+                    .checked_sub(1)?;
+                return to_bin_array_index(i, offset_in_bitmap, true);
+            }
+            if bitmap == U512::ZERO {
+                continue;
+            }
+            let offset_in_bitmap = bitmap_size
+                .checked_sub(bitmap.leading_zeros())?
+                .checked_sub(1)?;
+            return to_bin_array_index(i, offset_in_bitmap, true);
+        }
+    }
+    None
+}
+
+#[cfg(feature = "resolve")]
+fn next_bin_array_index_with_liquidity_extension(
+    ext: &BitmapExtension,
+    swap_for_y: bool,
+    start_index: i32,
+) -> Option<(i32, bool)> {
+    let bitmap_size = BIN_ARRAY_BITMAP_SIZE as i32;
+    let (min_bitmap_id, max_bitmap_id) = extension_bitmap_range();
+
+    if start_index > 0 {
+        if swap_for_y {
+            match iter_bitmap_extension(ext, start_index, bitmap_size) {
+                Some(value) => Some((value, true)),
+                None => Some((bitmap_size - 1, false)),
+            }
+        } else {
+            iter_bitmap_extension(ext, start_index, max_bitmap_id).map(|value| (value, true))
+        }
+    } else if swap_for_y {
+        iter_bitmap_extension(ext, start_index, min_bitmap_id).map(|value| (value, true))
+    } else {
+        match iter_bitmap_extension(ext, start_index, -bitmap_size - 1) {
+            Some(value) => Some((value, true)),
+            None => Some((-bitmap_size, false)),
         }
     }
 }
@@ -376,31 +417,61 @@ fn collect_bin_array_pubkeys_for_swap(
     extension: Option<&BitmapExtension>,
     count: usize,
 ) -> Vec<Address> {
-    let mut bin_array_pubkeys: Vec<Address> = Vec::new();
-    let mut active_id_to_loop = active_id as i64;
+    let mut start_bin_array_idx = bin_id_to_bin_array_index(active_id);
+    let mut bin_array_indexes = Vec::with_capacity(count);
+    let increment: i32 = if swap_for_y { -1 } else { 1 };
 
-    while bin_array_pubkeys.len() < count {
-        let Some(bin_array_index) = find_next_bin_array_index_with_liquidity(
-            swap_for_y,
-            active_id_to_loop,
-            bin_array_bitmap,
-            extension,
-        ) else {
-            break;
-        };
-        let pda = derive_bin_array_pda(lb_pair, bin_array_index);
-        if bin_array_pubkeys.contains(&pda) {
+    loop {
+        if bin_array_indexes.len() == count {
             break;
         }
-        bin_array_pubkeys.push(pda);
-        let (lower_bin_id, upper_bin_id) = get_bin_array_lower_upper_bin_id(bin_array_index);
-        active_id_to_loop = if swap_for_y {
-            lower_bin_id - 1
+
+        if is_overflow_default_bin_array_bitmap(start_bin_array_idx) {
+            let Some(ext) = extension else {
+                break;
+            };
+            let Some((next_bin_array_idx, has_liquidity)) =
+                next_bin_array_index_with_liquidity_extension(ext, swap_for_y, start_bin_array_idx)
+            else {
+                break;
+            };
+
+            if has_liquidity {
+                bin_array_indexes.push(next_bin_array_idx);
+                let Some(next_start_idx) = next_bin_array_idx.checked_add(increment) else {
+                    break;
+                };
+                start_bin_array_idx = next_start_idx;
+            } else {
+                start_bin_array_idx = next_bin_array_idx;
+            }
         } else {
-            upper_bin_id + 1
-        };
+            let Some((next_bin_array_idx, has_liquidity)) =
+                next_bin_array_index_with_liquidity_internal(
+                    swap_for_y,
+                    start_bin_array_idx,
+                    bin_array_bitmap,
+                )
+            else {
+                break;
+            };
+
+            if has_liquidity {
+                bin_array_indexes.push(next_bin_array_idx);
+                let Some(next_start_idx) = next_bin_array_idx.checked_add(increment) else {
+                    break;
+                };
+                start_bin_array_idx = next_start_idx;
+            } else {
+                start_bin_array_idx = next_bin_array_idx;
+            }
+        }
     }
-    bin_array_pubkeys
+
+    bin_array_indexes
+        .into_iter()
+        .map(|idx| derive_bin_array_pda(lb_pair, i64::from(idx)))
+        .collect()
 }
 
 #[cfg(feature = "resolve")]
