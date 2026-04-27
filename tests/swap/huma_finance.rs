@@ -9,6 +9,7 @@ use {
     beethoven_client::{get_associated_token_address, ASSOCIATED_TOKEN_PROGRAM_ID},
     litesvm::LiteSVM,
     solana_address::{address, Address},
+    solana_clock::Clock,
     solana_instruction::{AccountMeta, Instruction},
     solana_keypair::Keypair,
     solana_signer::Signer,
@@ -76,6 +77,11 @@ fn load_program_and_fixtures(svm: &mut LiteSVM) {
             huma_finance_fixtures_dir()
         ),
     );
+
+    // Jump ahead to pool state mode_states[0] assets_refreshed_at (1_777_254_075) + 1
+    let mut clock = svm.get_sysvar::<Clock>();
+    clock.unix_timestamp = 1_777_254_075 + 1;
+    svm.set_sysvar::<Clock>(&clock);
 }
 
 #[test]
