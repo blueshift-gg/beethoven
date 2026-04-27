@@ -22,6 +22,9 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
+#[cfg(feature = "jupiter-perpetuals")]
+pub mod jupiter_perpetuals;
+
 #[cfg(feature = "perena")]
 pub mod perena;
 
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "jupiter-perpetuals")]
+    JupiterPerpetuals,
 }
 
 /// A single step in a multi-swap composition.
@@ -282,6 +289,11 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(feature = "jupiter-perpetuals")]
+        SwapProtocol::JupiterPerpetuals => {
+            jupiter_perpetuals::resolve(rpc, mint_a, mint_b, user).await
         }
     }
 }

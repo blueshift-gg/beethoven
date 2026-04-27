@@ -4,6 +4,7 @@ mod futarchy;
 mod gamma;
 mod hadron;
 mod heaven;
+mod jupiter_perpetuals;
 mod manifest;
 mod multi_swap;
 mod omnipair;
