@@ -22,8 +22,8 @@ const INSTANT_WITHDRAW_DISCRIMINATOR: [u8; 8] = [171, 49, 145, 176, 48, 101, 112
 const NO_COMMITMENT_LEN: [u8; 4] = [13, 0, 0, 0];
 const NO_COMMITMENT_BYTES: [u8; 13] = [78, 79, 95, 67, 79, 77, 77, 73, 84, 77, 69, 78, 84];
 
-const DEPOSIT_ACCOUNTS_LEN: usize = 14;
-const INSTANT_WITHDRAW_ACCOUNTS_LEN: usize = 16;
+const DEPOSIT_ACCOUNTS_LEN: usize = 13;
+const INSTANT_WITHDRAW_ACCOUNTS_LEN: usize = 15;
 const MAX_ACCOUNTS: usize = INSTANT_WITHDRAW_ACCOUNTS_LEN;
 
 // 8 - discriminator
@@ -40,7 +40,6 @@ const MAX_DATA_LEN: usize = DEPOSIT_DATA_LEN;
 pub struct HumaFinance;
 
 pub struct HumaFinanceSwapBaseAccounts<'info> {
-    pub huma_finance_program: &'info AccountView,
     // payer is also depositor for deposit and lender for withdrawals
     pub payer: &'info AccountView,
     pub huma_config: &'info AccountView,
@@ -88,7 +87,7 @@ impl<'info> TryFrom<&'info [AccountView]> for HumaFinanceSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        let [huma_finance_program, depositor, huma_config, pool_config, pool_state, ..] = accounts
+        let [_huma_finance_program, depositor, huma_config, pool_config, pool_state, ..] = accounts
         else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
@@ -98,14 +97,13 @@ impl<'info> TryFrom<&'info [AccountView]> for HumaFinanceSwapAccounts<'info> {
         }
 
         let base = HumaFinanceSwapBaseAccounts {
-            huma_finance_program,
             payer: depositor,
             huma_config,
             pool_config,
             pool_state,
         };
 
-        let leg = match accounts.len() {
+        let leg = match accounts.len() - 1 {
             DEPOSIT_ACCOUNTS_LEN => HumaFinanceSwapLegAccounts::Deposit {
                 mode_config: &accounts[5],
                 mode_mint: &accounts[6],
@@ -243,11 +241,11 @@ impl<'info> Swap<'info> for HumaFinance {
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(6),
-                        InstructionAccount::readonly(mode_mint.address()),
+                        InstructionAccount::writable(mode_mint.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(7),
-                        InstructionAccount::readonly(lender_state.address()),
+                        InstructionAccount::writable(lender_state.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(8),
@@ -259,15 +257,15 @@ impl<'info> Swap<'info> for HumaFinance {
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(10),
-                        InstructionAccount::readonly(pool_underlying_token.address()),
+                        InstructionAccount::writable(pool_underlying_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(11),
-                        InstructionAccount::readonly(lender_underlying_token.address()),
+                        InstructionAccount::writable(lender_underlying_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(12),
-                        InstructionAccount::readonly(lender_mode_token.address()),
+                        InstructionAccount::writable(lender_mode_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(13),
@@ -281,8 +279,13 @@ impl<'info> Swap<'info> for HumaFinance {
             }
         }
 
+        let total_accounts = match ctx.leg {
+            HumaFinanceSwapLegAccounts::Deposit { .. } => DEPOSIT_ACCOUNTS_LEN,
+            HumaFinanceSwapLegAccounts::InstantWithdraw { .. } => INSTANT_WITHDRAW_ACCOUNTS_LEN,
+        };
+
         let instruction_accounts =
-            unsafe { core::slice::from_raw_parts(instruction_accounts_ptr, MAX_ACCOUNTS) };
+            unsafe { core::slice::from_raw_parts(instruction_accounts_ptr, total_accounts) };
 
         let mut account_views = [ctx.base.payer; MAX_ACCOUNTS];
         account_views[1] = ctx.base.huma_config;
@@ -338,7 +341,7 @@ impl<'info> Swap<'info> for HumaFinance {
             }
         }
 
-        let account_views = &account_views[..MAX_ACCOUNTS];
+        let account_views = &account_views[..total_accounts];
 
         let mut data = MaybeUninit::<[u8; MAX_DATA_LEN]>::uninit();
 
