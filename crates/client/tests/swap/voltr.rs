@@ -51,7 +51,6 @@ async fn test_voltr_resolve_with_known_vault_deposit_vault() {
     // User transfer authority
     assert_eq!(accounts[1].pubkey, user, "user transfer authority");
     assert!(accounts[1].is_signer);
-    assert!(accounts[1].is_writable);
 
     // Protocol
     assert_eq!(accounts[2].pubkey, PROTOCOL, "protocol");
@@ -149,7 +148,6 @@ async fn test_voltr_resolve_with_known_vault_instant_withdraw_vault() {
     // User transfer authority
     assert_eq!(accounts[1].pubkey, user, "user transfer authority");
     assert!(accounts[1].is_signer);
-    assert!(accounts[1].is_writable);
 
     // Protocol
     assert_eq!(accounts[2].pubkey, PROTOCOL, "protocol");

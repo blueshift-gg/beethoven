@@ -63,7 +63,7 @@ pub struct VoltrSwapInput {
 pub fn build_accounts(input: &VoltrSwapInput) -> Vec<AccountMeta> {
     let mut meta = vec![
         AccountMeta::new_readonly(VOLTR_PROGRAM_ID, false),
-        AccountMeta::new(input.base.user_transfer_authority, true),
+        AccountMeta::new_readonly(input.base.user_transfer_authority, true),
         AccountMeta::new_readonly(PROTOCOL, false),
         AccountMeta::new(input.base.vault, false),
         AccountMeta::new_readonly(input.base.vault_asset_mint, false),

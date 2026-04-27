@@ -164,7 +164,7 @@ impl<'info> Swap<'info> for Voltr {
         unsafe {
             core::ptr::write(
                 instruction_accounts_ptr,
-                InstructionAccount::writable_signer(ctx.base.user_transfer_authority.address()),
+                InstructionAccount::readonly_signer(ctx.base.user_transfer_authority.address()),
             );
             core::ptr::write(
                 instruction_accounts_ptr.add(1),
