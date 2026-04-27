@@ -75,6 +75,7 @@ jobs:
   rust_test_upstream:
     name: Tests upstream
     runs-on: ubuntu-latest
+    if: false  # This job is disabled until upstream is fixed
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
