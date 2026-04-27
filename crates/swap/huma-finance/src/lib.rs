@@ -156,7 +156,7 @@ impl<'info> Swap<'info> for HumaFinance {
         unsafe {
             core::ptr::write(
                 instruction_accounts_ptr,
-                InstructionAccount::readonly(ctx.base.payer.address()),
+                InstructionAccount::writable_signer(ctx.base.payer.address()),
             );
             core::ptr::write(
                 instruction_accounts_ptr.add(1),
@@ -168,7 +168,7 @@ impl<'info> Swap<'info> for HumaFinance {
             );
             core::ptr::write(
                 instruction_accounts_ptr.add(3),
-                InstructionAccount::readonly(ctx.base.pool_state.address()),
+                InstructionAccount::writable(ctx.base.pool_state.address()),
             );
 
             match ctx.leg {
@@ -189,7 +189,7 @@ impl<'info> Swap<'info> for HumaFinance {
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(5),
-                        InstructionAccount::readonly(mode_mint.address()),
+                        InstructionAccount::writable(mode_mint.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(6),
@@ -201,15 +201,15 @@ impl<'info> Swap<'info> for HumaFinance {
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(8),
-                        InstructionAccount::readonly(pool_underlying_token.address()),
+                        InstructionAccount::writable(pool_underlying_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(9),
-                        InstructionAccount::readonly(depositor_underlying_token.address()),
+                        InstructionAccount::writable(depositor_underlying_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(10),
-                        InstructionAccount::readonly(depositor_mode_token.address()),
+                        InstructionAccount::writable(depositor_mode_token.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(11),

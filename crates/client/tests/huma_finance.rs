@@ -181,6 +181,7 @@ async fn test_huma_finance_resolve_instant_withdraw() {
         accounts[11].pubkey, POOL_UNDERLYING_TOKEN,
         "pool underlying token"
     );
+    assert!(accounts[11].is_writable);
 
     // Lender underlying token
     let expected_lender_underlying =

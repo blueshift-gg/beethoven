@@ -102,7 +102,7 @@ fn build_accounts(input: &HumaFinanceSwapInput) -> Vec<AccountMeta> {
                 AccountMeta::new(*lender_state, false),
                 AccountMeta::new_readonly(*underlying_mint, false),
                 AccountMeta::new_readonly(POOL_AUTHORITY, false),
-                AccountMeta::new_readonly(*pool_underlying_token, false),
+                AccountMeta::new(*pool_underlying_token, false),
                 AccountMeta::new(*lender_underlying_token, false),
                 AccountMeta::new(*lender_mode_token, false),
                 AccountMeta::new_readonly(*underlying_token_program, false),
