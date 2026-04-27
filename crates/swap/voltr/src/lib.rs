@@ -35,10 +35,6 @@ pub enum VoltrSwapData {
     },
 }
 
-impl VoltrSwapData {
-    pub const INSTANT_WITHDRAW_VAULT_DATA_LEN: usize = 2;
-}
-
 impl TryFrom<&[u8]> for VoltrSwapData {
     type Error = ProgramError;
 
