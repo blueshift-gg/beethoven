@@ -17,9 +17,13 @@ pub const VOLTR_PROGRAM_ID: Address = address!("vVoLTRjQmtFpiYoegx285Ze4gsLJ8Zxg
 const DEPOSIT_VAULT_DISCRIMINATOR: [u8; 8] = [126, 224, 21, 255, 228, 53, 117, 33];
 const INSTANT_WITHDRAW_VAULT_DISCRIMINATOR: [u8; 8] = [221, 56, 115, 168, 128, 220, 235, 245];
 
-pub const DEPOSIT_VAULT_NUM_ACCOUNTS: usize = 14;
-pub const INSTANT_WITHDRAW_VAULT_NUM_ACCOUNTS: usize = 13;
+const DEPOSIT_VAULT_NUM_ACCOUNTS: usize = 13;
+const INSTANT_WITHDRAW_VAULT_NUM_ACCOUNTS: usize = 12;
 const MAX_ACCOUNTS: usize = 13;
+
+const DEPOSIT_VAULT_DATA_LEN: usize = 16;
+const INSTANT_WITHDRAW_VAULT_DATA_LEN: usize = 18;
+const MAX_DATA_LEN: usize = 18;
 
 pub struct Voltr;
 
@@ -51,7 +55,6 @@ impl TryFrom<&[u8]> for VoltrSwapData {
 }
 
 pub struct VoltrSwapBaseAccounts<'info> {
-    pub voltr_program: &'info AccountView,
     pub user_transfer_authority: &'info AccountView,
     pub protocol: &'info AccountView,
     pub vault: &'info AccountView,
@@ -88,14 +91,14 @@ pub struct VoltrSwapAccounts<'info> {
 }
 
 impl VoltrSwapAccounts<'_> {
-    pub const MIN_NUM_ACCOUNTS: usize = INSTANT_WITHDRAW_VAULT_NUM_ACCOUNTS;
+    pub const MIN_NUM_ACCOUNTS: usize = 13;
 }
 
 impl<'info> TryFrom<&'info [AccountView]> for VoltrSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
-        let [voltr_program, user_transfer_authority, protocol, vault, vault_asset_mint, vault_lp_mint, ..] =
+        let [_voltr_program, user_transfer_authority, protocol, vault, vault_asset_mint, vault_lp_mint, ..] =
             accounts
         else {
             return Err(ProgramError::NotEnoughAccountKeys);
@@ -106,7 +109,6 @@ impl<'info> TryFrom<&'info [AccountView]> for VoltrSwapAccounts<'info> {
         }
 
         let base = VoltrSwapBaseAccounts {
-            voltr_program,
             user_transfer_authority,
             protocol,
             vault,
@@ -114,7 +116,7 @@ impl<'info> TryFrom<&'info [AccountView]> for VoltrSwapAccounts<'info> {
             vault_lp_mint,
         };
 
-        let (leg, index) = match accounts.len() {
+        let (leg, index) = match accounts.len() - 1 {
             DEPOSIT_VAULT_NUM_ACCOUNTS => {
                 let leg = VoltrSwapLegAccounts::DepositVault {
                     user_asset_ata: &accounts[6],
@@ -257,8 +259,13 @@ impl<'info> Swap<'info> for Voltr {
             );
         };
 
+        let total_accounts = match data {
+            VoltrSwapData::DepositVault => DEPOSIT_VAULT_NUM_ACCOUNTS,
+            VoltrSwapData::InstantWithdrawVault { .. } => INSTANT_WITHDRAW_VAULT_NUM_ACCOUNTS,
+        };
+
         let instruction_accounts =
-            unsafe { core::slice::from_raw_parts(instruction_accounts_ptr, MAX_ACCOUNTS) };
+            unsafe { core::slice::from_raw_parts(instruction_accounts_ptr, total_accounts) };
 
         let mut account_views = [ctx.base.user_transfer_authority; MAX_ACCOUNTS];
         account_views[1] = ctx.base.protocol;
@@ -301,14 +308,9 @@ impl<'info> Swap<'info> for Voltr {
         account_views[index + 1] = ctx.tail.lp_token_program;
         account_views[index + 2] = ctx.tail.system_program;
 
-        let account_views = &account_views[..MAX_ACCOUNTS];
+        let account_views = &account_views[..total_accounts];
 
-        let data_len = match data {
-            VoltrSwapData::DepositVault => 16,
-            VoltrSwapData::InstantWithdrawVault { .. } => 18,
-        };
-
-        let mut instruction_data = MaybeUninit::<[u8; 18]>::uninit();
+        let mut instruction_data = MaybeUninit::<[u8; MAX_DATA_LEN]>::uninit();
 
         unsafe {
             let ptr = instruction_data.as_mut_ptr() as *mut u8;
@@ -330,6 +332,11 @@ impl<'info> Swap<'info> for Voltr {
                 }
             }
         }
+
+        let data_len = match data {
+            VoltrSwapData::DepositVault => DEPOSIT_VAULT_DATA_LEN,
+            VoltrSwapData::InstantWithdrawVault { .. } => INSTANT_WITHDRAW_VAULT_DATA_LEN,
+        };
 
         let instruction = InstructionView {
             program_id: &VOLTR_PROGRAM_ID,
