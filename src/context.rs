@@ -64,7 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
-            Self::HumaFinance => 14,
+            Self::HumaFinance => 13,
         }
     }
 }

@@ -132,7 +132,7 @@ pub enum SwapProtocol {
     },
 
     #[cfg(feature = "huma-finance")]
-    HumaFinance { is_deposit: bool },
+    HumaFinance,
 }
 
 /// A single step in a multi-swap composition.
@@ -292,9 +292,7 @@ pub async fn resolve_swap(
         }
 
         #[cfg(feature = "huma-finance")]
-        SwapProtocol::HumaFinance { is_deposit } => {
-            huma_finance::resolve(rpc, *is_deposit, user).await
-        }
+        SwapProtocol::HumaFinance => huma_finance::resolve(rpc, user).await,
     }
 }
 
