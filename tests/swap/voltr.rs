@@ -172,7 +172,7 @@ fn test_voltr_swap_cpi() {
         AccountMeta::new(RAUSDC_MINT, false),               // vault_lp_mint
         AccountMeta::new(trader_rausdc, false),             // user_lp_ata
         AccountMeta::new(VAULT_ASSET_IDLE_ATA, false),      // vault_asset_idle_ata
-        AccountMeta::new_readonly(VAULT_ASSET_IDLE_AUTH, false), // vault_asset_idle_auth
+        AccountMeta::new(VAULT_ASSET_IDLE_AUTH, false),     // vault_asset_idle_auth
         AccountMeta::new(trader_usdc, false),               // user_asset_ata
         AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false), // asset_token_program
         AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false), // lp_token_program

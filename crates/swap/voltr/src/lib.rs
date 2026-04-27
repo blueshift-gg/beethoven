@@ -232,7 +232,7 @@ impl<'info> Swap<'info> for Voltr {
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(7),
-                        InstructionAccount::readonly(vault_asset_idle_auth.address()),
+                        InstructionAccount::writable(vault_asset_idle_auth.address()),
                     );
                     core::ptr::write(
                         instruction_accounts_ptr.add(8),
