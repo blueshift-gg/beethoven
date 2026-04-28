@@ -24,9 +24,9 @@ pub enum AccountsType {
 }
 
 // LbPair account layout offsets
-// Layout: ... [4 active_id] @ 68 ... [32 token_x_mint] @ 88 [32 token_y_mint] [32 reserve_x] [32 reserve_y] ... [32 oracle] @ 552 [128 bin_array_bitmap]
+// Layout: ... [4 active_id] @ 76 ... [32 token_x_mint] @ 88 [32 token_y_mint] [32 reserve_x] [32 reserve_y] ... [32 oracle] @ 552 [128 bin_array_bitmap]
 #[cfg(feature = "resolve")]
-const OFFSET_ACTIVE_ID: usize = 68;
+const OFFSET_ACTIVE_ID: usize = 76;
 #[cfg(feature = "resolve")]
 const OFFSET_TOKEN_X_MINT: usize = 88;
 #[cfg(feature = "resolve")]
