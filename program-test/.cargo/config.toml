@@ -10,6 +10,8 @@ rustflags = [
     "link-arg=--llvm-args=-bpf-stack-size=4096",
     "-C",
     "relocation-model=static",
+    "-C",
+    "lto=off"
 ]
 
 [alias]
