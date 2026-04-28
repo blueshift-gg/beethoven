@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "sanctum-staking")]
+pub mod sanctum_staking;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "sanctum-staking")]
+    SanctumStaking,
 }
 
 /// A single step in a multi-swap composition.
@@ -283,6 +290,9 @@ pub async fn resolve_swap(
             )
             .await
         }
+
+        #[cfg(feature = "sanctum-staking")]
+        SwapProtocol::SanctumStaking => sanctum_staking::resolve(rpc, user).await,
     }
 }
 
