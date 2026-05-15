@@ -245,7 +245,7 @@ impl<'info> Swap<'info> for Hadron {
             data: unsafe { instruction_data.assume_init_ref() },
         };
 
-        invoke_signed_with_bounds::<MAX_ACCOUNTS>(&instruction, account_infos, signer_seeds)
+        invoke_signed_with_bounds::<MAX_ACCOUNTS, _>(&instruction, account_infos, signer_seeds)
     }
 
     fn swap(

@@ -15,7 +15,6 @@ fn make_account(address: Address) -> (Vec<u64>, AccountView) {
         (*raw).is_signer = 0;
         (*raw).is_writable = 1;
         (*raw).executable = 0;
-        (*raw).resize_delta = 0;
         (*raw).address = address;
         (*raw).owner = Address::new_from_array([9u8; 32]);
         (*raw).lamports = 0;

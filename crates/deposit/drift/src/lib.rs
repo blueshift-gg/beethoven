@@ -169,7 +169,7 @@ impl<'info> Deposit<'info> for Drift {
             data: unsafe { instruction_data.assume_init_ref() },
         };
 
-        invoke_signed_with_bounds::<MAX_DEPOSIT_ACCOUNTS>(
+        invoke_signed_with_bounds::<MAX_DEPOSIT_ACCOUNTS, _>(
             &deposit_ix,
             account_infos,
             signer_seeds,
