@@ -3,7 +3,7 @@ use {
     pinocchio::{error::ProgramError, AccountView, ProgramResult},
 };
 
-const SWAP_LEG_HEADER_LEN: usize = 4;
+const SWAP_LEG_HEADER_LEN: usize = 5;
 
 /// Instruction data for Swap
 ///
@@ -53,9 +53,12 @@ fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), Progr
 
 pub(crate) fn parse_swap_leg_header(data: &[u8]) -> Result<(SwapLegHeader, &[u8]), ProgramError> {
     let (header_bytes, remaining_data) = split_data_checked(data, SWAP_LEG_HEADER_LEN)?;
-    let protocol_tag = SwapProtocolTag::from_byte(header_bytes[0])?;
-    let remaining_accounts_len = header_bytes[1] as usize;
-    let extra_data_len = u16::from_le_bytes([header_bytes[2], header_bytes[3]]) as usize;
+    let protocol_tag = SwapProtocolTag::from_discriminator(u16::from_le_bytes([
+        header_bytes[0],
+        header_bytes[1],
+    ]))?;
+    let remaining_accounts_len = header_bytes[2] as usize;
+    let extra_data_len = u16::from_le_bytes([header_bytes[3], header_bytes[4]]) as usize;
 
     Ok((
         SwapLegHeader {

@@ -48,8 +48,8 @@ fn build_accounts(
 }
 
 #[test]
-fn test_swap_protocol_tag_invalid_byte_fails() {
-    let err = SwapProtocolTag::from_byte(255).unwrap_err();
+fn test_swap_protocol_tag_invalid_discriminator_fails() {
+    let err = SwapProtocolTag::from_discriminator(u16::MAX).unwrap_err();
     assert_eq!(err, ProgramError::InvalidInstructionData);
 }
 
