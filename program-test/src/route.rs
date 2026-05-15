@@ -2,8 +2,8 @@ use {
     crate::swap::parse_tagged_swap_context_and_data,
     beethoven::{Swap, SwapContext},
     pinocchio::{error::ProgramError, AccountView, ProgramResult},
-    pinocchio_token::state::TokenAccount as SplTokenAccount,
-    pinocchio_token_2022::state::TokenAccount as Token2022Account,
+    pinocchio_token::state::Account as SplTokenAccount,
+    pinocchio_token_2022::state::Account as Token2022Account,
 };
 
 /// Route instruction data layout (after discriminator):
