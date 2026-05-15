@@ -298,7 +298,7 @@ fn append_swap_leg_header(
         "extra data length does not fit in u16",
     );
 
-    data.push(protocol_tag as u8);
+    data.extend_from_slice(&(protocol_tag as u16).to_le_bytes());
     data.push(remaining_accounts_len as u8);
     data.extend_from_slice(&(extra_data_len as u16).to_le_bytes());
 }

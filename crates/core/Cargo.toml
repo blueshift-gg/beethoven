@@ -6,6 +6,10 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-solana-account-view = "1.0.0"
-solana-instruction-view = { version = "1.0.0", features = ["cpi"] }
-solana-program-error = "3.0.0"
+solana-account-view.workspace = true
+solana-instruction-view = { workspace = true, features = ["cpi"] }
+solana-program-error.workspace = true
+
+[lib]
+test = false
+doctest = false

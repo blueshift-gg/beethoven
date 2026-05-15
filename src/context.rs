@@ -7,7 +7,7 @@ use {
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(u8)]
+#[repr(u16)]
 pub enum SwapProtocolTag {
     Perena = 0,
     SolFi = 1,
@@ -26,7 +26,7 @@ pub enum SwapProtocolTag {
 }
 
 impl SwapProtocolTag {
-    pub fn from_byte(value: u8) -> Result<Self, ProgramError> {
+    pub fn from_discriminator(value: u16) -> Result<Self, ProgramError> {
         match value {
             0 => Ok(Self::Perena),
             1 => Ok(Self::SolFi),
@@ -66,11 +66,11 @@ impl SwapProtocolTag {
     }
 }
 
-impl TryFrom<u8> for SwapProtocolTag {
+impl TryFrom<u16> for SwapProtocolTag {
     type Error = ProgramError;
 
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        Self::from_byte(value)
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        Self::from_discriminator(value)
     }
 }
 

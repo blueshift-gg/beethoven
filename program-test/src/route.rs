@@ -12,7 +12,7 @@ use {
 /// [8..16]  - minimum_final_out_amount (u64, little-endian)
 /// [16]     - num_legs (u8)
 /// Per leg (repeated num_legs times):
-///   [swap_leg_header: 4 bytes]
+///   [swap_leg_header: 5 bytes]
 ///   [extra_data: exact byte length from the header]
 pub struct RouteInstructionData<'a> {
     pub initial_in_amount: u64,

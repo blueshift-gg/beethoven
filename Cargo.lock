@@ -581,7 +581,6 @@ dependencies = [
  "solana-account-view",
  "solana-address 2.6.0",
  "solana-clock",
- "solana-compute-budget-instruction",
  "solana-instruction",
  "solana-instruction-view",
  "solana-keypair",

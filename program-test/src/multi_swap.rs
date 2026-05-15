@@ -10,7 +10,7 @@ use {
 /// Per swap (repeated num_swaps times):
 ///   [in_amount: u64 LE]
 ///   [min_out_amount: u64 LE]
-///   [swap_leg_header: 4 bytes]
+///   [swap_leg_header: 5 bytes]
 ///   [extra_data: exact byte length from the header]
 ///
 /// Accounts are a flat concatenation. Each swap consumes its fixed account

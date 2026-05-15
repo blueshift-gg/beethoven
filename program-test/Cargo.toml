@@ -5,18 +5,17 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
+test = false
 
 [features]
 default = []
 upstream-bpf = ["dep:solana-define-syscall"]
 
 [dependencies]
-beethoven = { path = "..", features = ["deposit", "swap"] }
-pinocchio = { version = "0.10.1", default-features = false, features = [
-    "alloc",
-] }
-pinocchio-token = "0.5.0"
-pinocchio-token-2022 = "0.2.0"
-solana-define-syscall = { version = "4.0.1", features = [
+beethoven = { workspace = true, features = ["deposit", "swap"] }
+pinocchio.workspace = true
+pinocchio-token.workspace = true
+pinocchio-token-2022.workspace = true
+solana-define-syscall = { workspace = true, features = [
     "unstable-static-syscalls",
 ], optional = true }
