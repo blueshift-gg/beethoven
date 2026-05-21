@@ -6,7 +6,7 @@ use {
     solana_account_view::AccountView,
     solana_address::Address,
     solana_instruction_view::{
-        cpi::{invoke_signed, Signer},
+        cpi::{invoke_signed_with_bounds, Signer},
         InstructionAccount, InstructionView,
     },
     solana_program_error::{ProgramError, ProgramResult},
@@ -18,7 +18,6 @@ pub const SCALE_VMM_PROGRAM_ID: Address =
 const BUY_DISCRIMINATOR: [u8; 8] = [102, 6, 61, 18, 1, 218, 235, 234];
 const SELL_DISCRIMINATOR: [u8; 8] = [51, 230, 133, 164, 1, 127, 131, 173];
 
-const FIXED_ACCOUNT_COUNT: usize = 19;
 const MAX_BENEFICIARY_ACCOUNTS: usize = 5;
 
 pub struct ScaleVmm;
@@ -57,10 +56,6 @@ impl TryFrom<&[u8]> for ScaleVmmSwapData {
     }
 }
 
-impl ScaleVmmSwapAccounts<'_> {
-    pub const NUM_ACCOUNTS: usize = FIXED_ACCOUNT_COUNT;
-}
-
 pub struct ScaleVmmSwapAccounts<'info> {
     pub scale_vmm_program: &'info AccountView,
     pub pair: &'info AccountView,
@@ -83,6 +78,13 @@ pub struct ScaleVmmSwapAccounts<'info> {
     pub amm_config: &'info AccountView,
     pub beneficiary_accounts: &'info [AccountView],
 }
+
+impl ScaleVmmSwapAccounts<'_> {
+    pub const NUM_ACCOUNTS: usize = 19;
+}
+
+const CPI_FIXED_ACCOUNTS: usize = ScaleVmmSwapAccounts::NUM_ACCOUNTS - 1;
+const MAX_ACCOUNTS: usize = CPI_FIXED_ACCOUNTS + MAX_BENEFICIARY_ACCOUNTS;
 
 impl<'info> TryFrom<&'info [AccountView]> for ScaleVmmSwapAccounts<'info> {
     type Error = ProgramError;
@@ -157,305 +159,131 @@ impl<'info> Swap<'info> for ScaleVmm {
     ) -> ProgramResult {
         let instruction_data = build_instruction_data(data.side, in_amount, minimum_out_amount);
 
-        match ctx.beneficiary_accounts {
-            [] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.pair.address()),
-                    InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.mint_a.address()),
-                    InstructionAccount::readonly(ctx.mint_b.address()),
-                    InstructionAccount::writable(ctx.user_ta_a.address()),
-                    InstructionAccount::writable(ctx.user_ta_b.address()),
-                    InstructionAccount::writable(ctx.vault_a.address()),
-                    InstructionAccount::writable(ctx.vault_b.address()),
-                    InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_b.address()),
-                    InstructionAccount::readonly(ctx.system_program.address()),
-                    InstructionAccount::readonly(ctx.config.address()),
-                    InstructionAccount::readonly(ctx.amm_program.address()),
-                    InstructionAccount::writable(ctx.amm_pool.address()),
-                    InstructionAccount::writable(ctx.amm_vault_a.address()),
-                    InstructionAccount::writable(ctx.amm_vault_b.address()),
-                    InstructionAccount::readonly(ctx.amm_config.address()),
-                ],
-                [
-                    ctx.pair,
-                    ctx.user,
-                    ctx.mint_a,
-                    ctx.mint_b,
-                    ctx.user_ta_a,
-                    ctx.user_ta_b,
-                    ctx.vault_a,
-                    ctx.vault_b,
-                    ctx.platform_fee_ta_a,
-                    ctx.token_program_a,
-                    ctx.token_program_b,
-                    ctx.system_program,
-                    ctx.config,
-                    ctx.amm_program,
-                    ctx.amm_pool,
-                    ctx.amm_vault_a,
-                    ctx.amm_vault_b,
-                    ctx.amm_config,
-                ],
-                &instruction_data,
-                signer_seeds,
-            ),
-            [beneficiary_0] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.pair.address()),
-                    InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.mint_a.address()),
-                    InstructionAccount::readonly(ctx.mint_b.address()),
-                    InstructionAccount::writable(ctx.user_ta_a.address()),
-                    InstructionAccount::writable(ctx.user_ta_b.address()),
-                    InstructionAccount::writable(ctx.vault_a.address()),
-                    InstructionAccount::writable(ctx.vault_b.address()),
-                    InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_b.address()),
-                    InstructionAccount::readonly(ctx.system_program.address()),
-                    InstructionAccount::readonly(ctx.config.address()),
-                    InstructionAccount::readonly(ctx.amm_program.address()),
-                    InstructionAccount::writable(ctx.amm_pool.address()),
-                    InstructionAccount::writable(ctx.amm_vault_a.address()),
-                    InstructionAccount::writable(ctx.amm_vault_b.address()),
-                    InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::writable(beneficiary_0.address()),
-                ],
-                [
-                    ctx.pair,
-                    ctx.user,
-                    ctx.mint_a,
-                    ctx.mint_b,
-                    ctx.user_ta_a,
-                    ctx.user_ta_b,
-                    ctx.vault_a,
-                    ctx.vault_b,
-                    ctx.platform_fee_ta_a,
-                    ctx.token_program_a,
-                    ctx.token_program_b,
-                    ctx.system_program,
-                    ctx.config,
-                    ctx.amm_program,
-                    ctx.amm_pool,
-                    ctx.amm_vault_a,
-                    ctx.amm_vault_b,
-                    ctx.amm_config,
-                    beneficiary_0,
-                ],
-                &instruction_data,
-                signer_seeds,
-            ),
-            [beneficiary_0, beneficiary_1] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.pair.address()),
-                    InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.mint_a.address()),
-                    InstructionAccount::readonly(ctx.mint_b.address()),
-                    InstructionAccount::writable(ctx.user_ta_a.address()),
-                    InstructionAccount::writable(ctx.user_ta_b.address()),
-                    InstructionAccount::writable(ctx.vault_a.address()),
-                    InstructionAccount::writable(ctx.vault_b.address()),
-                    InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_b.address()),
-                    InstructionAccount::readonly(ctx.system_program.address()),
-                    InstructionAccount::readonly(ctx.config.address()),
-                    InstructionAccount::readonly(ctx.amm_program.address()),
-                    InstructionAccount::writable(ctx.amm_pool.address()),
-                    InstructionAccount::writable(ctx.amm_vault_a.address()),
-                    InstructionAccount::writable(ctx.amm_vault_b.address()),
-                    InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::writable(beneficiary_0.address()),
-                    InstructionAccount::writable(beneficiary_1.address()),
-                ],
-                [
-                    ctx.pair,
-                    ctx.user,
-                    ctx.mint_a,
-                    ctx.mint_b,
-                    ctx.user_ta_a,
-                    ctx.user_ta_b,
-                    ctx.vault_a,
-                    ctx.vault_b,
-                    ctx.platform_fee_ta_a,
-                    ctx.token_program_a,
-                    ctx.token_program_b,
-                    ctx.system_program,
-                    ctx.config,
-                    ctx.amm_program,
-                    ctx.amm_pool,
-                    ctx.amm_vault_a,
-                    ctx.amm_vault_b,
-                    ctx.amm_config,
-                    beneficiary_0,
-                    beneficiary_1,
-                ],
-                &instruction_data,
-                signer_seeds,
-            ),
-            [beneficiary_0, beneficiary_1, beneficiary_2] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.pair.address()),
-                    InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.mint_a.address()),
-                    InstructionAccount::readonly(ctx.mint_b.address()),
-                    InstructionAccount::writable(ctx.user_ta_a.address()),
-                    InstructionAccount::writable(ctx.user_ta_b.address()),
-                    InstructionAccount::writable(ctx.vault_a.address()),
-                    InstructionAccount::writable(ctx.vault_b.address()),
-                    InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_b.address()),
-                    InstructionAccount::readonly(ctx.system_program.address()),
-                    InstructionAccount::readonly(ctx.config.address()),
-                    InstructionAccount::readonly(ctx.amm_program.address()),
-                    InstructionAccount::writable(ctx.amm_pool.address()),
-                    InstructionAccount::writable(ctx.amm_vault_a.address()),
-                    InstructionAccount::writable(ctx.amm_vault_b.address()),
-                    InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::writable(beneficiary_0.address()),
-                    InstructionAccount::writable(beneficiary_1.address()),
-                    InstructionAccount::writable(beneficiary_2.address()),
-                ],
-                [
-                    ctx.pair,
-                    ctx.user,
-                    ctx.mint_a,
-                    ctx.mint_b,
-                    ctx.user_ta_a,
-                    ctx.user_ta_b,
-                    ctx.vault_a,
-                    ctx.vault_b,
-                    ctx.platform_fee_ta_a,
-                    ctx.token_program_a,
-                    ctx.token_program_b,
-                    ctx.system_program,
-                    ctx.config,
-                    ctx.amm_program,
-                    ctx.amm_pool,
-                    ctx.amm_vault_a,
-                    ctx.amm_vault_b,
-                    ctx.amm_config,
-                    beneficiary_0,
-                    beneficiary_1,
-                    beneficiary_2,
-                ],
-                &instruction_data,
-                signer_seeds,
-            ),
-            [beneficiary_0, beneficiary_1, beneficiary_2, beneficiary_3] => invoke_with_accounts(
-                [
-                    InstructionAccount::writable(ctx.pair.address()),
-                    InstructionAccount::writable_signer(ctx.user.address()),
-                    InstructionAccount::readonly(ctx.mint_a.address()),
-                    InstructionAccount::readonly(ctx.mint_b.address()),
-                    InstructionAccount::writable(ctx.user_ta_a.address()),
-                    InstructionAccount::writable(ctx.user_ta_b.address()),
-                    InstructionAccount::writable(ctx.vault_a.address()),
-                    InstructionAccount::writable(ctx.vault_b.address()),
-                    InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_a.address()),
-                    InstructionAccount::readonly(ctx.token_program_b.address()),
-                    InstructionAccount::readonly(ctx.system_program.address()),
-                    InstructionAccount::readonly(ctx.config.address()),
-                    InstructionAccount::readonly(ctx.amm_program.address()),
-                    InstructionAccount::writable(ctx.amm_pool.address()),
-                    InstructionAccount::writable(ctx.amm_vault_a.address()),
-                    InstructionAccount::writable(ctx.amm_vault_b.address()),
-                    InstructionAccount::readonly(ctx.amm_config.address()),
-                    InstructionAccount::writable(beneficiary_0.address()),
-                    InstructionAccount::writable(beneficiary_1.address()),
-                    InstructionAccount::writable(beneficiary_2.address()),
-                    InstructionAccount::writable(beneficiary_3.address()),
-                ],
-                [
-                    ctx.pair,
-                    ctx.user,
-                    ctx.mint_a,
-                    ctx.mint_b,
-                    ctx.user_ta_a,
-                    ctx.user_ta_b,
-                    ctx.vault_a,
-                    ctx.vault_b,
-                    ctx.platform_fee_ta_a,
-                    ctx.token_program_a,
-                    ctx.token_program_b,
-                    ctx.system_program,
-                    ctx.config,
-                    ctx.amm_program,
-                    ctx.amm_pool,
-                    ctx.amm_vault_a,
-                    ctx.amm_vault_b,
-                    ctx.amm_config,
-                    beneficiary_0,
-                    beneficiary_1,
-                    beneficiary_2,
-                    beneficiary_3,
-                ],
-                &instruction_data,
-                signer_seeds,
-            ),
-            [beneficiary_0, beneficiary_1, beneficiary_2, beneficiary_3, beneficiary_4] => {
-                invoke_with_accounts(
-                    [
-                        InstructionAccount::writable(ctx.pair.address()),
-                        InstructionAccount::writable_signer(ctx.user.address()),
-                        InstructionAccount::readonly(ctx.mint_a.address()),
-                        InstructionAccount::readonly(ctx.mint_b.address()),
-                        InstructionAccount::writable(ctx.user_ta_a.address()),
-                        InstructionAccount::writable(ctx.user_ta_b.address()),
-                        InstructionAccount::writable(ctx.vault_a.address()),
-                        InstructionAccount::writable(ctx.vault_b.address()),
-                        InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
-                        InstructionAccount::readonly(ctx.token_program_a.address()),
-                        InstructionAccount::readonly(ctx.token_program_b.address()),
-                        InstructionAccount::readonly(ctx.system_program.address()),
-                        InstructionAccount::readonly(ctx.config.address()),
-                        InstructionAccount::readonly(ctx.amm_program.address()),
-                        InstructionAccount::writable(ctx.amm_pool.address()),
-                        InstructionAccount::writable(ctx.amm_vault_a.address()),
-                        InstructionAccount::writable(ctx.amm_vault_b.address()),
-                        InstructionAccount::readonly(ctx.amm_config.address()),
-                        InstructionAccount::writable(beneficiary_0.address()),
-                        InstructionAccount::writable(beneficiary_1.address()),
-                        InstructionAccount::writable(beneficiary_2.address()),
-                        InstructionAccount::writable(beneficiary_3.address()),
-                        InstructionAccount::writable(beneficiary_4.address()),
-                    ],
-                    [
-                        ctx.pair,
-                        ctx.user,
-                        ctx.mint_a,
-                        ctx.mint_b,
-                        ctx.user_ta_a,
-                        ctx.user_ta_b,
-                        ctx.vault_a,
-                        ctx.vault_b,
-                        ctx.platform_fee_ta_a,
-                        ctx.token_program_a,
-                        ctx.token_program_b,
-                        ctx.system_program,
-                        ctx.config,
-                        ctx.amm_program,
-                        ctx.amm_pool,
-                        ctx.amm_vault_a,
-                        ctx.amm_vault_b,
-                        ctx.amm_config,
-                        beneficiary_0,
-                        beneficiary_1,
-                        beneficiary_2,
-                        beneficiary_3,
-                        beneficiary_4,
-                    ],
-                    &instruction_data,
-                    signer_seeds,
-                )
+        let total_accounts = CPI_FIXED_ACCOUNTS + ctx.beneficiary_accounts.len();
+
+        let mut account_metas = MaybeUninit::<[InstructionAccount; MAX_ACCOUNTS]>::uninit();
+        let account_metas_ptr = account_metas.as_mut_ptr() as *mut InstructionAccount;
+
+        unsafe {
+            core::ptr::write(
+                account_metas_ptr,
+                InstructionAccount::writable(ctx.pair.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(1),
+                InstructionAccount::writable_signer(ctx.user.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(2),
+                InstructionAccount::readonly(ctx.mint_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(3),
+                InstructionAccount::readonly(ctx.mint_b.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(4),
+                InstructionAccount::writable(ctx.user_ta_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(5),
+                InstructionAccount::writable(ctx.user_ta_b.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(6),
+                InstructionAccount::writable(ctx.vault_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(7),
+                InstructionAccount::writable(ctx.vault_b.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(8),
+                InstructionAccount::writable(ctx.platform_fee_ta_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(9),
+                InstructionAccount::readonly(ctx.token_program_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(10),
+                InstructionAccount::readonly(ctx.token_program_b.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(11),
+                InstructionAccount::readonly(ctx.system_program.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(12),
+                InstructionAccount::readonly(ctx.config.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(13),
+                InstructionAccount::readonly(ctx.amm_program.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(14),
+                InstructionAccount::writable(ctx.amm_pool.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(15),
+                InstructionAccount::writable(ctx.amm_vault_a.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(16),
+                InstructionAccount::writable(ctx.amm_vault_b.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(17),
+                InstructionAccount::readonly(ctx.amm_config.address()),
+            );
+
+            for (index, account) in ctx.beneficiary_accounts.iter().enumerate() {
+                core::ptr::write(
+                    account_metas_ptr.add(CPI_FIXED_ACCOUNTS + index),
+                    InstructionAccount::from(account),
+                );
             }
-            _ => Err(ProgramError::InvalidAccountData),
         }
+
+        let account_metas = unsafe {
+            core::slice::from_raw_parts(
+                account_metas_ptr as *const InstructionAccount,
+                total_accounts,
+            )
+        };
+
+        let mut account_infos = [ctx.pair; MAX_ACCOUNTS];
+        account_infos[0] = ctx.pair;
+        account_infos[1] = ctx.user;
+        account_infos[2] = ctx.mint_a;
+        account_infos[3] = ctx.mint_b;
+        account_infos[4] = ctx.user_ta_a;
+        account_infos[5] = ctx.user_ta_b;
+        account_infos[6] = ctx.vault_a;
+        account_infos[7] = ctx.vault_b;
+        account_infos[8] = ctx.platform_fee_ta_a;
+        account_infos[9] = ctx.token_program_a;
+        account_infos[10] = ctx.token_program_b;
+        account_infos[11] = ctx.system_program;
+        account_infos[12] = ctx.config;
+        account_infos[13] = ctx.amm_program;
+        account_infos[14] = ctx.amm_pool;
+        account_infos[15] = ctx.amm_vault_a;
+        account_infos[16] = ctx.amm_vault_b;
+        account_infos[17] = ctx.amm_config;
+        for (index, account) in ctx.beneficiary_accounts.iter().enumerate() {
+            account_infos[CPI_FIXED_ACCOUNTS + index] = account;
+        }
+        let account_infos = &account_infos[..total_accounts];
+
+        let instruction = InstructionView {
+            program_id: &SCALE_VMM_PROGRAM_ID,
+            accounts: account_metas,
+            data: unsafe { instruction_data.assume_init_ref() },
+        };
+
+        invoke_signed_with_bounds::<MAX_ACCOUNTS, _>(&instruction, account_infos, signer_seeds)
     }
 
     fn swap(
@@ -481,21 +309,6 @@ impl<'info> SwapTokenAccounts<'info> for ScaleVmm {
             ScaleVmmSide::Sell => (ctx.user_ta_a, ctx.user_ta_b),
         }
     }
-}
-
-fn invoke_with_accounts<const ACCOUNTS: usize>(
-    accounts: [InstructionAccount; ACCOUNTS],
-    account_infos: [&AccountView; ACCOUNTS],
-    instruction_data: &MaybeUninit<[u8; 24]>,
-    signer_seeds: &[Signer],
-) -> ProgramResult {
-    let instruction = InstructionView {
-        program_id: &SCALE_VMM_PROGRAM_ID,
-        accounts: &accounts,
-        data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as *const u8, 24) },
-    };
-
-    invoke_signed(&instruction, &account_infos, signer_seeds)
 }
 
 #[cfg(test)]
