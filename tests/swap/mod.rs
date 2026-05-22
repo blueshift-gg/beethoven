@@ -10,6 +10,7 @@ mod omnipair;
 mod perena;
 mod raydium_cpmm;
 mod route;
+mod saros_amm;
 mod scale_amm;
 mod scale_vmm;
 mod solfi;
