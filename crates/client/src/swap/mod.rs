@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "huma-finance")]
+pub mod huma_finance;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "huma-finance")]
+    HumaFinance,
 }
 
 /// A single step in a multi-swap composition.
@@ -283,6 +290,9 @@ pub async fn resolve_swap(
             )
             .await
         }
+
+        #[cfg(feature = "huma-finance")]
+        SwapProtocol::HumaFinance => huma_finance::resolve(rpc, user).await,
     }
 }
 
