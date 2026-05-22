@@ -27,6 +27,7 @@ swap = [
     "scale-vmm-swap",
     "omnipair-swap",
     "hadron-swap",
+    "fraudsworth-tax-swap",
     "raydium-cpmm-swap",
 ]
 
@@ -50,6 +51,7 @@ scale-amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
+fraudsworth-tax-swap = ["dep:beethoven-swap-fraudsworth-tax"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
 
 [dependencies]
@@ -78,6 +80,7 @@ beethoven-swap-scale-vmm = { workspace = true, optional = true }
 beethoven-swap-omnipair = { workspace = true, optional = true }
 beethoven-swap-hadron = { workspace = true, optional = true }
 beethoven-swap-raydium-cpmm = { workspace = true, optional = true }
+beethoven-swap-fraudsworth-tax = { workspace = true, optional = true }
 
 [workspace]
 members = [
@@ -99,6 +102,7 @@ members = [
     "crates/swap/scale-vmm",
     "crates/swap/omnipair",
     "crates/swap/hadron",
+    "crates/swap/fraudsworth-tax",
     "crates/swap/raydium-cpmm",
     "program-test",
     "crates/client",
@@ -126,6 +130,7 @@ beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm" }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair" }
 beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
+beethoven-swap-fraudsworth-tax = { path = "crates/swap/fraudsworth-tax" }
 base64 = "0.22"
 litesvm = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
@@ -185,6 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "fraudsworth-tax",
     "resolve",
 ] }
 solana-rpc-client.workspace = true
