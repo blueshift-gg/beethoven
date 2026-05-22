@@ -21,6 +21,8 @@ pub mod hadron;
 
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
+#[cfg(feature = "saros-dlmm")]
+pub mod saros_dlmm;
 
 #[cfg(feature = "perena")]
 pub mod perena;
@@ -89,6 +91,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +128,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "saros-dlmm")]
+    SarosDlmm {
+        pair: Option<Address>,
+        swap_for_y: bool,
+        swap_type: u8,
     },
 }
 
@@ -277,6 +287,24 @@ pub async fn resolve_swap(
                 rpc,
                 market.as_ref(),
                 *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "saros-dlmm")]
+        SwapProtocol::SarosDlmm {
+            pair,
+            swap_for_y,
+            swap_type,
+        } => {
+            saros_dlmm::resolve(
+                rpc,
+                pair.as_ref(),
+                *swap_for_y,
+                *swap_type,
                 mint_a,
                 mint_b,
                 user,
