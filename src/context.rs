@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Bisonfi = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Bisonfi),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::Bisonfi => 10,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "bisonfi-swap")]
+    Bisonfi(crate::bisonfi::BisonfiSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "bisonfi-swap")]
+    Bisonfi(crate::bisonfi::BisonfiSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,16 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+
+            #[cfg(feature = "bisonfi-swap")]
+            SwapContext::Bisonfi(_) => {
+                let n = crate::bisonfi::BisonfiSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::Bisonfi(crate::bisonfi::BisonfiSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +593,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "bisonfi-swap")]
+            (SwapContext::Bisonfi(accounts), SwapData::Bisonfi(d)) => {
+                crate::bisonfi::Bisonfi::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +846,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Bisonfi => {
+            #[cfg(feature = "bisonfi-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::bisonfi::BISONFI_PROGRAM_ID,
+                )?;
+                let ctx = crate::bisonfi::BisonfiSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Bisonfi(ctx), rest))
+            }
+            #[cfg(not(feature = "bisonfi-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
