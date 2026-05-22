@@ -6,6 +6,7 @@ mod heaven;
 mod manifest;
 mod omnipair;
 mod perena;
+mod sanctum_staking;
 mod scale_amm;
 mod scale_vmm;
 mod solfi;
