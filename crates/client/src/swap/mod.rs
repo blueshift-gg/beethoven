@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "phoenix-legacy")]
+pub mod phoenix_legacy;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "phoenix-legacy")]
+    PhoenixLegacy { market: Option<Address>, side: u8 },
 }
 
 /// A single step in a multi-swap composition.
@@ -282,6 +289,11 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(feature = "phoenix-legacy")]
+        SwapProtocol::PhoenixLegacy { market, side } => {
+            phoenix_legacy::resolve(rpc, market.as_ref(), *side, mint_a, mint_b, user).await
         }
     }
 }

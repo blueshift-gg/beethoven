@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    PhoenixLegacy = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::PhoenixLegacy),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::PhoenixLegacy => 9,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "phoenix-legacy-swap")]
+    PhoenixLegacy(crate::phoenix_legacy::PhoenixLegacySwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "phoenix-legacy-swap")]
+    PhoenixLegacy(crate::phoenix_legacy::PhoenixLegacySwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,17 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "phoenix-legacy-swap")]
+            SwapContext::PhoenixLegacy(_) => {
+                let n = crate::phoenix_legacy::PhoenixLegacySwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::PhoenixLegacy(
+                        crate::phoenix_legacy::PhoenixLegacySwapData::try_from(mine)?,
+                    ),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +594,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "phoenix-legacy-swap")]
+            (SwapContext::PhoenixLegacy(accounts), SwapData::PhoenixLegacy(d)) => {
+                crate::phoenix_legacy::PhoenixLegacy::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +847,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::PhoenixLegacy => {
+            #[cfg(feature = "phoenix-legacy-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::phoenix_legacy::PHOENIX_LEGACY_PROGRAM_ID,
+                )?;
+                let ctx = crate::phoenix_legacy::PhoenixLegacySwapAccounts::try_from(mine)?;
+                Ok((SwapContext::PhoenixLegacy(ctx), rest))
+            }
+            #[cfg(not(feature = "phoenix-legacy-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

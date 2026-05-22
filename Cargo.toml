@@ -28,6 +28,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
+    "phoenix-legacy-swap",
 ]
 
 # Deposit protocols
@@ -51,6 +52,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
+phoenix-legacy-swap = ["dep:beethoven-swap-phoenix-legacy"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -78,6 +80,7 @@ beethoven-swap-scale-vmm = { workspace = true, optional = true }
 beethoven-swap-omnipair = { workspace = true, optional = true }
 beethoven-swap-hadron = { workspace = true, optional = true }
 beethoven-swap-raydium-cpmm = { workspace = true, optional = true }
+beethoven-swap-phoenix-legacy = { workspace = true, optional = true }
 
 [workspace]
 members = [
@@ -100,6 +103,7 @@ members = [
     "crates/swap/omnipair",
     "crates/swap/hadron",
     "crates/swap/raydium-cpmm",
+    "crates/swap/phoenix-legacy",
     "program-test",
     "crates/client",
 ]
@@ -126,6 +130,7 @@ beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm" }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair" }
 beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
+beethoven-swap-phoenix-legacy = { path = "crates/swap/phoenix-legacy" }
 base64 = "0.22"
 litesvm = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
@@ -185,6 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "phoenix-legacy",
     "resolve",
 ] }
 solana-rpc-client.workspace = true
