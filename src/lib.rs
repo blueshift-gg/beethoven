@@ -27,6 +27,8 @@ pub use beethoven_swap_heaven as heaven;
 pub use beethoven_swap_manifest as manifest;
 #[cfg(feature = "omnipair-swap")]
 pub use beethoven_swap_omnipair as omnipair;
+#[cfg(feature = "onre-swap")]
+pub use beethoven_swap_onre as onre;
 #[cfg(feature = "perena-swap")]
 pub use beethoven_swap_perena as perena;
 #[cfg(feature = "raydium-cpmm-swap")]

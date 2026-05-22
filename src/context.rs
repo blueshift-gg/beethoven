@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Onre = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Onre),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::Onre => 22,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "onre-swap")]
+    Onre(crate::onre::OnreSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "onre-swap")]
+    Onre(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,9 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+
+            #[cfg(feature = "onre-swap")]
+            SwapContext::Onre(_) => Ok((SwapData::Onre(()), data)),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +586,15 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "onre-swap")]
+            (SwapContext::Onre(accounts), SwapData::Onre(())) => crate::onre::Onre::swap_signed(
+                accounts,
+                in_amount,
+                minimum_out_amount,
+                &(),
+                signer_seeds,
+            ),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +837,19 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Onre => {
+            #[cfg(feature = "onre-swap")]
+            {
+                validate_tagged_program_account(program_account, &crate::onre::ONRE_PROGRAM_ID)?;
+                let ctx = crate::onre::OnreSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Onre(ctx), rest))
+            }
+            #[cfg(not(feature = "onre-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
