@@ -35,6 +35,8 @@ pub use beethoven_swap_raydium_cpmm as raydium_cpmm;
 pub use beethoven_swap_scale_amm as scale_amm;
 #[cfg(feature = "scale-vmm-swap")]
 pub use beethoven_swap_scale_vmm as scale_vmm;
+#[cfg(feature = "scorch-swap")]
+pub use beethoven_swap_scorch as scorch;
 #[cfg(feature = "solfi-swap")]
 pub use beethoven_swap_solfi as solfi;
 #[cfg(feature = "solfi-v2-swap")]

@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "scorch")]
+pub mod scorch;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,16 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "scorch")]
+    Scorch {
+        market: Option<Address>,
+        acc1: Address,
+        state_a: Address,
+        state_b: Address,
+        state_c: Address,
+        param: [u8; 17],
     },
 }
 
@@ -280,6 +294,30 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "scorch")]
+        SwapProtocol::Scorch {
+            market,
+            acc1,
+            state_a,
+            state_b,
+            state_c,
+            param: ix_tail,
+        } => {
+            scorch::resolve(
+                rpc,
+                market.as_ref(),
+                *acc1,
+                *state_a,
+                *state_b,
+                *state_c,
+                mint_a,
+                mint_b,
+                user,
+                ix_tail,
             )
             .await
         }

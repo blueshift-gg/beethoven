@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Scorch = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Scorch),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::Scorch => 18,
         }
     }
 }
@@ -142,6 +145,8 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+    #[cfg(feature = "scorch-swap")]
+    Scorch(crate::scorch::ScorchSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +192,8 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+    #[cfg(feature = "scorch-swap")]
+    Scorch(crate::scorch::ScorchSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +320,16 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+
+            #[cfg(feature = "scorch-swap")]
+            SwapContext::Scorch(_) => {
+                let n = crate::scorch::ScorchSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::Scorch(crate::scorch::ScorchSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +591,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "scorch-swap")]
+            (SwapContext::Scorch(accounts), SwapData::Scorch(d)) => {
+                crate::scorch::Scorch::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +844,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Scorch => {
+            #[cfg(feature = "scorch-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::scorch::SCORCH_PROGRAM_ID,
+                )?;
+                let ctx = crate::scorch::ScorchSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Scorch(ctx), rest))
+            }
+            #[cfg(not(feature = "scorch-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

@@ -521,6 +521,7 @@ dependencies = [
  "beethoven-swap-raydium-cpmm",
  "beethoven-swap-scale-amm",
  "beethoven-swap-scale-vmm",
+ "beethoven-swap-scorch",
  "beethoven-swap-solfi",
  "beethoven-swap-solfi-v2",
  "litesvm",
@@ -737,6 +738,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-swap-scale-vmm"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-swap-scorch"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
