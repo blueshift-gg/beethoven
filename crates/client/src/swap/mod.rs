@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "obric-v2")]
+pub mod obric_v2;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "obric-v2")]
+    ObricV2 { market: Option<Address> },
 }
 
 /// A single step in a multi-swap composition.
@@ -282,6 +289,11 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(feature = "obric-v2")]
+        SwapProtocol::ObricV2 { market } => {
+            obric_v2::resolve(rpc, market.as_ref(), mint_a, mint_b, user).await
         }
     }
 }

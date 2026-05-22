@@ -25,6 +25,8 @@ pub use beethoven_swap_hadron as hadron;
 pub use beethoven_swap_heaven as heaven;
 #[cfg(feature = "manifest-swap")]
 pub use beethoven_swap_manifest as manifest;
+#[cfg(feature = "obric-v2-swap")]
+pub use beethoven_swap_obric_v2 as obric_v2;
 #[cfg(feature = "omnipair-swap")]
 pub use beethoven_swap_omnipair as omnipair;
 #[cfg(feature = "perena-swap")]
