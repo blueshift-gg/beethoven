@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Pancake = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Pancake),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::Pancake => 14,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "pancake-swap")]
+    Pancake(crate::pancake::PancakeSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "pancake-swap")]
+    Pancake(crate::pancake::PancakeSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,15 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "pancake-swap")]
+            SwapContext::Pancake(_) => {
+                let n = crate::pancake::PancakeSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::Pancake(crate::pancake::PancakeSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +592,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "pancake-swap")]
+            (SwapContext::Pancake(accounts), SwapData::Pancake(d)) => {
+                crate::pancake::Pancake::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +845,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Pancake => {
+            #[cfg(feature = "pancake-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::pancake::PANCAKE_PROGRAM_ID,
+                )?;
+                let ctx = crate::pancake::PancakeSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Pancake(ctx), rest))
+            }
+            #[cfg(not(feature = "pancake-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
