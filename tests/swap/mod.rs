@@ -14,4 +14,5 @@ mod scale_amm;
 mod scale_vmm;
 mod solfi;
 mod solfi_v2;
+mod stabble_weighted;
 mod tagged;
