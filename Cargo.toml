@@ -26,6 +26,7 @@ swap = [
     "scale-amm-swap",
     "scale-vmm-swap",
     "omnipair-swap",
+    "meteora-damm-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
 ]
@@ -49,6 +50,7 @@ gamma-swap = ["dep:beethoven-swap-gamma"]
 scale-amm-swap = ["dep:beethoven-swap-scale-amm"]
 scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
+meteora-damm-swap = ["dep:beethoven-swap-meteora-damm"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
 
@@ -78,6 +80,7 @@ beethoven-swap-scale-vmm = { workspace = true, optional = true }
 beethoven-swap-omnipair = { workspace = true, optional = true }
 beethoven-swap-hadron = { workspace = true, optional = true }
 beethoven-swap-raydium-cpmm = { workspace = true, optional = true }
+beethoven-swap-meteora-damm = { workspace = true, optional = true }
 
 [workspace]
 members = [
@@ -98,6 +101,7 @@ members = [
     "crates/swap/scale-amm",
     "crates/swap/scale-vmm",
     "crates/swap/omnipair",
+    "crates/swap/meteora-damm",
     "crates/swap/hadron",
     "crates/swap/raydium-cpmm",
     "program-test",
@@ -126,6 +130,7 @@ beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm" }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair" }
 beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
+beethoven-swap-meteora-damm = { path = "crates/swap/meteora-damm" }
 base64 = "0.22"
 litesvm = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
@@ -176,6 +181,7 @@ beethoven-client = { workspace = true, features = [
     "aldrin-v2",
     "futarchy",
     "gamma",
+    "meteora-damm",
     "hadron",
     "raydium-cpmm",
     "omnipair",

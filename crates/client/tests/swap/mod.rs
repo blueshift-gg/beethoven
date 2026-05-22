@@ -4,6 +4,7 @@ mod futarchy;
 mod gamma_discover;
 mod heaven;
 mod manifest;
+mod meteora_damm;
 mod omnipair;
 mod perena;
 mod scale_amm;
