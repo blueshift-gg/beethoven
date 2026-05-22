@@ -1,5 +1,6 @@
 mod aldrin;
 mod aldrin_v2;
+mod fusion_amm;
 mod futarchy;
 mod gamma_discover;
 mod heaven;

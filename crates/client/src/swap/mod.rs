@@ -40,6 +40,11 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "fusion-amm")]
+pub mod fusion_amm;
+
+#[cfg(feature = "fusion-amm")]
+use crate::swap::fusion_amm::RemainingAccountsInfo;
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +94,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +131,15 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "fusion-amm")]
+    FusionAmm {
+        fusion_pool: Option<Address>,
+        sqrt_price_limit: u128,
+        amount_specified_is_input: bool,
+        a_to_b: bool,
+        remaining_accounts_info: Option<RemainingAccountsInfo>,
     },
 }
 
@@ -280,6 +295,28 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "fusion-amm")]
+        SwapProtocol::FusionAmm {
+            fusion_pool,
+            sqrt_price_limit,
+            amount_specified_is_input,
+            a_to_b,
+            remaining_accounts_info,
+        } => {
+            fusion_amm::resolve(
+                rpc,
+                fusion_pool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit,
+                *amount_specified_is_input,
+                *a_to_b,
+                remaining_accounts_info.clone(),
             )
             .await
         }
