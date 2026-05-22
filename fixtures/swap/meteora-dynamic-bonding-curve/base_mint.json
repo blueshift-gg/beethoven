@@ -1,0 +1,14 @@
+{
+  "pubkey": "GSg4JktbLkn3k2rWrPwfKdFyt4v8PBt6L6MRoFLymoon",
+  "account": {
+    "lamports": 3803387881,
+    "data": [
+      "AAAAANpjaB9yhrzIBnGeLCtQogFXJDv8lmixFSC8U4Q+3NsI/3/GpH6NAwAGAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "base64"
+    ],
+    "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "executable": false,
+    "rentEpoch": 18446744073709551615,
+    "space": 82
+  }
+}
