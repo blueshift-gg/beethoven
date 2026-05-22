@@ -2,7 +2,6 @@ use {
     base64::{engine::general_purpose::STANDARD, Engine as _},
     beethoven::SwapProtocolTag,
     litesvm::LiteSVM,
-    mollusk_svm::{program::keyed_account_for_system_program, result::ProgramResult, Mollusk},
     solana_account::Account,
     solana_address::{address, Address},
     solana_instruction::{AccountMeta, Instruction},
@@ -67,64 +66,6 @@ pub fn setup_svm_with_program(program_bytes: &[u8]) -> LiteSVM {
     let mut svm = LiteSVM::new();
     let _ = svm.add_program(TEST_PROGRAM_ID, program_bytes);
     svm
-}
-
-// =============================================================================
-// Mollusk Setup
-// =============================================================================
-
-pub fn setup_mollusk_with_programs(
-    beethoven_bytes: &[u8],
-    additional_programs: &[(Address, &[u8])],
-) -> Mollusk {
-    let mut mollusk = Mollusk::default();
-    mollusk.add_program_with_loader_and_elf(&TEST_PROGRAM_ID, &BPF_LOADER, beethoven_bytes);
-
-    for (program_id, bytes) in additional_programs {
-        mollusk.add_program_with_loader_and_elf(program_id, &BPF_LOADER, bytes);
-    }
-
-    // Add the SPL Token program
-    mollusk_svm_programs_token::token::add_program(&mut mollusk);
-
-    mollusk
-}
-
-pub fn get_mollusk_system_program() -> (Address, Account) {
-    keyed_account_for_system_program()
-}
-
-pub fn get_mollusk_token_program() -> (Address, Account) {
-    mollusk_svm_programs_token::token::keyed_account()
-}
-
-pub fn create_mollusk_program_account(program_bytes: &[u8]) -> Account {
-    Account {
-        lamports: 1,
-        data: program_bytes.to_vec(),
-        owner: BPF_LOADER,
-        executable: true,
-        rent_epoch: 0,
-    }
-}
-
-/// Verify mollusk result is successful and return resulting accounts
-pub fn assert_mollusk_success(result: &mollusk_svm::result::InstructionResult) {
-    match &result.program_result {
-        ProgramResult::Success => {}
-        ProgramResult::Failure(e) => {
-            panic!(
-                "Mollusk execution failed: {:?}. Compute units: {}",
-                e, result.compute_units_consumed
-            );
-        }
-        ProgramResult::UnknownError(e) => {
-            panic!(
-                "Mollusk unknown error: {:?}. Compute units: {}",
-                e, result.compute_units_consumed
-            );
-        }
-    }
 }
 
 // =============================================================================

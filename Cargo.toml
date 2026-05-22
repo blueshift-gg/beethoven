@@ -128,8 +128,6 @@ beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
 base64 = "0.22"
 litesvm = "0.12.0"
-mollusk-svm = "0.12.0"
-mollusk-svm-programs-token = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
 pinocchio-token = "0.6.0"
 pinocchio-token-2022 = "0.3.1"
@@ -172,8 +170,6 @@ solana-sdk-ids.workspace = true
 solana-signer.workspace = true
 solana-transaction.workspace = true
 spl-token-interface.workspace = true
-mollusk-svm.workspace = true
-mollusk-svm-programs-token.workspace = true
 beethoven-client = { workspace = true, features = [
     "manifest",
     "aldrin",
