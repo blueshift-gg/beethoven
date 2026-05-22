@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Rise = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Rise),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,8 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            // min between buy and sell is 22 accounts
+            Self::Rise => 22,
         }
     }
 }
@@ -103,6 +107,9 @@ fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), Progr
 pub enum SwapContext<'info> {
     #[cfg(feature = "perena-swap")]
     Perena(crate::perena::PerenaSwapAccounts<'info>),
+
+    #[cfg(feature = "rise-swap")]
+    Rise(crate::rise::RiseSwapAccounts<'info>),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapAccounts<'info>),
@@ -148,6 +155,9 @@ pub enum SwapContext<'info> {
 pub enum SwapData<'a> {
     #[cfg(feature = "perena-swap")]
     Perena(crate::perena::PerenaSwapData),
+
+    #[cfg(feature = "rise-swap")]
+    Rise(crate::rise::RiseSwapData),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapData),
@@ -205,6 +215,12 @@ impl<'a> SwapContext<'a> {
                     rest,
                 ))
             }
+
+            #[cfg(feature = "rise-swap")]
+            SwapContext::Rise(_) => Ok((
+                SwapData::Rise(crate::rise::RiseSwapData::try_from(data)?),
+                &[],
+            )),
 
             #[cfg(feature = "solfi-swap")]
             SwapContext::SolFi(_) => {
@@ -432,6 +448,15 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                     signer_seeds,
                 )
             }
+
+            #[cfg(feature = "rise-swap")]
+            (SwapContext::Rise(accounts), SwapData::Rise(d)) => crate::rise::Rise::swap_signed(
+                accounts,
+                in_amount,
+                minimum_out_amount,
+                d,
+                signer_seeds,
+            ),
 
             #[cfg(feature = "solfi-swap")]
             (SwapContext::SolFi(accounts), SwapData::SolFi(d)) => crate::solfi::SolFi::swap_signed(
@@ -816,6 +841,19 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Rise => {
+            #[cfg(feature = "rise-swap")]
+            {
+                validate_tagged_program_account(program_account, &crate::rise::RISE_PROGRAM_ID)?;
+                let ctx = crate::rise::RiseSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Rise(ctx), rest))
+            }
+            #[cfg(not(feature = "rise-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

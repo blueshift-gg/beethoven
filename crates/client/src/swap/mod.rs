@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "rise")]
+pub mod rise;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,16 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "rise")]
+    Rise {
+        market: Option<Address>,
+        new_shoulder_end: Option<u64>,
+        floor_increase_ratio: Option<[u8; 16]>,
+        max_new_floor: Option<[u8; 16]>,
+        max_area_shrinkage_tolerance_units: Option<u64>,
+        min_liq_ratio: Option<[u8; 16]>,
     },
 }
 
@@ -277,6 +291,30 @@ pub async fn resolve_swap(
                 rpc,
                 market.as_ref(),
                 *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "rise")]
+        SwapProtocol::Rise {
+            market,
+            new_shoulder_end,
+            floor_increase_ratio,
+            max_new_floor,
+            max_area_shrinkage_tolerance_units,
+            min_liq_ratio,
+        } => {
+            rise::resolve(
+                rpc,
+                market.as_ref(),
+                *new_shoulder_end,
+                *floor_increase_ratio,
+                *max_new_floor,
+                *max_area_shrinkage_tolerance_units,
+                *min_liq_ratio,
                 mint_a,
                 mint_b,
                 user,

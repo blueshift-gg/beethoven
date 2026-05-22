@@ -9,6 +9,7 @@ mod multi_swap;
 mod omnipair;
 mod perena;
 mod raydium_cpmm;
+mod rise;
 mod route;
 mod scale_amm;
 mod scale_vmm;

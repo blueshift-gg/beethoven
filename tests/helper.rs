@@ -29,6 +29,8 @@ pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
 pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
+pub const RISE_PROGRAM_ID: Address = address!("RiseZSHaLdj7pfn1tisUoSdG2i3QcVz9sQKuaRG9rar");
+pub const MAYFLOWER_PROGRAM_ID: Address = address!("AVMmmRzwc2kETQNhPiFVnyu62HrgsQXTD6D7SnSfEz7v");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
@@ -46,6 +48,8 @@ pub const SCALE_VMM_PROGRAM_ID: Address = address!("SCALEWoRSpVZpMRqHEcDfNvBh3nU
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const INSTRUCTIONS_SYSVAR_ID: Address = address!("Sysvar1nstructions1111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
+
+pub const WSOL_MINT: Address = address!("So11111111111111111111111111111111111111112");
 
 pub mod discriminator {
     pub const DEPOSIT: u8 = 0;
@@ -95,7 +99,11 @@ pub fn create_account_for_token_account(
     TokenAccount::pack(token_account_data, &mut data).unwrap();
 
     Account {
-        lamports: Rent::default().minimum_balance(TokenAccount::LEN),
+        lamports: if token_account_data.is_native.is_some() {
+            token_account_data.amount
+        } else {
+            Rent::default().minimum_balance(TokenAccount::LEN)
+        },
         data,
         owner: if is_2022 {
             TOKEN_2022_PROGRAM_ID
@@ -123,7 +131,11 @@ pub fn create_token_account(
             amount,
             delegate: COption::None,
             state: AccountState::Initialized,
-            is_native: COption::None,
+            is_native: if mint == &WSOL_MINT {
+                COption::Some(Rent::default().minimum_balance(TokenAccount::LEN))
+            } else {
+                COption::None
+            },
             delegated_amount: 0,
             close_authority: COption::None,
         },
@@ -149,7 +161,11 @@ pub fn create_token_account_at(
             amount,
             delegate: COption::None,
             state: AccountState::Initialized,
-            is_native: COption::None,
+            is_native: if mint == &WSOL_MINT {
+                COption::Some(Rent::default().minimum_balance(TokenAccount::LEN))
+            } else {
+                COption::None
+            },
             delegated_amount: 0,
             close_authority: COption::None,
         },
@@ -537,6 +553,10 @@ pub fn common_fixtures_dir() -> String {
 
 pub fn gamma_fixtures_dir() -> String {
     format!("{}/fixtures/swap/gamma", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn rise_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/rise", env!("CARGO_MANIFEST_DIR"))
 }
 
 pub fn manifest_fixtures_dir() -> String {
