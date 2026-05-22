@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    ByrealClmm = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::ByrealClmm),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::ByrealClmm => 14,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "byreal-clmm-swap")]
+    ByrealClmm(crate::byreal_clmm::ByrealClmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "byreal-clmm-swap")]
+    ByrealClmm(crate::byreal_clmm::ByrealClmmSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,16 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+
+            #[cfg(feature = "byreal-clmm-swap")]
+            SwapContext::ByrealClmm(_) => {
+                let n = crate::byreal_clmm::ByrealClmmSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::ByrealClmm(crate::byreal_clmm::ByrealClmmSwapData::try_from(mine)?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +593,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "byreal-clmm-swap")]
+            (SwapContext::ByrealClmm(accounts), SwapData::ByrealClmm(d)) => {
+                crate::byreal_clmm::ByrealClmm::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +846,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::ByrealClmm => {
+            #[cfg(feature = "byreal-clmm-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::byreal_clmm::BYREAL_CLMM_PROGRAM_ID,
+                )?;
+                let ctx = crate::byreal_clmm::ByrealClmmSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::ByrealClmm(ctx), rest))
+            }
+            #[cfg(not(feature = "byreal-clmm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

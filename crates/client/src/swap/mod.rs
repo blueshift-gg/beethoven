@@ -16,6 +16,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "byreal-clmm")]
+pub mod byreal_clmm;
+
 #[cfg(feature = "hadron")]
 pub mod hadron;
 
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "byreal-clmm")]
+    ByrealClmm {
+        pool: Option<Address>,
+        sqrt_price_limit_x64: u128,
+        is_base_input: bool,
     },
 }
 
@@ -280,6 +291,24 @@ pub async fn resolve_swap(
                 mint_a,
                 mint_b,
                 user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "byreal-clmm")]
+        SwapProtocol::ByrealClmm {
+            pool,
+            sqrt_price_limit_x64,
+            is_base_input,
+        } => {
+            byreal_clmm::resolve(
+                rpc,
+                pool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit_x64,
+                *is_base_input,
             )
             .await
         }
