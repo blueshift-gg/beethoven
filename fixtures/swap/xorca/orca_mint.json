@@ -1,0 +1,14 @@
+{
+  "pubkey": "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+  "account": {
+    "lamports": 2327027117,
+    "data": [
+      "AQAAAOzGza8ikrL73BJf2nvfj0M3epeaxgn4Is0mUqub30T8mCMOMjZEAAAGAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "base64"
+    ],
+    "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "executable": false,
+    "rentEpoch": 18446744073709551615,
+    "space": 82
+  }
+}
