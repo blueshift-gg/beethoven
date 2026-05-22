@@ -58,7 +58,7 @@ impl SwapProtocolTag {
             Self::Futarchy => 10,
             Self::Gamma => 14,
             Self::ScaleAmm => 15,
-            Self::ScaleVmm => 22,
+            Self::ScaleVmm => 19,
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
