@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "voltr")]
+pub mod voltr;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "voltr")]
+    Voltr {
+        vault: Option<Address>,
+        is_amount_in_lp: Option<bool>,
+        is_withdraw_all: Option<bool>,
     },
 }
 
@@ -277,6 +288,24 @@ pub async fn resolve_swap(
                 rpc,
                 market.as_ref(),
                 *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "voltr")]
+        SwapProtocol::Voltr {
+            vault,
+            is_amount_in_lp,
+            is_withdraw_all,
+        } => {
+            voltr::resolve(
+                rpc,
+                vault.as_ref(),
+                *is_amount_in_lp,
+                *is_withdraw_all,
                 mint_a,
                 mint_b,
                 user,

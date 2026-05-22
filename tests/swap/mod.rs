@@ -15,3 +15,4 @@ mod scale_vmm;
 mod solfi;
 mod solfi_v2;
 mod tagged;
+mod voltr;
