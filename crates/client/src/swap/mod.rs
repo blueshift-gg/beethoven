@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "synatra")]
+pub mod synatra;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -126,6 +130,9 @@ pub enum SwapProtocol {
         market: Option<Address>,
         is_quote_to_base: bool,
     },
+
+    #[cfg(feature = "synatra")]
+    Synatra { pool: Option<Address> },
 }
 
 /// A single step in a multi-swap composition.
@@ -282,6 +289,11 @@ pub async fn resolve_swap(
                 user,
             )
             .await
+        }
+
+        #[cfg(feature = "synatra")]
+        SwapProtocol::Synatra { pool } => {
+            synatra::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
     }
 }
