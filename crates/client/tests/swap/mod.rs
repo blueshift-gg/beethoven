@@ -1,5 +1,6 @@
 mod aldrin;
 mod aldrin_v2;
+mod fraudsworth_conversion_vault;
 mod futarchy;
 mod gamma_discover;
 mod heaven;

@@ -35,6 +35,10 @@ pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMF
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
+pub const FRAUDSWORTH_CONVERSION_VAULT_PROGRAM_ID: Address =
+    address!("5uawA6ehYTu69Ggvm3LSK84qFawPKxbWgfngwj15NRJ");
+pub const FRAUDSWORTH_TRANSFER_HOOK_PROGRAM_ID: Address =
+    address!("CiQPQrmQh6BPhb9k7dFnsEs5gKPgdrvNKFc5xie5xVGd");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
 pub const FUTARCHY_PROGRAM_ID: Address = address!("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
@@ -522,9 +526,24 @@ pub fn get_token_balance(svm: &LiteSVM, token_account: &Address) -> u64 {
     let account = svm
         .get_account(token_account)
         .expect("Token account not found");
-    TokenAccount::unpack(&account.data)
-        .expect("Failed to unpack token account")
-        .amount
+
+    if account.owner != TOKEN_PROGRAM_ID && account.owner != TOKEN_2022_PROGRAM_ID {
+        panic!("Account is not owned by a token program");
+    }
+
+    if account.data.len() < 72 {
+        panic!("Token account data too short");
+    }
+
+    let mut amount_bytes = [0u8; 8];
+    amount_bytes.copy_from_slice(&account.data[64..72]);
+    u64::from_le_bytes(amount_bytes)
+}
+
+pub fn set_token_balance(svm: &mut LiteSVM, token_account: &Address, amount: u64) {
+    let mut account = svm.get_account(token_account).unwrap();
+    account.data[64..72].copy_from_slice(&amount.to_le_bytes());
+    svm.set_account(*token_account, account).unwrap();
 }
 
 pub fn get_rpc_url() -> String {
@@ -549,6 +568,13 @@ pub fn omnipair_fixtures_dir() -> String {
 
 pub fn hadron_fixtures_dir() -> String {
     format!("{}/fixtures/swap/hadron", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn fraudsworth_conversion_vault_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/swap/fraudsworth-conversion-vault",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 pub fn raydium_cpmm_fixtures_dir() -> String {
