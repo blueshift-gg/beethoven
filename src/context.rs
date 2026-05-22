@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    Zerofi = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::Zerofi),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::Zerofi => 10,
         }
     }
 }
@@ -142,6 +145,9 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+
+    #[cfg(feature = "zerofi-swap")]
+    Zerofi(crate::zerofi::ZerofiSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
@@ -187,6 +193,9 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+
+    #[cfg(feature = "zerofi-swap")]
+    Zerofi(()),
 }
 
 impl<'a> SwapContext<'a> {
@@ -313,6 +322,9 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+
+            #[cfg(feature = "zerofi-swap")]
+            SwapContext::Zerofi(_) => Ok((SwapData::Zerofi(()), data)),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -574,6 +586,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "zerofi-swap")]
+            (SwapContext::Zerofi(accounts), SwapData::Zerofi(())) => {
+                crate::zerofi::Zerofi::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    &(),
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -816,6 +839,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::Zerofi => {
+            #[cfg(feature = "zerofi-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::zerofi::ZEROFI_PROGRAM_ID,
+                )?;
+                let ctx = crate::zerofi::ZerofiSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::Zerofi(ctx), rest))
+            }
+            #[cfg(not(feature = "zerofi-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
