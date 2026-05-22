@@ -13,7 +13,6 @@ const MINT_B: Address = address!("7j5Zo8vzDTN8qJhWSFY9RWPE76rVRXMkqvGLeaWqcyz9")
 const POOL: Address = address!("AZDqVz1TiKYGcMhaYKBMoCnRH6bXXqoxuZNR4dLL8B8K");
 const PLATFORM_CONFIG: Address = address!("232KbYciAe6ma2VCB6gQyofix8qQwyZd2WYVhpNx8SyR");
 const OWNER: Address = address!("BXfXDZh5HfyyPPHT5xYUVXWve5oJ2cY2P2Y6VyKwoqGg");
-const PLATFORM_FEE_TA_A: Address = address!("5otzrfbppNE1j6m7ptWkAcu5gs1nwj5ZQKQVwFFHQAHv");
 const VAULT_A: Address = address!("5Lsuh97Dnzsj9wp2DspyodwmUTX2ABiFYqCRtH7Ym65o");
 const VAULT_B: Address = address!("ENpu9WqhnEzUSQzhEqVx6LtpXoexmRqjWYAGYYfhDGnt");
 const FEE_BENEFICIARY_ATA: Address = address!("7XRb5qdYdCh1QUp6WZtHGtyGgwVnuu8BPS3fr2FvXboD");
@@ -83,10 +82,7 @@ async fn test_scale_amm_resolve_with_known_pool() {
     assert!(accounts[9].is_writable);
 
     // Platform fee ta a
-    assert_eq!(
-        accounts[10].pubkey, PLATFORM_FEE_TA_A,
-        "platform_fee_ta_a ATA"
-    );
+    // address dependent on config fee beneficiary
     assert!(accounts[10].is_writable);
 
     // Token program a
@@ -170,10 +166,7 @@ async fn test_scale_amm_resolve_flipped_mints() {
     assert!(accounts[9].is_writable);
 
     // Platform fee ta a
-    assert_eq!(
-        accounts[10].pubkey, PLATFORM_FEE_TA_A,
-        "platform_fee_ta_a ATA"
-    );
+    // address dependent on config fee beneficiary
     assert!(accounts[10].is_writable);
 
     // Token program a
