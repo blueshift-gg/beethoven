@@ -7,6 +7,7 @@ mod heaven;
 mod manifest;
 mod multi_swap;
 mod omnipair;
+mod orca_whirlpool;
 mod perena;
 mod raydium_cpmm;
 mod route;
