@@ -43,6 +43,8 @@ pub const ALDRIN_PROGRAM_ID: Address = address!("AMM55ShdkoGRB5jVYPjWziwk8m5Mpwy
 pub const ALDRIN_V2_PROGRAM_ID: Address = address!("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
 pub const SCALE_AMM_PROGRAM_ID: Address = address!("SCALEwAvEK5gtkdHiFzXfPgtk2YwJxPDzaV3aDmR7tA");
 pub const SCALE_VMM_PROGRAM_ID: Address = address!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
+pub const JUPITER_PERPETUALS_PROGRAM_ID: Address =
+    address!("PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const INSTRUCTIONS_SYSVAR_ID: Address = address!("Sysvar1nstructions1111111111111111111111111");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
@@ -589,6 +591,13 @@ pub fn solfi_fixtures_dir() -> String {
 
 pub fn solfi_v2_fixtures_dir() -> String {
     format!("{}/fixtures/swap/solfi-v2", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn jupiter_perpetuals_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/swap/jupiter-perpetuals",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 #[cfg(feature = "upstream-bpf")]

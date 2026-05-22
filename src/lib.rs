@@ -23,6 +23,8 @@ pub use beethoven_swap_gamma as gamma;
 pub use beethoven_swap_hadron as hadron;
 #[cfg(feature = "heaven-swap")]
 pub use beethoven_swap_heaven as heaven;
+#[cfg(feature = "jupiter-perpetuals-swap")]
+pub use beethoven_swap_jupiter_perpetuals as jupiter_perpetuals;
 #[cfg(feature = "manifest-swap")]
 pub use beethoven_swap_manifest as manifest;
 #[cfg(feature = "omnipair-swap")]
