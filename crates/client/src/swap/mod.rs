@@ -40,6 +40,9 @@ pub mod solfi;
 #[cfg(feature = "solfi-v2")]
 pub mod solfi_v2;
 
+#[cfg(feature = "tessera-v")]
+pub mod tessera_v;
+
 use solana_address::Address;
 #[cfg(feature = "resolve")]
 use {
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "tessera-v")]
+    TesseraV {
+        market: Option<Address>,
+        vault_a: Address,
+        vault_b: Address,
     },
 }
 
@@ -283,6 +294,13 @@ pub async fn resolve_swap(
             )
             .await
         }
+
+        #[cfg(feature = "tessera-v")]
+        SwapProtocol::TesseraV {
+            market,
+            vault_a,
+            vault_b,
+        } => tessera_v::resolve(rpc, market.as_ref(), vault_a, vault_b, mint_a, mint_b, user).await,
     }
 }
 
