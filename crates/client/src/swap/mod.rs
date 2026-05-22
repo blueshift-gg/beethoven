@@ -16,6 +16,9 @@ pub mod gamma;
 #[cfg(feature = "omnipair")]
 pub mod omnipair;
 
+#[cfg(feature = "solv-finance")]
+pub mod solv_finance;
+
 #[cfg(feature = "hadron")]
 pub mod hadron;
 
@@ -79,6 +82,9 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "omnipair")]
     Omnipair { pair: Option<Address> },
+
+    #[cfg(feature = "solv-finance")]
+    SolvFinance { vault: Option<Address> },
 
     #[cfg(feature = "hadron")]
     Hadron {
@@ -181,6 +187,11 @@ pub async fn resolve_swap(
         #[cfg(feature = "omnipair")]
         SwapProtocol::Omnipair { pair } => {
             omnipair::resolve(rpc, pair.as_ref(), mint_a, mint_b, user).await
+        }
+
+        #[cfg(feature = "solv-finance")]
+        SwapProtocol::SolvFinance { vault } => {
+            solv_finance::resolve(rpc, vault.as_ref(), mint_a, mint_b, user).await
         }
 
         #[cfg(feature = "hadron")]

@@ -17,6 +17,7 @@ swap = [
     "perena-swap",
     "solfi-swap",
     "solfi-v2-swap",
+    "solv-finance-swap",
     "manifest-swap",
     "heaven-swap",
     "aldrin-swap",
@@ -40,6 +41,7 @@ marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 perena-swap = ["dep:beethoven-swap-perena"]
 solfi-swap = ["dep:beethoven-swap-solfi"]
 solfi-v2-swap = ["dep:beethoven-swap-solfi-v2"]
+solv-finance-swap = ["dep:beethoven-swap-solv-finance"]
 manifest-swap = ["dep:beethoven-swap-manifest"]
 heaven-swap = ["dep:beethoven-swap-heaven"]
 aldrin-swap = ["dep:beethoven-swap-aldrin"]
@@ -78,6 +80,7 @@ beethoven-swap-scale-vmm = { workspace = true, optional = true }
 beethoven-swap-omnipair = { workspace = true, optional = true }
 beethoven-swap-hadron = { workspace = true, optional = true }
 beethoven-swap-raydium-cpmm = { workspace = true, optional = true }
+beethoven-swap-solv-finance = { workspace = true, optional = true }
 
 [workspace]
 members = [
@@ -89,6 +92,7 @@ members = [
     "crates/swap/perena",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
+    "crates/swap/solv-finance",
     "crates/swap/manifest",
     "crates/swap/heaven",
     "crates/swap/aldrin",
@@ -126,6 +130,7 @@ beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm" }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair" }
 beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
+beethoven-swap-solv-finance = { path = "crates/swap/solv-finance" }
 base64 = "0.22"
 litesvm = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
@@ -185,6 +190,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "solv-finance",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

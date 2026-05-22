@@ -168,3 +168,24 @@ pub fn read_u8(data: &[u8], offset: usize) -> Result<u8, ClientError> {
     }
     Ok(data[offset])
 }
+
+pub fn read_mint_authority(data: &[u8]) -> Result<Address, ClientError> {
+    if data.len() < 4 + 32 {
+        return Err(ClientError::InvalidAccountData(format!(
+            "Mint account data too short: {} bytes",
+            data.len()
+        )));
+    }
+
+    let tag = <[u8; 4]>::try_from(&data[0..4]).map_err(|_| {
+        ClientError::InvalidAccountData("Failed to decode mint authority tag".to_string())
+    })?;
+
+    if u32::from_le_bytes(tag) != 1 {
+        return Err(ClientError::InvalidAccountData(
+            "mint_target has no mint authority".to_string(),
+        ));
+    }
+
+    read_pubkey(data, 4)
+}

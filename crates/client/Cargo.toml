@@ -15,6 +15,7 @@ swap = [
     "futarchy",
     "gamma",
     "omnipair",
+    "solv-finance",
     "hadron",
     "raydium-cpmm",
     "perena",
@@ -41,6 +42,7 @@ aldrin-v2 = []
 futarchy = []
 gamma = []
 omnipair = []
+solv-finance = []
 hadron = []
 raydium-cpmm = []
 perena = []
