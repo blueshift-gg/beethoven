@@ -12,7 +12,13 @@ default = ["deposit", "swap"]
 upstream-bpf = []
 
 # Action groups
-deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit"]
+deposit = [
+    "kamino-deposit",
+    "jupiter-deposit",
+    "drift-deposit",
+    "marginfi-deposit",
+    "defi-tuna-deposit",
+]
 swap = [
     "perena-swap",
     "solfi-swap",
@@ -35,6 +41,7 @@ kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
+defi-tuna-deposit = ["dep:beethoven-deposit-defi-tuna"]
 
 # Swap protocols
 perena-swap = ["dep:beethoven-swap-perena"]
@@ -64,6 +71,7 @@ beethoven-deposit-kamino = { workspace = true, optional = true }
 beethoven-deposit-jupiter = { workspace = true, optional = true }
 beethoven-deposit-drift = { workspace = true, optional = true }
 beethoven-deposit-marginfi = { workspace = true, optional = true }
+beethoven-deposit-defi-tuna = { workspace = true, optional = true }
 beethoven-swap-perena = { workspace = true, optional = true }
 beethoven-swap-solfi = { workspace = true, optional = true }
 beethoven-swap-solfi-v2 = { workspace = true, optional = true }
@@ -86,6 +94,7 @@ members = [
     "crates/deposit/jupiter",
     "crates/deposit/drift",
     "crates/deposit/marginfi",
+    "crates/deposit/defi-tuna",
     "crates/swap/perena",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
@@ -112,6 +121,7 @@ beethoven-deposit-kamino = { path = "crates/deposit/kamino" }
 beethoven-deposit-jupiter = { path = "crates/deposit/jupiter" }
 beethoven-deposit-drift = { path = "crates/deposit/drift" }
 beethoven-deposit-marginfi = { path = "crates/deposit/marginfi" }
+beethoven-deposit-defi-tuna = { path = "crates/deposit/defi-tuna" }
 beethoven-swap-perena = { path = "crates/swap/perena" }
 beethoven-swap-solfi = { path = "crates/swap/solfi" }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2" }
@@ -185,6 +195,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "defi-tuna",
     "resolve",
 ] }
 solana-rpc-client.workspace = true
@@ -193,7 +204,6 @@ spl-associated-token-account = "8.0.0"
 spl-token-2022-interface = "2.1.0"
 
 [profile.release]
-opt-level = 3
 lto = true
 codegen-units = 1
 panic = "abort"

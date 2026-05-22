@@ -2,6 +2,8 @@
 
 // Re-export core traits
 pub use beethoven_core::{Deposit, Swap, SwapTokenAccounts};
+#[cfg(feature = "defi-tuna-deposit")]
+pub use beethoven_deposit_defi_tuna as defi_tuna;
 #[cfg(feature = "drift-deposit")]
 pub use beethoven_deposit_drift as drift;
 #[cfg(feature = "jupiter-deposit")]

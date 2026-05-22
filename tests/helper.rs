@@ -28,6 +28,7 @@ pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+pub const DEFI_TUNA_PROGRAM_ID: Address = address!("tuna4uSQZncNeeiAMKbstuxA9CUkHH6HmC64wgmnogD");
 pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
@@ -45,6 +46,7 @@ pub const SCALE_AMM_PROGRAM_ID: Address = address!("SCALEwAvEK5gtkdHiFzXfPgtk2Yw
 pub const SCALE_VMM_PROGRAM_ID: Address = address!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
 pub const SYSTEM_PROGRAM_ID: Address = address!("11111111111111111111111111111111");
 pub const INSTRUCTIONS_SYSVAR_ID: Address = address!("Sysvar1nstructions1111111111111111111111111");
+pub const MEMO_PROGRAM_ID: Address = address!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 pub const BPF_LOADER: Address = address!("BPFLoader2111111111111111111111111111111111");
 
 pub mod discriminator {
@@ -589,6 +591,10 @@ pub fn solfi_fixtures_dir() -> String {
 
 pub fn solfi_v2_fixtures_dir() -> String {
     format!("{}/fixtures/swap/solfi-v2", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn defi_tuna_fixtures_dir() -> String {
+    format!("{}/fixtures/deposit/defi_tuna", env!("CARGO_MANIFEST_DIR"))
 }
 
 #[cfg(feature = "upstream-bpf")]
