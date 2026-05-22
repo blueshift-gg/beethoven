@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    beethoven_core::Swap,
+    beethoven_core::{Swap, SwapTokenAccounts},
     core::mem::MaybeUninit,
     solana_account_view::AccountView,
     solana_address::Address,
@@ -140,5 +140,17 @@ impl<'info> Swap<'info> for RaydiumCpmm {
         data: &Self::Data,
     ) -> ProgramResult {
         Self::swap_signed(ctx, in_amount, minimum_out_amount, data, &[])
+    }
+}
+
+impl<'info> SwapTokenAccounts<'info> for RaydiumCpmm {
+    type Accounts = RaydiumCpmmSwapAccounts<'info>;
+    type Data = ();
+
+    fn token_accounts(
+        ctx: &Self::Accounts,
+        _data: &Self::Data,
+    ) -> (&'info AccountView, &'info AccountView) {
+        (ctx.input_token_account, ctx.output_token_account)
     }
 }

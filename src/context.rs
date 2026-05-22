@@ -399,6 +399,11 @@ impl<'a> SwapContext<'a> {
                 Ok(crate::hadron::Hadron::token_accounts(accounts, d))
             }
 
+            #[cfg(feature = "raydium-cpmm-swap")]
+            (SwapContext::RaydiumCpmm(accounts), SwapData::RaydiumCpmm(())) => Ok(
+                crate::raydium_cpmm::RaydiumCpmm::token_accounts(accounts, &()),
+            ),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
