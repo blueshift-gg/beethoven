@@ -548,7 +548,7 @@ pub fn build_accounts(input: &MeteoraDlmmSwapInput) -> Vec<AccountMeta> {
         AccountMeta::new_readonly(METEORA_DLMM_PROGRAM_ID, false),
         AccountMeta::new(input.lb_pair, false),
         // pass program itself if there's no bin array bitmap extension
-        AccountMeta::new_readonly(
+        AccountMeta::new(
             input
                 .bin_array_bitmap_extension
                 .unwrap_or(METEORA_DLMM_PROGRAM_ID),

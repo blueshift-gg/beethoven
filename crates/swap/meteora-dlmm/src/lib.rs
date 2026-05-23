@@ -150,7 +150,7 @@ impl<'info> Swap<'info> for MeteoraDlmm {
             );
             core::ptr::write(
                 instruction_accounts_ptr.add(1),
-                InstructionAccount::readonly(ctx.bin_array_bitmap_extension.address()),
+                InstructionAccount::writable(ctx.bin_array_bitmap_extension.address()),
             );
             core::ptr::write(
                 instruction_accounts_ptr.add(2),

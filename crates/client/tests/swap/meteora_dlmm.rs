@@ -61,6 +61,7 @@ async fn test_meteora_dlmm_resolve_with_known_lb_pair() {
         accounts[2].pubkey, BIN_ARRAY_BITMAP_EXTENSION,
         "bin array bitmap extension"
     );
+    assert!(accounts[2].is_writable);
 
     // Reserve x
     assert_eq!(accounts[3].pubkey, RESERVE_X, "reserve x");
@@ -166,6 +167,7 @@ async fn test_meteora_dlmm_resolve_flipped_mints() {
         accounts[2].pubkey, BIN_ARRAY_BITMAP_EXTENSION,
         "bin array bitmap extension"
     );
+    assert!(accounts[2].is_writable);
 
     // Reserve x
     assert_eq!(accounts[3].pubkey, RESERVE_X, "reserve x");

@@ -119,7 +119,7 @@ fn test_meteora_dlmm_swap_cpi() {
     let accounts = vec![
         AccountMeta::new_readonly(METEORA_DLMM_PROGRAM_ID, false), // meteora_dlmm_program
         AccountMeta::new(LB_PAIR, false),                          // lb_pair
-        AccountMeta::new_readonly(BIN_ARRAY_BITMAP_EXTENSION, false), // bin_array_bitmap_extension
+        AccountMeta::new(BIN_ARRAY_BITMAP_EXTENSION, false),       // bin_array_bitmap_extension
         AccountMeta::new(RESERVE_X, false),                        // reserve_x
         AccountMeta::new(RESERVE_Y, false),                        // reserve_y
         AccountMeta::new(trader_input, false),                     // user_token_in
