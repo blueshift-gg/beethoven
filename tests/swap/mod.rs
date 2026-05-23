@@ -5,6 +5,7 @@ mod gamma;
 mod hadron;
 mod heaven;
 mod manifest;
+mod meteora_dlmm;
 mod multi_swap;
 mod omnipair;
 mod perena;

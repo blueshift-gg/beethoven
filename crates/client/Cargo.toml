@@ -23,6 +23,7 @@ swap = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "meteora-dlmm",
 ]
 
 deposit = []
@@ -32,7 +33,9 @@ resolve = [
     "dep:solana-rpc-client-api",
     "dep:solana-account",
     "dep:solana-account-decoder-client-types",
-    "dep:spl-token-2022-interface",
+    "dep:spl-token-2022",
+    "dep:spl-transfer-hook-interface",
+    "dep:ruint",
 ]
 
 manifest = []
@@ -49,6 +52,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
+meteora-dlmm = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }
@@ -57,7 +61,9 @@ solana-rpc-client = { workspace = true, optional = true }
 solana-rpc-client-api = { workspace = true, optional = true }
 solana-account = { workspace = true, optional = true }
 solana-account-decoder-client-types = { workspace = true, optional = true }
-spl-token-2022-interface = { workspace = true, optional = true }
+spl-token-2022 = { workspace = true, optional = true }
+spl-transfer-hook-interface = { workspace = true, optional = true }
+ruint = { workspace = true, optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]
