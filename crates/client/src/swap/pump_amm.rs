@@ -240,10 +240,10 @@ pub async fn resolve(
         }
     }
 
-    let pool_v2 =
-        Address::find_program_address(&[b"pool-v2", base_mint.as_ref()], &PUMP_AMM_PROGRAM_ID).0;
+    // let pool_v2 =
+    //     Address::find_program_address(&[b"pool-v2", base_mint.as_ref()], &PUMP_AMM_PROGRAM_ID).0;
 
-    remaining_accounts.push(AccountMeta::new_readonly(pool_v2, false));
+    // remaining_accounts.push(AccountMeta::new_readonly(pool_v2, false));
 
     let fee_recipient_quote_mint_ata =
         get_associated_token_address(&FEE_RECIPIENT, &quote_mint, &quote_token_program);

@@ -59,8 +59,8 @@ impl TryFrom<&[u8]> for PumpAmmSwapData {
 }
 
 impl PumpAmmSwapAccounts<'_> {
-    pub const MIN_NUM_ACCOUNTS_BUY: usize = 26;
-    pub const MIN_NUM_ACCOUNTS_SELL: usize = 24;
+    pub const MIN_NUM_ACCOUNTS_BUY: usize = 25;
+    pub const MIN_NUM_ACCOUNTS_SELL: usize = 23;
 }
 
 pub struct PumpAmmSwapAccounts<'info> {
@@ -103,7 +103,7 @@ pub enum PumpAmmSwapAccountsLeg<'info> {
 pub struct PumpAmmSwapAccountsTail<'info> {
     pub fee_config: &'info AccountView,
     pub fee_program: &'info AccountView,
-    pub pool_v2: &'info AccountView,
+    // pub pool_v2: &'info AccountView,
     pub remaining_accounts: &'info [AccountView],
     pub fee_recipient: &'info AccountView,
     pub fee_recipient_quote_mint_ata: &'info AccountView,
@@ -160,8 +160,8 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
                 tail: PumpAmmSwapAccountsTail {
                     fee_config: &i[22],
                     fee_program: &i[23],
-                    pool_v2: &i[24],
-                    remaining_accounts: &i[25..fee_recipient_index],
+                    // pool_v2: &i[24],
+                    remaining_accounts: &i[24..fee_recipient_index],
                     fee_recipient,
                     fee_recipient_quote_mint_ata,
                 },
@@ -173,8 +173,8 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
                 tail: PumpAmmSwapAccountsTail {
                     fee_config: &i[20],
                     fee_program: &i[21],
-                    pool_v2: &i[22],
-                    remaining_accounts: &i[23..fee_recipient_index],
+                    // pool_v2: &i[22],
+                    remaining_accounts: &i[22..fee_recipient_index],
                     fee_recipient,
                     fee_recipient_quote_mint_ata,
                 },
@@ -314,11 +314,12 @@ impl<'info> Swap<'info> for PumpAmm {
                 account_metas_ptr.add(index + 1),
                 InstructionAccount::readonly(ctx.tail.fee_program.address()),
             );
-            core::ptr::write(
-                account_metas_ptr.add(index + 2),
-                InstructionAccount::readonly(ctx.tail.pool_v2.address()),
-            );
-            index += 3;
+            // core::ptr::write(
+            //     account_metas_ptr.add(index + 2),
+            //     InstructionAccount::readonly(ctx.tail.pool_v2.address()),
+            // );
+            // index += 3;
+            index += 2;
 
             for account in ctx.tail.remaining_accounts.iter() {
                 core::ptr::write(
@@ -375,8 +376,9 @@ impl<'info> Swap<'info> for PumpAmm {
 
         account_infos[index] = ctx.tail.fee_config;
         account_infos[index + 1] = ctx.tail.fee_program;
-        account_infos[index + 2] = ctx.tail.pool_v2;
-        index += 3;
+        // account_infos[index + 2] = ctx.tail.pool_v2;
+        // index += 3;
+        index += 2;
         for (i, account) in ctx.tail.remaining_accounts.iter().enumerate() {
             account_infos[index + i] = account;
             index += 1;

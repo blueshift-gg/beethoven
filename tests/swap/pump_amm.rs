@@ -29,7 +29,6 @@ const COIN_CREATOR_VAULT_AUTHORITY: Address =
     address!("8N3GDaZ2iwN65oxVatKTLPNooAVUJTbfiVJ1ahyqwjSk");
 const GLOBAL_VOLUME_ACCUMULATOR: Address = address!("C2aFPdENg4A2HQsmrd5rTw5TaYBX5Ku887cWjbFKtZpw");
 const FEE_CONFIG: Address = address!("5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx");
-const POOL_V2: Address = address!("DaJe2QV1wSorz9Xcjq57saBBimvJ363wYcES3uCf93kB");
 const FEE_RECIPIENT: Address = address!("5YxQFdt3Tr9zJLvkFccqXVUwhdTWJQc1fFg2YPbxvxeD");
 const FEE_RECIPIENT_QUOTE_MINT_ATA: Address =
     address!("HjQjngTDqoHE6aaGhUqfz9aQ7WZcBRjy5xB8PScLSr8i");
@@ -149,8 +148,8 @@ fn test_pump_amm_swap_cpi_buy() {
         AccountMeta::new(user_volume_accumulator, false),               // user_volume_accumulator
         AccountMeta::new(FEE_CONFIG, false),                            // fee_config
         AccountMeta::new_readonly(FEE_PROGRAM_ID, false),               // fee_program
-        AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
-        AccountMeta::new_readonly(FEE_RECIPIENT, false),                // fee_recipient
+        // AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
+        AccountMeta::new_readonly(FEE_RECIPIENT, false), // fee_recipient
         AccountMeta::new(FEE_RECIPIENT_QUOTE_MINT_ATA, false), // fee_recipient_quote_mint_ata
     ];
 
@@ -245,7 +244,7 @@ fn test_pump_amm_swap_cpi_sell() {
         AccountMeta::new_readonly(COIN_CREATOR_VAULT_AUTHORITY, false), // coin_creator_vault_authority
         AccountMeta::new(FEE_CONFIG, false),                            // fee_config
         AccountMeta::new_readonly(FEE_PROGRAM_ID, false),               // fee_program
-        AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
+        // AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
         AccountMeta::new_readonly(FEE_RECIPIENT, false), // fee_recipient
         AccountMeta::new(FEE_RECIPIENT_QUOTE_MINT_ATA, false), // fee_recipient_quote_mint_ata
     ];

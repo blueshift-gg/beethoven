@@ -45,8 +45,8 @@ async fn test_pump_amm_resolve_with_known_pool_buy() {
     .unwrap();
 
     assert!(
-        accounts.len() >= 25,
-        "pump amm requires at least 25 accounts"
+        accounts.len() >= 24,
+        "pump amm requires at least 24 accounts"
     );
 
     // Protocol program ID
@@ -179,16 +179,16 @@ async fn test_pump_amm_resolve_with_known_pool_buy() {
     let accounts_len = accounts.len();
 
     // pool-v2
-    let expected_pool_v2 = Address::find_program_address(
-        &[b"pool-v2", accounts[4].pubkey.as_ref()],
-        &PUMP_AMM_PROGRAM_ID,
-    )
-    .0;
-    assert_eq!(
-        accounts[accounts_len - 3].pubkey,
-        expected_pool_v2,
-        "pool-v2"
-    );
+    // let expected_pool_v2 = Address::find_program_address(
+    //     &[b"pool-v2", accounts[4].pubkey.as_ref()],
+    //     &PUMP_AMM_PROGRAM_ID,
+    // )
+    // .0;
+    // assert_eq!(
+    //     accounts[accounts_len - 3].pubkey,
+    //     expected_pool_v2,
+    //     "pool-v2"
+    // );
 
     // Fee recipient
     assert_eq!(
@@ -230,8 +230,8 @@ async fn test_pump_amm_resolve_with_known_pool_sell() {
     .unwrap();
 
     assert!(
-        accounts.len() >= 25,
-        "pump amm requires at least 25 accounts"
+        accounts.len() >= 24,
+        "pump amm requires at least 24 accounts"
     );
 
     // Protocol program ID
@@ -347,16 +347,16 @@ async fn test_pump_amm_resolve_with_known_pool_sell() {
     let accounts_len = accounts.len();
 
     // pool-v2
-    let expected_pool_v2 = Address::find_program_address(
-        &[b"pool-v2", accounts[4].pubkey.as_ref()],
-        &PUMP_AMM_PROGRAM_ID,
-    )
-    .0;
-    assert_eq!(
-        accounts[accounts_len - 3].pubkey,
-        expected_pool_v2,
-        "pool-v2"
-    );
+    // let expected_pool_v2 = Address::find_program_address(
+    //     &[b"pool-v2", accounts[4].pubkey.as_ref()],
+    //     &PUMP_AMM_PROGRAM_ID,
+    // )
+    // .0;
+    // assert_eq!(
+    //     accounts[accounts_len - 3].pubkey,
+    //     expected_pool_v2,
+    //     "pool-v2"
+    // );
 
     // Fee recipient
     assert_eq!(
