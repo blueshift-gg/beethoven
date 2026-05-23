@@ -64,8 +64,8 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
-            // min between buy and sell is 22 accounts
-            Self::PumpAmm => 22,
+            // min between buy and sell is 24 accounts
+            Self::PumpAmm => 24,
         }
     }
 }

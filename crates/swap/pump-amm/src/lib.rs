@@ -18,7 +18,7 @@ const BUY_DISCRIMINATOR: [u8; 8] = [102, 6, 61, 18, 1, 218, 235, 234];
 const SELL_DISCRIMINATOR: [u8; 8] = [51, 230, 133, 164, 1, 127, 131, 173];
 // Optional associated token account of the UserVolumeAccumulator for Pump AMM program
 const MAX_REMAINING_ACCOUNTS: usize = 1;
-const MAX_ACCOUNTS: usize = PumpAmmSwapAccounts::NUM_ACCOUNTS_BUY + MAX_REMAINING_ACCOUNTS;
+const MAX_ACCOUNTS: usize = PumpAmmSwapAccounts::MIN_NUM_ACCOUNTS_BUY + MAX_REMAINING_ACCOUNTS;
 
 pub struct PumpAmm;
 
@@ -59,8 +59,8 @@ impl TryFrom<&[u8]> for PumpAmmSwapData {
 }
 
 impl PumpAmmSwapAccounts<'_> {
-    pub const NUM_ACCOUNTS_BUY: usize = 24;
-    pub const NUM_ACCOUNTS_SELL: usize = 22;
+    pub const MIN_NUM_ACCOUNTS_BUY: usize = 26;
+    pub const MIN_NUM_ACCOUNTS_SELL: usize = 24;
 }
 
 pub struct PumpAmmSwapAccounts<'info> {
@@ -103,7 +103,10 @@ pub enum PumpAmmSwapAccountsLeg<'info> {
 pub struct PumpAmmSwapAccountsTail<'info> {
     pub fee_config: &'info AccountView,
     pub fee_program: &'info AccountView,
+    pub pool_v2: &'info AccountView,
     pub remaining_accounts: &'info [AccountView],
+    pub fee_recipient: &'info AccountView,
+    pub fee_recipient_quote_mint_ata: &'info AccountView,
 }
 
 impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
@@ -111,7 +114,7 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
         // check if account len is at least the minimum
-        if accounts.len() < PumpAmmSwapAccounts::NUM_ACCOUNTS_SELL {
+        if accounts.len() < PumpAmmSwapAccounts::MIN_NUM_ACCOUNTS_SELL {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
@@ -140,7 +143,14 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
             coin_creator_vault_authority: &i[19],
         };
 
-        if accounts.len() >= PumpAmmSwapAccounts::NUM_ACCOUNTS_BUY {
+        // fee recipient and fee recipient quote mint ata are the last 2 accounts
+        // requires remaining accounts to be strict, with no unused accounts
+        let remaining_accounts_len = i.len();
+        let fee_recipient_index = remaining_accounts_len - 2;
+        let fee_recipient = &i[fee_recipient_index];
+        let fee_recipient_quote_mint_ata = &i[fee_recipient_index + 1];
+
+        if accounts.len() >= PumpAmmSwapAccounts::MIN_NUM_ACCOUNTS_BUY {
             Ok(PumpAmmSwapAccounts {
                 base,
                 leg: PumpAmmSwapAccountsLeg::Buy {
@@ -150,7 +160,10 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
                 tail: PumpAmmSwapAccountsTail {
                     fee_config: &i[22],
                     fee_program: &i[23],
-                    remaining_accounts: &i[24..],
+                    pool_v2: &i[24],
+                    remaining_accounts: &i[25..fee_recipient_index],
+                    fee_recipient,
+                    fee_recipient_quote_mint_ata,
                 },
             })
         } else {
@@ -160,7 +173,10 @@ impl<'info> TryFrom<&'info [AccountView]> for PumpAmmSwapAccounts<'info> {
                 tail: PumpAmmSwapAccountsTail {
                     fee_config: &i[20],
                     fee_program: &i[21],
-                    remaining_accounts: &i[22..],
+                    pool_v2: &i[22],
+                    remaining_accounts: &i[23..fee_recipient_index],
+                    fee_recipient,
+                    fee_recipient_quote_mint_ata,
                 },
             })
         }
@@ -179,8 +195,8 @@ impl<'info> Swap<'info> for PumpAmm {
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         let base_account_len = match &ctx.leg {
-            PumpAmmSwapAccountsLeg::Buy { .. } => 23,
-            PumpAmmSwapAccountsLeg::Sell => 21,
+            PumpAmmSwapAccountsLeg::Buy { .. } => 25,
+            PumpAmmSwapAccountsLeg::Sell => 23,
         };
         let total_accounts = base_account_len + ctx.tail.remaining_accounts.len();
 
@@ -298,14 +314,28 @@ impl<'info> Swap<'info> for PumpAmm {
                 account_metas_ptr.add(index + 1),
                 InstructionAccount::readonly(ctx.tail.fee_program.address()),
             );
-            index += 2;
+            core::ptr::write(
+                account_metas_ptr.add(index + 2),
+                InstructionAccount::readonly(ctx.tail.pool_v2.address()),
+            );
+            index += 3;
 
-            for (i, account) in ctx.tail.remaining_accounts.iter().enumerate() {
+            for account in ctx.tail.remaining_accounts.iter() {
                 core::ptr::write(
-                    account_metas_ptr.add(index + i),
+                    account_metas_ptr.add(index),
                     InstructionAccount::from(account),
                 );
+                index += 1;
             }
+
+            core::ptr::write(
+                account_metas_ptr.add(index),
+                InstructionAccount::readonly(ctx.tail.fee_recipient.address()),
+            );
+            core::ptr::write(
+                account_metas_ptr.add(index + 1),
+                InstructionAccount::writable(ctx.tail.fee_recipient_quote_mint_ata.address()),
+            );
         }
 
         let account_metas =
@@ -345,10 +375,15 @@ impl<'info> Swap<'info> for PumpAmm {
 
         account_infos[index] = ctx.tail.fee_config;
         account_infos[index + 1] = ctx.tail.fee_program;
-        index += 2;
+        account_infos[index + 2] = ctx.tail.pool_v2;
+        index += 3;
         for (i, account) in ctx.tail.remaining_accounts.iter().enumerate() {
             account_infos[index + i] = account;
+            index += 1;
         }
+        account_infos[index] = ctx.tail.fee_recipient;
+        account_infos[index + 1] = ctx.tail.fee_recipient_quote_mint_ata;
+
         let account_infos = &account_infos[..total_accounts];
 
         let mut instruction_data = MaybeUninit::<[u8; 26]>::uninit();

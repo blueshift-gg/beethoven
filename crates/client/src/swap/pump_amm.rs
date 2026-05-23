@@ -22,6 +22,7 @@ pub const GLOBAL_VOLUME_ACCUMULATOR: Address =
     address!("C2aFPdENg4A2HQsmrd5rTw5TaYBX5Ku887cWjbFKtZpw");
 pub const FEE_CONFIG: Address = address!("5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx");
 const WSOL_MINT: Address = address!("So11111111111111111111111111111111111111112");
+pub const FEE_RECIPIENT: Address = address!("EHAAiTxcdDwQ3U4bU6YcMsQGaekdzLS3B5SmYo46kJtL");
 
 // Pool account layout offsets
 // Layout: [8 discriminator] [1 bump] [2 index] [32 creator] [32 base_mint] [32 quote_mint] [32 lp_mint] [32 pool_base_token_account] [32 pool_quote_token_account] [8 lp_supply] [32 coin_creator] [1 is_mayhem_mode] [1 is_cashback_coin]
@@ -66,6 +67,7 @@ pub enum PumpAmmSwapLeg {
 }
 
 pub struct PumpAmmSwapTail {
+    pub fee_recipient_quote_mint_ata: Address,
     pub remaining_accounts: Vec<AccountMeta>,
 }
 
@@ -120,6 +122,11 @@ pub fn build_accounts(input: &PumpAmmSwapInput) -> Vec<AccountMeta> {
         .into_iter()
         .chain(input.tail.remaining_accounts.iter().cloned()),
     );
+
+    meta.extend([
+        AccountMeta::new_readonly(FEE_RECIPIENT, false),
+        AccountMeta::new(input.tail.fee_recipient_quote_mint_ata, false),
+    ]);
 
     meta
 }
@@ -227,16 +234,19 @@ pub async fn resolve(
             get_associated_token_address(&user_volume_accumulator, &WSOL_MINT, &TOKEN_PROGRAM_ID);
 
         remaining_accounts.push(AccountMeta::new(cashback_receiver, false));
-    }
 
-    if !is_buy {
-        remaining_accounts.push(AccountMeta::new(user_volume_accumulator, false));
+        if !is_buy {
+            remaining_accounts.push(AccountMeta::new(user_volume_accumulator, false));
+        }
     }
 
     let pool_v2 =
         Address::find_program_address(&[b"pool-v2", base_mint.as_ref()], &PUMP_AMM_PROGRAM_ID).0;
 
     remaining_accounts.push(AccountMeta::new_readonly(pool_v2, false));
+
+    let fee_recipient_quote_mint_ata =
+        get_associated_token_address(&FEE_RECIPIENT, &quote_mint, &quote_token_program);
 
     let input = PumpAmmSwapInput {
         base: PumpAmmSwapBase {
@@ -262,7 +272,10 @@ pub async fn resolve(
         } else {
             PumpAmmSwapLeg::Sell
         },
-        tail: PumpAmmSwapTail { remaining_accounts },
+        tail: PumpAmmSwapTail {
+            fee_recipient_quote_mint_ata,
+            remaining_accounts,
+        },
     };
 
     Ok((build_accounts(&input), build_extra_data(track_volume)))

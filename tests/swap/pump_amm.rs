@@ -6,6 +6,7 @@ use {
         PUMP_AMM_PROGRAM_ID, SYSTEM_PROGRAM_ID, TEST_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     beethoven::SwapProtocolTag,
+    litesvm::LiteSVM,
     solana_address::{address, Address},
     solana_compute_budget::compute_budget::ComputeBudget,
     solana_instruction::AccountMeta,
@@ -28,6 +29,68 @@ const COIN_CREATOR_VAULT_AUTHORITY: Address =
     address!("8N3GDaZ2iwN65oxVatKTLPNooAVUJTbfiVJ1ahyqwjSk");
 const GLOBAL_VOLUME_ACCUMULATOR: Address = address!("C2aFPdENg4A2HQsmrd5rTw5TaYBX5Ku887cWjbFKtZpw");
 const FEE_CONFIG: Address = address!("5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx");
+const POOL_V2: Address = address!("DaJe2QV1wSorz9Xcjq57saBBimvJ363wYcES3uCf93kB");
+const FEE_RECIPIENT: Address = address!("5YxQFdt3Tr9zJLvkFccqXVUwhdTWJQc1fFg2YPbxvxeD");
+const FEE_RECIPIENT_QUOTE_MINT_ATA: Address =
+    address!("HjQjngTDqoHE6aaGhUqfz9aQ7WZcBRjy5xB8PScLSr8i");
+
+fn load_program_and_fixtures(svm: &mut LiteSVM) {
+    load_program(svm, TEST_PROGRAM_ID, &beethoven_program_path());
+
+    // Load Pump AMM program
+    load_program(
+        svm,
+        PUMP_AMM_PROGRAM_ID,
+        &format!("{}/pump_amm.so", pump_amm_fixtures_dir()),
+    );
+    load_program(
+        svm,
+        FEE_PROGRAM_ID,
+        &format!("{}/fee_program.so", pump_amm_fixtures_dir()),
+    );
+
+    // Load fixtures
+    load_and_set_json_fixture(svm, &format!("{}/wsol_mint.json", common_fixtures_dir()));
+    load_and_set_json_fixture(svm, &format!("{}/usdc_mint.json", common_fixtures_dir()));
+    load_and_set_json_fixture(
+        svm,
+        &format!("{}/sol_usdc_pool.json", pump_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        svm,
+        &format!("{}/global_config.json", pump_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        svm,
+        &format!(
+            "{}/sol_usdc_pool_base_token_account.json",
+            pump_amm_fixtures_dir()
+        ),
+    );
+    load_and_set_json_fixture(
+        svm,
+        &format!(
+            "{}/sol_usdc_pool_quote_token_account.json",
+            pump_amm_fixtures_dir()
+        ),
+    );
+    load_and_set_json_fixture(
+        svm,
+        &format!("{}/global_volume_accumulator.json", pump_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(svm, &format!("{}/fee_config.json", pump_amm_fixtures_dir()));
+    load_and_set_json_fixture(
+        svm,
+        &format!("{}/fee_recipient.json", pump_amm_fixtures_dir()),
+    );
+    load_and_set_json_fixture(
+        svm,
+        &format!(
+            "{}/fee_recipient_quote_mint_ata.json",
+            pump_amm_fixtures_dir()
+        ),
+    );
+}
 
 #[test]
 fn test_pump_amm_swap_cpi_buy() {
@@ -35,59 +98,7 @@ fn test_pump_amm_swap_cpi_buy() {
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
 
-    load_program(&mut svm, TEST_PROGRAM_ID, &beethoven_program_path());
-
-    // Load Pump AMM program
-    load_program(
-        &mut svm,
-        PUMP_AMM_PROGRAM_ID,
-        &format!("{}/pump_amm.so", pump_amm_fixtures_dir()),
-    );
-    load_program(
-        &mut svm,
-        FEE_PROGRAM_ID,
-        &format!("{}/fee_program.so", pump_amm_fixtures_dir()),
-    );
-
-    // Load fixtures
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/wsol_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/usdc_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/sol_usdc_pool.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/global_config.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/sol_usdc_pool_base_token_account.json",
-            pump_amm_fixtures_dir()
-        ),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/sol_usdc_pool_quote_token_account.json",
-            pump_amm_fixtures_dir()
-        ),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/global_volume_accumulator.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/fee_config.json", pump_amm_fixtures_dir()),
-    );
+    load_program_and_fixtures(&mut svm);
 
     // Set compute budget limit
     svm = svm.with_compute_budget(ComputeBudget::new_with_defaults(true, true));
@@ -112,7 +123,7 @@ fn test_pump_amm_swap_cpi_buy() {
     )
     .0;
 
-    // Pump AMM accounts layout (24 accounts)
+    // Pump AMM accounts layout (27 accounts)
     let accounts = vec![
         AccountMeta::new_readonly(PUMP_AMM_PROGRAM_ID, false), // pump_amm_program
         AccountMeta::new(SOL_USDC_POOL, false),                // pool
@@ -138,6 +149,9 @@ fn test_pump_amm_swap_cpi_buy() {
         AccountMeta::new(user_volume_accumulator, false),               // user_volume_accumulator
         AccountMeta::new(FEE_CONFIG, false),                            // fee_config
         AccountMeta::new_readonly(FEE_PROGRAM_ID, false),               // fee_program
+        AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
+        AccountMeta::new_readonly(FEE_RECIPIENT, false),                // fee_recipient
+        AccountMeta::new(FEE_RECIPIENT_QUOTE_MINT_ATA, false), // fee_recipient_quote_mint_ata
     ];
 
     // track volume = Some(true), is_buy = true
@@ -189,59 +203,7 @@ fn test_pump_amm_swap_cpi_sell() {
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
 
-    load_program(&mut svm, TEST_PROGRAM_ID, &beethoven_program_path());
-
-    // Load Pump AMM program
-    load_program(
-        &mut svm,
-        PUMP_AMM_PROGRAM_ID,
-        &format!("{}/pump_amm.so", pump_amm_fixtures_dir()),
-    );
-    load_program(
-        &mut svm,
-        FEE_PROGRAM_ID,
-        &format!("{}/fee_program.so", pump_amm_fixtures_dir()),
-    );
-
-    // Load fixtures
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/wsol_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/usdc_mint.json", common_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/sol_usdc_pool.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/global_config.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/sol_usdc_pool_base_token_account.json",
-            pump_amm_fixtures_dir()
-        ),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!(
-            "{}/sol_usdc_pool_quote_token_account.json",
-            pump_amm_fixtures_dir()
-        ),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/global_volume_accumulator.json", pump_amm_fixtures_dir()),
-    );
-    load_and_set_json_fixture(
-        &mut svm,
-        &format!("{}/fee_config.json", pump_amm_fixtures_dir()),
-    );
+    load_program_and_fixtures(&mut svm);
 
     // Set compute budget limit
     svm = svm.with_compute_budget(ComputeBudget::new_with_defaults(true, true));
@@ -259,7 +221,7 @@ fn test_pump_amm_swap_cpi_sell() {
     let in_amount = 10_000_000u64; // 10 USDC
     let min_out_amount = 1u64; // Very loose slippage for test
 
-    // Pump AMM accounts layout (22 accounts)
+    // Pump AMM accounts layout (25 accounts)
     let accounts = vec![
         AccountMeta::new_readonly(PUMP_AMM_PROGRAM_ID, false), // pump_amm_program
         AccountMeta::new(SOL_USDC_POOL, false),                // pool
@@ -283,6 +245,9 @@ fn test_pump_amm_swap_cpi_sell() {
         AccountMeta::new_readonly(COIN_CREATOR_VAULT_AUTHORITY, false), // coin_creator_vault_authority
         AccountMeta::new(FEE_CONFIG, false),                            // fee_config
         AccountMeta::new_readonly(FEE_PROGRAM_ID, false),               // fee_program
+        AccountMeta::new_readonly(POOL_V2, false),                      // pool_v2
+        AccountMeta::new_readonly(FEE_RECIPIENT, false), // fee_recipient
+        AccountMeta::new(FEE_RECIPIENT_QUOTE_MINT_ATA, false), // fee_recipient_quote_mint_ata
     ];
 
     // track volume = Some(true), is_buy = false

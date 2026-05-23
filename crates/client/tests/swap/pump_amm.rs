@@ -2,8 +2,8 @@ use {
     beethoven_client::{
         get_associated_token_address, read_pubkey, resolve_swap,
         swap::pump_amm::{
-            EVENT_AUTHORITY, FEE_CONFIG, FEE_PROGRAM_ID, GLOBAL_CONFIG, GLOBAL_VOLUME_ACCUMULATOR,
-            OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT, PUMP_AMM_PROGRAM_ID,
+            EVENT_AUTHORITY, FEE_CONFIG, FEE_PROGRAM_ID, FEE_RECIPIENT, GLOBAL_CONFIG,
+            GLOBAL_VOLUME_ACCUMULATOR, OFFSET_FIRST_PROTOCOL_FEE_RECIPIENT, PUMP_AMM_PROGRAM_ID,
         },
         SwapProtocol, ASSOCIATED_TOKEN_PROGRAM_ID, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
@@ -45,8 +45,8 @@ async fn test_pump_amm_resolve_with_known_pool_buy() {
     .unwrap();
 
     assert!(
-        accounts.len() >= 24,
-        "pump amm requires at least 24 accounts"
+        accounts.len() >= 25,
+        "pump amm requires at least 25 accounts"
     );
 
     // Protocol program ID
@@ -176,7 +176,35 @@ async fn test_pump_amm_resolve_with_known_pool_buy() {
     // Fee program
     assert_eq!(accounts[23].pubkey, FEE_PROGRAM_ID, "fee program");
 
-    // cashback accounts and pool v2 not checked here
+    let accounts_len = accounts.len();
+
+    // pool-v2
+    let expected_pool_v2 = Address::find_program_address(
+        &[b"pool-v2", accounts[4].pubkey.as_ref()],
+        &PUMP_AMM_PROGRAM_ID,
+    )
+    .0;
+    assert_eq!(
+        accounts[accounts_len - 3].pubkey,
+        expected_pool_v2,
+        "pool-v2"
+    );
+
+    // Fee recipient
+    assert_eq!(
+        accounts[accounts_len - 2].pubkey,
+        FEE_RECIPIENT,
+        "fee recipient"
+    );
+
+    // Fee recipient quote mint ATA
+    let expected_fee_recipient_quote_mint_ata =
+        get_associated_token_address(&FEE_RECIPIENT, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(
+        accounts[accounts_len - 1].pubkey,
+        expected_fee_recipient_quote_mint_ata,
+        "fee recipient quote mint ATA"
+    );
 
     // track_volume = None
     assert_eq!(data, vec![0, 0]);
@@ -202,8 +230,8 @@ async fn test_pump_amm_resolve_with_known_pool_sell() {
     .unwrap();
 
     assert!(
-        accounts.len() >= 22,
-        "pump amm requires at least 22 accounts"
+        accounts.len() >= 25,
+        "pump amm requires at least 25 accounts"
     );
 
     // Protocol program ID
@@ -316,7 +344,35 @@ async fn test_pump_amm_resolve_with_known_pool_sell() {
     // Fee program
     assert_eq!(accounts[21].pubkey, FEE_PROGRAM_ID, "fee program");
 
-    // cashback accounts and pool v2 not checked here
+    let accounts_len = accounts.len();
+
+    // pool-v2
+    let expected_pool_v2 = Address::find_program_address(
+        &[b"pool-v2", accounts[4].pubkey.as_ref()],
+        &PUMP_AMM_PROGRAM_ID,
+    )
+    .0;
+    assert_eq!(
+        accounts[accounts_len - 3].pubkey,
+        expected_pool_v2,
+        "pool-v2"
+    );
+
+    // Fee recipient
+    assert_eq!(
+        accounts[accounts_len - 2].pubkey,
+        FEE_RECIPIENT,
+        "fee recipient"
+    );
+
+    // Fee recipient quote mint ATA
+    let expected_fee_recipient_quote_mint_ata =
+        get_associated_token_address(&FEE_RECIPIENT, &WSOL_MINT, &TOKEN_PROGRAM_ID);
+    assert_eq!(
+        accounts[accounts_len - 1].pubkey,
+        expected_fee_recipient_quote_mint_ata,
+        "fee recipient quote mint ATA"
+    );
 
     // track_volume = Some(true)
     assert_eq!(data, vec![1, 1]);
