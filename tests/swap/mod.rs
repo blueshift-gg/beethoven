@@ -8,6 +8,7 @@ mod manifest;
 mod multi_swap;
 mod omnipair;
 mod perena;
+mod pump_amm;
 mod raydium_cpmm;
 mod route;
 mod scale_amm;

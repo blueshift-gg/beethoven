@@ -22,6 +22,9 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
+#[cfg(feature = "pump-amm")]
+pub mod pump_amm;
+
 #[cfg(feature = "perena")]
 pub mod perena;
 
@@ -89,6 +92,7 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
+
     #[cfg(feature = "perena")]
     Perena {
         pool: Option<Address>,
@@ -125,6 +129,13 @@ pub enum SwapProtocol {
     SolFiV2 {
         market: Option<Address>,
         is_quote_to_base: bool,
+    },
+
+    #[cfg(feature = "pump-amm")]
+    PumpAmm {
+        pool: Option<Address>,
+        track_volume: Option<bool>,
+        is_buy: bool,
     },
 }
 
@@ -277,6 +288,24 @@ pub async fn resolve_swap(
                 rpc,
                 market.as_ref(),
                 *is_quote_to_base,
+                mint_a,
+                mint_b,
+                user,
+            )
+            .await
+        }
+
+        #[cfg(feature = "pump-amm")]
+        SwapProtocol::PumpAmm {
+            pool,
+            track_volume,
+            is_buy,
+        } => {
+            pump_amm::resolve(
+                rpc,
+                pool.as_ref(),
+                *track_volume,
+                *is_buy,
                 mint_a,
                 mint_b,
                 user,
