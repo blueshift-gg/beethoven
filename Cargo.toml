@@ -153,6 +153,7 @@ solana-transaction = "3.0.2"
 spl-token-2022-interface = "2.1.0"
 spl-token-interface = "2"
 spl-associated-token-account = "8.0.0"
+spl-associated-token-account-interface = "2.0.0"
 thiserror = "2"
 tokio = "1"
 
@@ -191,6 +192,7 @@ beethoven-client = { workspace = true, features = [
 solana-rpc-client.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 spl-associated-token-account.workspace = true
+spl-associated-token-account-interface.workspace = true
 spl-token-2022-interface.workspace = true
 
 [profile.release]

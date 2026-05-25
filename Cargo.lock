@@ -541,6 +541,7 @@ dependencies = [
  "solana-signer",
  "solana-transaction",
  "spl-associated-token-account",
+ "spl-associated-token-account-interface",
  "spl-token-2022-interface",
  "spl-token-interface",
  "tokio",
