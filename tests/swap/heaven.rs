@@ -12,8 +12,9 @@ use {
     solana_instruction::AccountMeta,
     solana_keypair::Keypair,
     solana_signer::Signer,
-    spl_associated_token_account::{
-        get_associated_token_address_with_program_id, instruction::create_associated_token_account,
+    spl_associated_token_account_interface::{
+        address::get_associated_token_address_with_program_id,
+        instruction::create_associated_token_account,
     },
     spl_token_2022_interface::{extension::StateWithExtensions, state::Account},
 };
