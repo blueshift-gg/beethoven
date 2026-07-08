@@ -506,6 +506,7 @@ dependencies = [
  "beethoven-client",
  "beethoven-core",
  "beethoven-deposit-drift",
+ "beethoven-deposit-hylo",
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
  "beethoven-deposit-marginfi",
@@ -578,6 +579,17 @@ dependencies = [
  "beethoven-core",
  "solana-account-view",
  "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-deposit-hylo"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.0.0",
  "solana-instruction-view",
  "solana-program-error",
 ]

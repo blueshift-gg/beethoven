@@ -12,7 +12,8 @@ default = ["deposit", "swap"]
 upstream-bpf = []
 
 # Action groups
-deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit"]
+deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit", "hylo-deposit"]
+
 swap = [
     "perena-swap",
     "solfi-swap",
@@ -35,6 +36,7 @@ swap = [
 kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
+hylo-deposit = ["dep:beethoven-deposit-hylo"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 
 # Swap protocols
@@ -65,6 +67,7 @@ solana-program-error.workspace = true
 beethoven-deposit-kamino = { workspace = true, optional = true }
 beethoven-deposit-jupiter = { workspace = true, optional = true }
 beethoven-deposit-drift = { workspace = true, optional = true }
+beethoven-deposit-hylo = { workspace = true, optional = true }
 beethoven-deposit-marginfi = { workspace = true, optional = true }
 beethoven-swap-perena = { workspace = true, optional = true }
 beethoven-swap-solfi = { workspace = true, optional = true }
@@ -88,6 +91,7 @@ members = [
     "crates/deposit/kamino",
     "crates/deposit/jupiter",
     "crates/deposit/drift",
+    "crates/deposit/hylo",
     "crates/deposit/marginfi",
     "crates/swap/perena",
     "crates/swap/solfi",
@@ -184,6 +188,7 @@ beethoven-client = { workspace = true, features = [
     "aldrin-v2",
     "futarchy",
     "gamma",
+    "hylo",
     "hadron",
     "raydium-cpmm",
     "raydium-clmm",

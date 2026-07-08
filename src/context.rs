@@ -886,6 +886,8 @@ pub enum DepositContext<'info> {
     #[cfg(feature = "drift-deposit")]
     Drift(crate::drift::DriftDepositAccounts<'info>),
 
+    #[cfg(feature = "hylo-deposit")]
+    Hylo(crate::hylo::HyloDepositAccounts<'info>),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
 }
@@ -898,6 +900,8 @@ pub enum DepositData {
     Jupiter(()),
     #[cfg(feature = "drift-deposit")]
     Drift(crate::drift::DriftDepositData),
+    #[cfg(feature = "hylo-deposit")]
+    Hylo(crate::hylo::HyloDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
 }
@@ -920,6 +924,9 @@ impl<'a> DepositContext<'a> {
                 &[],
             )),
 
+            #[cfg(feature = "hylo-deposit")]
+            DepositContext::Hylo(_) => Ok((
+                DepositData::Hylo(crate::hylo::HyloDepositData::try_from(data)?),
             #[cfg(feature = "marginfi-deposit")]
             DepositContext::Marginfi(_) => Ok((
                 DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
@@ -962,6 +969,10 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
                 }
             }
 
+            #[cfg(feature = "hylo-deposit")]
+            DepositContext::Hylo(accounts) => {
+                if let DepositData::Hylo(data) = data {
+                    crate::hylo::Hylo::deposit_signed(accounts, amount, data, signer_seeds)
             #[cfg(feature = "marginfi-deposit")]
             DepositContext::Marginfi(accounts) => {
                 if let DepositData::Marginfi(data) = data {
@@ -1010,6 +1021,10 @@ pub fn try_from_deposit_context<'info>(
         return Ok(DepositContext::Drift(ctx));
     }
 
+    #[cfg(feature = "hylo-deposit")]
+    if address_eq(detector_account.address(), &crate::hylo::HYLO_PROGRAM_ID) {
+        let ctx = crate::hylo::HyloDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::Hylo(ctx));
     #[cfg(feature = "marginfi-deposit")]
     if address_eq(
         detector_account.address(),

@@ -1,0 +1,13 @@
+[package]
+name = "beethoven-deposit-hylo"
+description = "Hylo deposit implementation for Beethoven"
+version = "0.0.1"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+beethoven-core = { path = "../../core" }
+solana-account-view = "1.0.0"
+solana-address = "2.0.0"
+solana-instruction-view = "1.0.0"
+solana-program-error = "3.0.0"

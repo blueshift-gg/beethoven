@@ -4,6 +4,8 @@
 pub use beethoven_core::{Deposit, Swap, SwapTokenAccounts};
 #[cfg(feature = "drift-deposit")]
 pub use beethoven_deposit_drift as drift;
+#[cfg(feature = "hylo-deposit")]
+pub use beethoven_deposit_hylo as hylo;
 #[cfg(feature = "jupiter-deposit")]
 pub use beethoven_deposit_jupiter as jupiter;
 // Re-export protocol crates under feature flags

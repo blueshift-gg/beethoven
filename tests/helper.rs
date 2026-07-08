@@ -35,6 +35,9 @@ pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
 pub const MANIFEST_PROGRAM_ID: Address = address!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const HYLO_PROGRAM_ID: Address = address!("HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn");
+pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
+    address!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
@@ -550,6 +553,8 @@ pub fn omnipair_fixtures_dir() -> String {
     format!("{}/fixtures/swap/omnipair", env!("CARGO_MANIFEST_DIR"))
 }
 
+pub fn hylo_fixtures_dir() -> String {
+    format!("{}/fixtures/deposit/hylo", env!("CARGO_MANIFEST_DIR"))
 pub fn hadron_fixtures_dir() -> String {
     format!("{}/fixtures/swap/hadron", env!("CARGO_MANIFEST_DIR"))
 }
