@@ -7,12 +7,18 @@ use solana_instruction::AccountMeta;
 #[cfg(feature = "resolve")]
 use solana_rpc_client::nonblocking::rpc_client::RpcClient;
 
+#[cfg(feature = "hylo-stability-pool")]
+pub mod hylo_stability_pool;
+
 /// Top-level deposit protocol selector.
 ///
 /// Each variant carries the protocol-specific config and data needed
 /// to resolve accounts. When `pool`/`market` is `None`, the resolver
 /// discovers it via `getProgramAccounts` with memcmp filters on the mints.
-pub enum DepositProtocol {}
+pub enum DepositProtocol {
+    #[cfg(feature = "hylo-stability-pool")]
+    HyloStabilityPool,
+}
 
 /// Resolve accounts and data for a deposit protocol.
 ///
@@ -21,8 +27,11 @@ pub enum DepositProtocol {}
 /// #[cfg(feature = "resolve")]
 pub async fn resolve_deposit(
     _rpc: &RpcClient,
-    _protocol: &DepositProtocol,
-    _user: &Address,
+    protocol: &DepositProtocol,
+    user: &Address,
 ) -> Result<(Vec<AccountMeta>, Vec<u8>), ClientError> {
-    todo!()
+    match protocol {
+        #[cfg(feature = "hylo-stability-pool")]
+        DepositProtocol::HyloStabilityPool => hylo_stability_pool::resolve(user).await,
+    }
 }

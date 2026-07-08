@@ -888,6 +888,8 @@ pub enum DepositContext<'info> {
 
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositAccounts<'info>),
+    #[cfg(feature = "hylo-stability-pool-deposit")]
+    HyloStabilityPool(crate::hylo_stability_pool::HyloStabilityPoolDepositAccounts<'info>),
 }
 
 /// Protocol-specific deposit data enum for use with DepositContext
@@ -900,6 +902,8 @@ pub enum DepositData {
     Drift(crate::drift::DriftDepositData),
     #[cfg(feature = "marginfi-deposit")]
     Marginfi(crate::marginfi::MarginfiDepositData),
+    #[cfg(feature = "hylo-stability-pool-deposit")]
+    HyloStabilityPool(()),
 }
 
 impl<'a> DepositContext<'a> {
@@ -925,6 +929,9 @@ impl<'a> DepositContext<'a> {
                 DepositData::Marginfi(crate::marginfi::MarginfiDepositData::try_from(data)?),
                 &[],
             )),
+
+            #[cfg(feature = "hylo-stability-pool-deposit")]
+            DepositContext::HyloStabilityPool(_) => Ok((DepositData::HyloStabilityPool(()), &[])),
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -966,6 +973,20 @@ impl<'info> Deposit<'info> for DepositContext<'info> {
             DepositContext::Marginfi(accounts) => {
                 if let DepositData::Marginfi(data) = data {
                     crate::marginfi::Marginfi::deposit_signed(accounts, amount, data, signer_seeds)
+                } else {
+                    Err(ProgramError::InvalidInstructionData)
+                }
+            }
+
+            #[cfg(feature = "hylo-stability-pool-deposit")]
+            DepositContext::HyloStabilityPool(accounts) => {
+                if let DepositData::HyloStabilityPool(()) = data {
+                    crate::hylo_stability_pool::HyloStabilityPool::deposit_signed(
+                        accounts,
+                        amount,
+                        &(),
+                        signer_seeds,
+                    )
                 } else {
                     Err(ProgramError::InvalidInstructionData)
                 }
@@ -1017,6 +1038,15 @@ pub fn try_from_deposit_context<'info>(
     ) {
         let ctx = crate::marginfi::MarginfiDepositAccounts::try_from(accounts)?;
         return Ok(DepositContext::Marginfi(ctx));
+    }
+
+    #[cfg(feature = "hylo-stability-pool-deposit")]
+    if address_eq(
+        detector_account.address(),
+        &crate::hylo_stability_pool::HYLO_STABILITY_PROGRAM_ID,
+    ) {
+        let ctx = crate::hylo_stability_pool::HyloStabilityPoolDepositAccounts::try_from(accounts)?;
+        return Ok(DepositContext::HyloStabilityPool(ctx));
     }
 
     Err(ProgramError::InvalidAccountData)

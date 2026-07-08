@@ -26,7 +26,9 @@ swap = [
     "solfi-v2",
 ]
 
-deposit = []
+deposit = [
+    "hylo-stability-pool",
+]
 
 resolve = [
     "dep:solana-rpc-client",
@@ -51,6 +53,7 @@ scale-amm = []
 scale-vmm = []
 solfi = []
 solfi-v2 = []
+hylo-stability-pool = []
 
 [dependencies]
 solana-address = { workspace = true, features = ["curve25519"] }

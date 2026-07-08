@@ -29,6 +29,8 @@ pub const MEMO_PROGRAM_ID: Address = address!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCq
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+pub const HYLO_STABILITY_PROGRAM_ID: Address =
+    address!("HysTabVUfmQBFcmzu1ctRd1Y1fxd66RBpboy1bmtDSQQ");
 pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
@@ -596,6 +598,13 @@ pub fn solfi_fixtures_dir() -> String {
 
 pub fn solfi_v2_fixtures_dir() -> String {
     format!("{}/fixtures/swap/solfi-v2", env!("CARGO_MANIFEST_DIR"))
+}
+
+pub fn hylo_stability_pool_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/deposit/hylo-stability-pool",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 #[cfg(feature = "upstream-bpf")]
