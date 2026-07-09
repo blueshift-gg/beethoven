@@ -517,7 +517,7 @@ dependencies = [
  "beethoven-swap-heaven",
  "beethoven-swap-manifest",
  "beethoven-swap-omnipair",
- "beethoven-swap-perena",
+ "beethoven-swap-perena-numeraire",
  "beethoven-swap-raydium-clmm",
  "beethoven-swap-raydium-cpmm",
  "beethoven-swap-scale-amm",
@@ -704,7 +704,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "beethoven-swap-perena"
+name = "beethoven-swap-perena-numeraire"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",

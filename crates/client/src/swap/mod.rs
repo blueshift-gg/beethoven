@@ -25,8 +25,8 @@ pub mod raydium_cpmm;
 #[cfg(feature = "raydium-clmm")]
 pub mod raydium_clmm;
 
-#[cfg(feature = "perena")]
-pub mod perena;
+#[cfg(feature = "perena-numeraire")]
+pub mod perena_numeraire;
 
 #[cfg(feature = "heaven")]
 pub mod heaven;
@@ -100,8 +100,8 @@ pub enum SwapProtocol {
         is_base_input: bool,
     },
 
-    #[cfg(feature = "perena")]
-    Perena {
+    #[cfg(feature = "perena-numeraire")]
+    PerenaNumeraire {
         pool: Option<Address>,
         in_index: u8,
         out_index: u8,
@@ -235,13 +235,13 @@ pub async fn resolve_swap(
             .await
         }
 
-        #[cfg(feature = "perena")]
-        SwapProtocol::Perena {
+        #[cfg(feature = "perena-numeraire")]
+        SwapProtocol::PerenaNumeraire {
             pool,
             in_index,
             out_index,
         } => {
-            perena::resolve(
+            perena_numeraire::resolve(
                 rpc,
                 pool.as_ref(),
                 *in_index,

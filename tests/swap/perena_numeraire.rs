@@ -1,8 +1,8 @@
 use {
     crate::helper::{
         beethoven_program_path, build_swap_instruction, common_fixtures_dir, create_token_account,
-        get_token_balance, load_and_set_json_fixture, load_program, perena_fixtures_dir,
-        send_transaction, setup_svm, PERENA_PROGRAM_ID, TEST_PROGRAM_ID, TOKEN_2022_PROGRAM_ID,
+        get_token_balance, load_and_set_json_fixture, load_program, numeraire_fixtures_dir,
+        send_transaction, setup_svm, NUMERAIRE_PROGRAM_ID, TEST_PROGRAM_ID, TOKEN_2022_PROGRAM_ID,
         TOKEN_PROGRAM_ID,
     },
     beethoven::SwapProtocolTag,
@@ -20,18 +20,18 @@ const POOL_USDG_VAULT: Address = address!("BcjVG5To1pi3fHMpFoFdurcFwAoYJFzEtKP9Z
 const NUMERAIRE_CONFIG: Address = address!("FS159v4b2jo3fjGBaUFmDzgx7k616XhpKhMwX2Q3HeeD");
 
 #[test]
-fn test_perena_swap_cpi() {
+fn test_perena_numeraire_swap_cpi() {
     let mut svm = setup_svm();
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 10_000_000_000).unwrap();
 
     load_program(&mut svm, TEST_PROGRAM_ID, &beethoven_program_path());
 
-    // Load Perena program
+    // Load Numeraire program
     load_program(
         &mut svm,
-        PERENA_PROGRAM_ID,
-        &format!("{}/numeraire.so", perena_fixtures_dir()),
+        NUMERAIRE_PROGRAM_ID,
+        &format!("{}/numeraire.so", numeraire_fixtures_dir()),
     );
 
     // Load fixtures
@@ -41,23 +41,23 @@ fn test_perena_swap_cpi() {
     );
     load_and_set_json_fixture(
         &mut svm,
-        &format!("{}/usdg_mint.json", perena_fixtures_dir()),
+        &format!("{}/usdg_mint.json", numeraire_fixtures_dir()),
     );
     load_and_set_json_fixture(
         &mut svm,
-        &format!("{}/usdc_usdg_stable_pool.json", perena_fixtures_dir()),
+        &format!("{}/usdc_usdg_stable_pool.json", numeraire_fixtures_dir()),
     );
     load_and_set_json_fixture(
         &mut svm,
-        &format!("{}/numeraire_config.json", perena_fixtures_dir()),
+        &format!("{}/numeraire_config.json", numeraire_fixtures_dir()),
     );
     load_and_set_json_fixture(
         &mut svm,
-        &format!("{}/stable_pool_usdc_vault.json", perena_fixtures_dir()),
+        &format!("{}/stable_pool_usdc_vault.json", numeraire_fixtures_dir()),
     );
     load_and_set_json_fixture(
         &mut svm,
-        &format!("{}/stable_pool_usdg_vault.json", perena_fixtures_dir()),
+        &format!("{}/stable_pool_usdg_vault.json", numeraire_fixtures_dir()),
     );
 
     // Create trader token accounts with initial balances
@@ -75,17 +75,17 @@ fn test_perena_swap_cpi() {
 
     // Perena accounts layout (12 accounts)
     let accounts = vec![
-        AccountMeta::new_readonly(PERENA_PROGRAM_ID, false), // perena program
-        AccountMeta::new(USDC_USDG_STABLE_POOL, false),      // pool
-        AccountMeta::new(USDC_MINT, false),                  // in mint
-        AccountMeta::new(USDG_MINT, false),                  // out mint
-        AccountMeta::new(trader_input, false),               // in trader
-        AccountMeta::new(trader_output, false),              // out trader
-        AccountMeta::new(POOL_USDC_VAULT, false),            // in vault
-        AccountMeta::new(POOL_USDG_VAULT, false),            // out vault
-        AccountMeta::new_readonly(NUMERAIRE_CONFIG, false),  // numeraire config
-        AccountMeta::new(payer.pubkey(), true),              // payer
-        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),  // token program
+        AccountMeta::new_readonly(NUMERAIRE_PROGRAM_ID, false), // numeraire program
+        AccountMeta::new(USDC_USDG_STABLE_POOL, false),         // pool
+        AccountMeta::new(USDC_MINT, false),                     // in mint
+        AccountMeta::new(USDG_MINT, false),                     // out mint
+        AccountMeta::new(trader_input, false),                  // in trader
+        AccountMeta::new(trader_output, false),                 // out trader
+        AccountMeta::new(POOL_USDC_VAULT, false),               // in vault
+        AccountMeta::new(POOL_USDG_VAULT, false),               // out vault
+        AccountMeta::new_readonly(NUMERAIRE_CONFIG, false),     // numeraire config
+        AccountMeta::new(payer.pubkey(), true),                 // payer
+        AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),     // token program
         AccountMeta::new_readonly(TOKEN_2022_PROGRAM_ID, false), // token 2022 program
     ];
 

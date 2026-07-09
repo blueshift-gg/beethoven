@@ -104,8 +104,8 @@ fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), Progr
 
 /// Typed context for swap operations, discriminated by protocol.
 pub enum SwapContext<'info> {
-    #[cfg(feature = "perena-swap")]
-    Perena(crate::perena::PerenaSwapAccounts<'info>),
+    #[cfg(feature = "perena-numeraire-swap")]
+    PerenaNumeraire(crate::perena_numeraire::PerenaNumeraireSwapAccounts<'info>),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapAccounts<'info>),
@@ -151,8 +151,8 @@ pub enum SwapContext<'info> {
 
 /// Protocol-specific swap data enum for use with SwapContext
 pub enum SwapData<'a> {
-    #[cfg(feature = "perena-swap")]
-    Perena(crate::perena::PerenaSwapData),
+    #[cfg(feature = "perena-numeraire-swap")]
+    PerenaNumeraire(crate::perena_numeraire::PerenaNumeraireSwapData),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapData),
@@ -203,12 +203,14 @@ impl<'a> SwapContext<'a> {
         data: &'a [u8],
     ) -> Result<(SwapData<'a>, &'a [u8]), ProgramError> {
         match self {
-            #[cfg(feature = "perena-swap")]
-            SwapContext::Perena(_) => {
-                let n = crate::perena::PerenaSwapData::DATA_LEN;
+            #[cfg(feature = "perena-numeraire-swap")]
+            SwapContext::PerenaNumeraire(_) => {
+                let n = crate::perena_numeraire::PerenaNumeraireSwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
-                    SwapData::Perena(crate::perena::PerenaSwapData::try_from(mine)?),
+                    SwapData::PerenaNumeraire(
+                        crate::perena_numeraire::PerenaNumeraireSwapData::try_from(mine)?,
+                    ),
                     rest,
                 ))
             }
@@ -352,9 +354,9 @@ impl<'a> SwapContext<'a> {
         data: &SwapData<'a>,
     ) -> Result<(&'a AccountView, &'a AccountView), ProgramError> {
         match (self, data) {
-            #[cfg(feature = "perena-swap")]
-            (SwapContext::Perena(accounts), SwapData::Perena(d)) => {
-                Ok(crate::perena::Perena::token_accounts(accounts, d))
+            #[cfg(feature = "perena-numeraire-swap")]
+            (SwapContext::PerenaNumeraire(accounts), SwapData::PerenaNumeraire(d)) => {
+                Ok(crate::perena_numeraire::PerenaNumeraireSwap::token_accounts(accounts, d))
             }
 
             #[cfg(feature = "solfi-swap")]
@@ -445,9 +447,9 @@ impl<'a> Swap<'a> for SwapContext<'a> {
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         match (ctx, data) {
-            #[cfg(feature = "perena-swap")]
-            (SwapContext::Perena(accounts), SwapData::Perena(d)) => {
-                crate::perena::Perena::swap_signed(
+            #[cfg(feature = "perena-numeraire-swap")]
+            (SwapContext::PerenaNumeraire(accounts), SwapData::PerenaNumeraire(d)) => {
+                crate::perena_numeraire::PerenaNumeraireSwap::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -638,16 +640,16 @@ pub fn try_from_tagged_swap_context<'info>(
 
     match tag {
         SwapProtocolTag::Perena => {
-            #[cfg(feature = "perena-swap")]
+            #[cfg(feature = "perena-numeraire-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
-                    &crate::perena::PERENA_PROGRAM_ID,
+                    &crate::perena_numeraire::NUMERAIRE_PROGRAM_ID,
                 )?;
-                let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
-                Ok((SwapContext::Perena(ctx), rest))
+                let ctx = crate::perena_numeraire::PerenaNumeraireSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::PerenaNumeraire(ctx), rest))
             }
-            #[cfg(not(feature = "perena-swap"))]
+            #[cfg(not(feature = "perena-numeraire-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
