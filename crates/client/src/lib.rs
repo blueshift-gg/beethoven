@@ -51,6 +51,10 @@ pub const SYSVAR_CLOCK_ID: Address =
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     Address::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
+/// Memo Program ID
+pub const MEMO_PROGRAM_ID: Address =
+    Address::from_str_const("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+
 /// Determine which token program owns a mint by checking the account owner.
 #[cfg(feature = "resolve")]
 pub async fn get_token_program_for_mint(

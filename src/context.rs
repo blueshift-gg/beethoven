@@ -23,6 +23,7 @@ pub enum SwapProtocolTag {
     Omnipair = 11,
     Hadron = 12,
     RaydiumCpmm = 13,
+    RaydiumClmm = 14,
 }
 
 impl SwapProtocolTag {
@@ -42,6 +43,7 @@ impl SwapProtocolTag {
             11 => Ok(Self::Omnipair),
             12 => Ok(Self::Hadron),
             13 => Ok(Self::RaydiumCpmm),
+            14 => Ok(Self::RaydiumClmm),
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
@@ -62,6 +64,7 @@ impl SwapProtocolTag {
             Self::Omnipair => 15,
             Self::Hadron => 16,
             Self::RaydiumCpmm => 14,
+            Self::RaydiumClmm => 14,
         }
     }
 }
@@ -101,8 +104,8 @@ fn split_data_checked(data: &[u8], count: usize) -> Result<(&[u8], &[u8]), Progr
 
 /// Typed context for swap operations, discriminated by protocol.
 pub enum SwapContext<'info> {
-    #[cfg(feature = "perena-swap")]
-    Perena(crate::perena::PerenaSwapAccounts<'info>),
+    #[cfg(feature = "perena-numeraire-swap")]
+    PerenaNumeraire(crate::perena_numeraire::PerenaNumeraireSwapAccounts<'info>),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapAccounts<'info>),
@@ -142,12 +145,14 @@ pub enum SwapContext<'info> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(crate::raydium_cpmm::RaydiumCpmmSwapAccounts<'info>),
+    #[cfg(feature = "raydium-clmm-swap")]
+    RaydiumClmm(crate::raydium_clmm::RaydiumClmmSwapAccounts<'info>),
 }
 
 /// Protocol-specific swap data enum for use with SwapContext
 pub enum SwapData<'a> {
-    #[cfg(feature = "perena-swap")]
-    Perena(crate::perena::PerenaSwapData),
+    #[cfg(feature = "perena-numeraire-swap")]
+    PerenaNumeraire(crate::perena_numeraire::PerenaNumeraireSwapData),
 
     #[cfg(feature = "solfi-swap")]
     SolFi(crate::solfi::SolFiSwapData),
@@ -187,6 +192,8 @@ pub enum SwapData<'a> {
 
     #[cfg(feature = "raydium-cpmm-swap")]
     RaydiumCpmm(()),
+    #[cfg(feature = "raydium-clmm-swap")]
+    RaydiumClmm(crate::raydium_clmm::RaydiumClmmSwapData),
 }
 
 impl<'a> SwapContext<'a> {
@@ -196,12 +203,14 @@ impl<'a> SwapContext<'a> {
         data: &'a [u8],
     ) -> Result<(SwapData<'a>, &'a [u8]), ProgramError> {
         match self {
-            #[cfg(feature = "perena-swap")]
-            SwapContext::Perena(_) => {
-                let n = crate::perena::PerenaSwapData::DATA_LEN;
+            #[cfg(feature = "perena-numeraire-swap")]
+            SwapContext::PerenaNumeraire(_) => {
+                let n = crate::perena_numeraire::PerenaNumeraireSwapData::DATA_LEN;
                 let (mine, rest) = split_data_checked(data, n)?;
                 Ok((
-                    SwapData::Perena(crate::perena::PerenaSwapData::try_from(mine)?),
+                    SwapData::PerenaNumeraire(
+                        crate::perena_numeraire::PerenaNumeraireSwapData::try_from(mine)?,
+                    ),
                     rest,
                 ))
             }
@@ -313,6 +322,17 @@ impl<'a> SwapContext<'a> {
 
             #[cfg(feature = "raydium-cpmm-swap")]
             SwapContext::RaydiumCpmm(_) => Ok((SwapData::RaydiumCpmm(()), data)),
+            #[cfg(feature = "raydium-clmm-swap")]
+            SwapContext::RaydiumClmm(_) => {
+                let n = crate::raydium_clmm::RaydiumClmmSwapData::DATA_LEN;
+                let (mine, rest) = split_data_checked(data, n)?;
+                Ok((
+                    SwapData::RaydiumClmm(crate::raydium_clmm::RaydiumClmmSwapData::try_from(
+                        mine,
+                    )?),
+                    rest,
+                ))
+            }
 
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
@@ -334,9 +354,9 @@ impl<'a> SwapContext<'a> {
         data: &SwapData<'a>,
     ) -> Result<(&'a AccountView, &'a AccountView), ProgramError> {
         match (self, data) {
-            #[cfg(feature = "perena-swap")]
-            (SwapContext::Perena(accounts), SwapData::Perena(d)) => {
-                Ok(crate::perena::Perena::token_accounts(accounts, d))
+            #[cfg(feature = "perena-numeraire-swap")]
+            (SwapContext::PerenaNumeraire(accounts), SwapData::PerenaNumeraire(d)) => {
+                Ok(crate::perena_numeraire::PerenaNumeraireSwap::token_accounts(accounts, d))
             }
 
             #[cfg(feature = "solfi-swap")]
@@ -404,6 +424,11 @@ impl<'a> SwapContext<'a> {
                 crate::raydium_cpmm::RaydiumCpmm::token_accounts(accounts, &()),
             ),
 
+            #[cfg(feature = "raydium-clmm-swap")]
+            (SwapContext::RaydiumClmm(accounts), SwapData::RaydiumClmm(d)) => Ok(
+                crate::raydium_clmm::RaydiumClmm::token_accounts(accounts, d),
+            ),
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -422,9 +447,9 @@ impl<'a> Swap<'a> for SwapContext<'a> {
         signer_seeds: &[Signer],
     ) -> ProgramResult {
         match (ctx, data) {
-            #[cfg(feature = "perena-swap")]
-            (SwapContext::Perena(accounts), SwapData::Perena(d)) => {
-                crate::perena::Perena::swap_signed(
+            #[cfg(feature = "perena-numeraire-swap")]
+            (SwapContext::PerenaNumeraire(accounts), SwapData::PerenaNumeraire(d)) => {
+                crate::perena_numeraire::PerenaNumeraireSwap::swap_signed(
                     accounts,
                     in_amount,
                     minimum_out_amount,
@@ -574,6 +599,17 @@ impl<'a> Swap<'a> for SwapContext<'a> {
                 )
             }
 
+            #[cfg(feature = "raydium-clmm-swap")]
+            (SwapContext::RaydiumClmm(accounts), SwapData::RaydiumClmm(d)) => {
+                crate::raydium_clmm::RaydiumClmm::swap_signed(
+                    accounts,
+                    in_amount,
+                    minimum_out_amount,
+                    d,
+                    signer_seeds,
+                )
+            }
+
             #[allow(unreachable_patterns)]
             _ => Err(ProgramError::InvalidAccountData),
         }
@@ -604,16 +640,16 @@ pub fn try_from_tagged_swap_context<'info>(
 
     match tag {
         SwapProtocolTag::Perena => {
-            #[cfg(feature = "perena-swap")]
+            #[cfg(feature = "perena-numeraire-swap")]
             {
                 validate_tagged_program_account(
                     program_account,
-                    &crate::perena::PERENA_PROGRAM_ID,
+                    &crate::perena_numeraire::NUMERAIRE_PROGRAM_ID,
                 )?;
-                let ctx = crate::perena::PerenaSwapAccounts::try_from(mine)?;
-                Ok((SwapContext::Perena(ctx), rest))
+                let ctx = crate::perena_numeraire::PerenaNumeraireSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::PerenaNumeraire(ctx), rest))
             }
-            #[cfg(not(feature = "perena-swap"))]
+            #[cfg(not(feature = "perena-numeraire-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }
@@ -816,6 +852,22 @@ pub fn try_from_tagged_swap_context<'info>(
                 Ok((SwapContext::RaydiumCpmm(ctx), rest))
             }
             #[cfg(not(feature = "raydium-cpmm-swap"))]
+            {
+                Err(ProgramError::InvalidInstructionData)
+            }
+        }
+
+        SwapProtocolTag::RaydiumClmm => {
+            #[cfg(feature = "raydium-clmm-swap")]
+            {
+                validate_tagged_program_account(
+                    program_account,
+                    &crate::raydium_clmm::RAYDIUM_CLMM_PROGRAM_ID,
+                )?;
+                let ctx = crate::raydium_clmm::RaydiumClmmSwapAccounts::try_from(mine)?;
+                Ok((SwapContext::RaydiumClmm(ctx), rest))
+            }
+            #[cfg(not(feature = "raydium-clmm-swap"))]
             {
                 Err(ProgramError::InvalidInstructionData)
             }

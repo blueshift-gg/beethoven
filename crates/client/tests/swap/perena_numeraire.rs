@@ -1,7 +1,7 @@
 use {
     beethoven_client::{
-        resolve_swap, swap::perena::PERENA_PROGRAM_ID, SwapProtocol, TOKEN_2022_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
+        resolve_swap, swap::perena_numeraire::NUMERAIRE_PROGRAM_ID, SwapProtocol,
+        TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID,
     },
     solana_address::Address,
     solana_rpc_client::nonblocking::rpc_client::RpcClient,
@@ -23,13 +23,13 @@ fn get_rpc_url() -> String {
 }
 
 #[tokio::test]
-async fn test_perena_resolve_with_known_pair() {
+async fn test_perena_numeraire_resolve_with_known_pair() {
     let rpc = RpcClient::new(get_rpc_url());
     let user = Address::from_str_const("11111111111111111111111111111112");
 
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::Perena {
+        &SwapProtocol::PerenaNumeraire {
             pool: Some(USDC_USDG_STABLE_POOL),
             in_index: 0,
             out_index: 1,
@@ -44,7 +44,7 @@ async fn test_perena_resolve_with_known_pair() {
     assert_eq!(accounts.len(), 12, "perena requires 12 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, PERENA_PROGRAM_ID, "perena program");
+    assert_eq!(accounts[0].pubkey, NUMERAIRE_PROGRAM_ID, "perena program");
 
     // Pool
     assert_eq!(accounts[1].pubkey, USDC_USDG_STABLE_POOL, "pool");
@@ -99,13 +99,13 @@ async fn test_perena_resolve_with_known_pair() {
 }
 
 #[tokio::test]
-async fn test_perena_resolve_flipped_mints() {
+async fn test_perena_numeraire_resolve_flipped_mints() {
     let rpc = RpcClient::new(get_rpc_url());
     let user = Address::from_str_const("11111111111111111111111111111112");
 
     let (accounts, data) = resolve_swap(
         &rpc,
-        &SwapProtocol::Perena {
+        &SwapProtocol::PerenaNumeraire {
             pool: Some(USDC_USDG_STABLE_POOL),
             in_index: 1,
             out_index: 0,
@@ -120,7 +120,7 @@ async fn test_perena_resolve_flipped_mints() {
     assert_eq!(accounts.len(), 12, "perena requires 12 accounts");
 
     // Protocol program ID
-    assert_eq!(accounts[0].pubkey, PERENA_PROGRAM_ID, "perena program");
+    assert_eq!(accounts[0].pubkey, NUMERAIRE_PROGRAM_ID, "perena program");
 
     // Pool
     assert_eq!(accounts[1].pubkey, USDC_USDG_STABLE_POOL, "pool");

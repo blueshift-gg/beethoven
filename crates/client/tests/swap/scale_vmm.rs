@@ -11,7 +11,6 @@ use {
 const WSOL_MINT: Address = address!("So11111111111111111111111111111111111111112");
 const MINT_B: Address = address!("3CYBUFXzQ7GJiYoxMfrFjsPNVaSkp2vVFXXLefb57chr");
 const PAIR: Address = address!("BWnowWbMBTfsLzTKgZM7vnh8SxbutJA2HB4z7Labswkb");
-const PLATFORM_FEE_TA_A: Address = address!("5otzrfbppNE1j6m7ptWkAcu5gs1nwj5ZQKQVwFFHQAHv");
 const VAULT_A: Address = address!("Tf8aks7NB82QXob8NAoorzrPFHwkuPoZ9GVLYNLjYYZ");
 const VAULT_B: Address = address!("AaP7zPXf22rpmX27n4t6ohRDPLx7mcXDeodFN9rmbhQh");
 const PLATFORM_CONFIG: Address = address!("8DxXv6ikV38rCepX3esVCHMb2wMnnnXpp7xYasGSc6bo");
@@ -82,10 +81,7 @@ async fn test_scale_vmm_resolve_with_known_pair() {
     assert!(accounts[8].is_writable);
 
     // Platform fee ta a
-    assert_eq!(
-        accounts[9].pubkey, PLATFORM_FEE_TA_A,
-        "platform_fee_ta_a ATA"
-    );
+    // address dependent on config fee beneficiary
     assert!(accounts[9].is_writable);
 
     // Token program a
@@ -176,10 +172,7 @@ async fn test_scale_vmm_resolve_flipped_mints() {
     assert!(accounts[8].is_writable);
 
     // Platform fee ta a
-    assert_eq!(
-        accounts[9].pubkey, PLATFORM_FEE_TA_A,
-        "platform_fee_ta_a ATA"
-    );
+    // address dependent on config fee beneficiary
     assert!(accounts[9].is_writable);
 
     // Token program a

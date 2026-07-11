@@ -12,7 +12,7 @@ use {
     solana_instruction::AccountMeta,
 };
 
-pub const PERENA_PROGRAM_ID: Address =
+pub const NUMERAIRE_PROGRAM_ID: Address =
     Address::from_str_const("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 
 // StablePool account layout offsets
@@ -67,7 +67,7 @@ pub struct PerenaSwapInput {
 /// Build Perena Numeraire swap AccountMeta list from pre-resolved addresses (no RPC needed).
 pub fn build_accounts(input: &PerenaSwapInput) -> Vec<AccountMeta> {
     vec![
-        AccountMeta::new_readonly(PERENA_PROGRAM_ID, false),
+        AccountMeta::new_readonly(NUMERAIRE_PROGRAM_ID, false),
         AccountMeta::new(input.pool, false),
         AccountMeta::new_readonly(input.in_mint, false),
         AccountMeta::new_readonly(input.out_mint, false),
@@ -112,7 +112,7 @@ pub async fn resolve(
         None => {
             let (pubkey, account) = discover_pool(
                 rpc,
-                &PERENA_PROGRAM_ID,
+                &NUMERAIRE_PROGRAM_ID,
                 &[
                     (virtual_stable_pair_x_mint_offset(in_index), mint_a),
                     (virtual_stable_pair_x_mint_offset(out_index), mint_b),
@@ -175,7 +175,7 @@ pub async fn resolve(
     let in_trader = get_associated_token_address(user, &in_mint, &in_token_program);
     let out_trader = get_associated_token_address(user, &out_mint, &out_token_program);
 
-    let (numeraire_config, _) = Address::find_program_address(&[b"config"], &PERENA_PROGRAM_ID);
+    let (numeraire_config, _) = Address::find_program_address(&[b"config"], &NUMERAIRE_PROGRAM_ID);
 
     let input = PerenaSwapInput {
         user: *user,

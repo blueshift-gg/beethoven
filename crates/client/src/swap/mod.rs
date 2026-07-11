@@ -22,8 +22,11 @@ pub mod hadron;
 #[cfg(feature = "raydium-cpmm")]
 pub mod raydium_cpmm;
 
-#[cfg(feature = "perena")]
-pub mod perena;
+#[cfg(feature = "raydium-clmm")]
+pub mod raydium_clmm;
+
+#[cfg(feature = "perena-numeraire")]
+pub mod perena_numeraire;
 
 #[cfg(feature = "heaven")]
 pub mod heaven;
@@ -89,8 +92,16 @@ pub enum SwapProtocol {
 
     #[cfg(feature = "raydium-cpmm")]
     RaydiumCpmm { pool: Option<Address> },
-    #[cfg(feature = "perena")]
-    Perena {
+
+    #[cfg(feature = "raydium-clmm")]
+    RaydiumClmm {
+        pool: Option<Address>,
+        sqrt_price_limit_x64: u128,
+        is_base_input: bool,
+    },
+
+    #[cfg(feature = "perena-numeraire")]
+    PerenaNumeraire {
         pool: Option<Address>,
         in_index: u8,
         out_index: u8,
@@ -206,13 +217,31 @@ pub async fn resolve_swap(
             raydium_cpmm::resolve(rpc, pool.as_ref(), mint_a, mint_b, user).await
         }
 
-        #[cfg(feature = "perena")]
-        SwapProtocol::Perena {
+        #[cfg(feature = "raydium-clmm")]
+        SwapProtocol::RaydiumClmm {
+            pool,
+            sqrt_price_limit_x64,
+            is_base_input,
+        } => {
+            raydium_clmm::resolve(
+                rpc,
+                pool.as_ref(),
+                mint_a,
+                mint_b,
+                user,
+                *sqrt_price_limit_x64,
+                *is_base_input,
+            )
+            .await
+        }
+
+        #[cfg(feature = "perena-numeraire")]
+        SwapProtocol::PerenaNumeraire {
             pool,
             in_index,
             out_index,
         } => {
-            perena::resolve(
+            perena_numeraire::resolve(
                 rpc,
                 pool.as_ref(),
                 *in_index,

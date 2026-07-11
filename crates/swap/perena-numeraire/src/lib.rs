@@ -12,23 +12,23 @@ use {
     solana_program_error::{ProgramError, ProgramResult},
 };
 
-pub const PERENA_PROGRAM_ID: Address =
+pub const NUMERAIRE_PROGRAM_ID: Address =
     Address::from_str_const("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 
 const SWAP_EXACT_IN_DISCRIMINATOR: [u8; 8] = [104, 104, 131, 86, 161, 189, 180, 216];
 
-pub struct Perena;
+pub struct PerenaNumeraireSwap;
 
-pub struct PerenaSwapData {
+pub struct PerenaNumeraireSwapData {
     pub in_index: u8,
     pub out_index: u8,
 }
 
-impl PerenaSwapData {
+impl PerenaNumeraireSwapData {
     pub const DATA_LEN: usize = 2;
 }
 
-impl TryFrom<&[u8]> for PerenaSwapData {
+impl TryFrom<&[u8]> for PerenaNumeraireSwapData {
     type Error = ProgramError;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
@@ -42,11 +42,11 @@ impl TryFrom<&[u8]> for PerenaSwapData {
     }
 }
 
-impl PerenaSwapAccounts<'_> {
+impl PerenaNumeraireSwapAccounts<'_> {
     pub const NUM_ACCOUNTS: usize = 12;
 }
 
-pub struct PerenaSwapAccounts<'info> {
+pub struct PerenaNumeraireSwapAccounts<'info> {
     pub perena_program: &'info AccountView,
     pub pool: &'info AccountView,
     pub in_mint: &'info AccountView,
@@ -61,7 +61,7 @@ pub struct PerenaSwapAccounts<'info> {
     pub token_2022_program: &'info AccountView,
 }
 
-impl<'info> TryFrom<&'info [AccountView]> for PerenaSwapAccounts<'info> {
+impl<'info> TryFrom<&'info [AccountView]> for PerenaNumeraireSwapAccounts<'info> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'info [AccountView]) -> Result<Self, Self::Error> {
@@ -71,7 +71,7 @@ impl<'info> TryFrom<&'info [AccountView]> for PerenaSwapAccounts<'info> {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 
-        Ok(PerenaSwapAccounts {
+        Ok(PerenaNumeraireSwapAccounts {
             perena_program,
             pool,
             in_mint,
@@ -88,9 +88,9 @@ impl<'info> TryFrom<&'info [AccountView]> for PerenaSwapAccounts<'info> {
     }
 }
 
-impl<'info> Swap<'info> for Perena {
-    type Accounts = PerenaSwapAccounts<'info>;
-    type Data = PerenaSwapData;
+impl<'info> Swap<'info> for PerenaNumeraireSwap {
+    type Accounts = PerenaNumeraireSwapAccounts<'info>;
+    type Data = PerenaNumeraireSwapData;
 
     fn swap_signed(
         ctx: &Self::Accounts,
@@ -142,7 +142,7 @@ impl<'info> Swap<'info> for Perena {
         }
 
         let instruction = InstructionView {
-            program_id: &PERENA_PROGRAM_ID,
+            program_id: &NUMERAIRE_PROGRAM_ID,
             accounts: &accounts,
             data: unsafe {
                 core::slice::from_raw_parts(instruction_data.as_ptr() as *const u8, 26)
@@ -162,9 +162,9 @@ impl<'info> Swap<'info> for Perena {
     }
 }
 
-impl<'info> SwapTokenAccounts<'info> for Perena {
-    type Accounts = PerenaSwapAccounts<'info>;
-    type Data = PerenaSwapData;
+impl<'info> SwapTokenAccounts<'info> for PerenaNumeraireSwap {
+    type Accounts = PerenaNumeraireSwapAccounts<'info>;
+    type Data = PerenaNumeraireSwapData;
 
     fn token_accounts(
         ctx: &Self::Accounts,

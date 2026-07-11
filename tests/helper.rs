@@ -24,11 +24,12 @@ pub const TOKEN_PROGRAM_ID: Address = address!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf
 pub const TOKEN_2022_PROGRAM_ID: Address = address!("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: Address =
     address!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+pub const MEMO_PROGRAM_ID: Address = address!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
 // Protocol program IDs (for detection)
 pub const KAMINO_PROGRAM_ID: Address = address!("KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD");
 pub const JUPITER_PROGRAM_ID: Address = address!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
-pub const PERENA_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
+pub const NUMERAIRE_PROGRAM_ID: Address = address!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
 pub const SOLFI_PROGRAM_ID: Address = address!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const SOLFI_V2_PROGRAM_ID: Address = address!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
 pub const GAMMA_PROGRAM_ID: Address = address!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
@@ -37,6 +38,8 @@ pub const OMNIPAIR_PROGRAM_ID: Address = address!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ
 pub const HADRON_PROGRAM_ID: Address = address!("Q72w4coozA552keKDdeeh2EyQw32qfMFsHPu6cbatom");
 pub const RAYDIUM_CPMM_PROGRAM_ID: Address =
     address!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+pub const RAYDIUM_CLMM_PROGRAM_ID: Address =
+    address!("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK");
 pub const FUTARCHY_PROGRAM_ID: Address = address!("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
 pub const HEAVEN_PROGRAM_ID: Address = address!("HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5mJYkdeC8BAX2o");
 pub const ALDRIN_PROGRAM_ID: Address = address!("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
@@ -556,6 +559,10 @@ pub fn raydium_cpmm_fixtures_dir() -> String {
     format!("{}/fixtures/swap/raydium-cpmm", env!("CARGO_MANIFEST_DIR"))
 }
 
+pub fn raydium_clmm_fixtures_dir() -> String {
+    format!("{}/fixtures/swap/raydium-clmm", env!("CARGO_MANIFEST_DIR"))
+}
+
 pub fn aldrin_fixtures_dir() -> String {
     format!("{}/fixtures/swap/aldrin", env!("CARGO_MANIFEST_DIR"))
 }
@@ -568,8 +575,11 @@ pub fn futarchy_fixtures_dir() -> String {
     format!("{}/fixtures/swap/futarchy", env!("CARGO_MANIFEST_DIR"))
 }
 
-pub fn perena_fixtures_dir() -> String {
-    format!("{}/fixtures/swap/perena", env!("CARGO_MANIFEST_DIR"))
+pub fn numeraire_fixtures_dir() -> String {
+    format!(
+        "{}/fixtures/swap/perena-numeraire",
+        env!("CARGO_MANIFEST_DIR")
+    )
 }
 
 pub fn heaven_fixtures_dir() -> String {

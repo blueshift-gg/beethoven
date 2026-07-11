@@ -20,7 +20,7 @@ deposit = [
     "perena-bankineco-deposit",
 ]
 swap = [
-    "perena-swap",
+    "perena-numeraire-swap",
     "solfi-swap",
     "solfi-v2-swap",
     "manifest-swap",
@@ -34,6 +34,7 @@ swap = [
     "omnipair-swap",
     "hadron-swap",
     "raydium-cpmm-swap",
+    "raydium-clmm-swap",
 ]
 
 # Deposit protocols
@@ -44,7 +45,7 @@ marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
 perena-bankineco-deposit = ["dep:beethoven-deposit-perena-bankineco"]
 
 # Swap protocols
-perena-swap = ["dep:beethoven-swap-perena"]
+perena-numeraire-swap = ["dep:beethoven-swap-perena-numeraire"]
 solfi-swap = ["dep:beethoven-swap-solfi"]
 solfi-v2-swap = ["dep:beethoven-swap-solfi-v2"]
 manifest-swap = ["dep:beethoven-swap-manifest"]
@@ -58,6 +59,7 @@ scale-vmm-swap = ["dep:beethoven-swap-scale-vmm"]
 omnipair-swap = ["dep:beethoven-swap-omnipair"]
 hadron-swap = ["dep:beethoven-swap-hadron"]
 raydium-cpmm-swap = ["dep:beethoven-swap-raydium-cpmm"]
+raydium-clmm-swap = ["dep:beethoven-swap-raydium-clmm"]
 
 [dependencies]
 beethoven-core.workspace = true
@@ -72,7 +74,7 @@ beethoven-deposit-jupiter = { workspace = true, optional = true }
 beethoven-deposit-drift = { workspace = true, optional = true }
 beethoven-deposit-marginfi = { workspace = true, optional = true }
 beethoven-deposit-perena-bankineco = { workspace = true, optional = true }
-beethoven-swap-perena = { workspace = true, optional = true }
+beethoven-swap-perena-numeraire = { workspace = true, optional = true }
 beethoven-swap-solfi = { workspace = true, optional = true }
 beethoven-swap-solfi-v2 = { workspace = true, optional = true }
 beethoven-swap-manifest = { workspace = true, optional = true }
@@ -86,6 +88,7 @@ beethoven-swap-scale-vmm = { workspace = true, optional = true }
 beethoven-swap-omnipair = { workspace = true, optional = true }
 beethoven-swap-hadron = { workspace = true, optional = true }
 beethoven-swap-raydium-cpmm = { workspace = true, optional = true }
+beethoven-swap-raydium-clmm = { workspace = true, optional = true }
 
 [workspace]
 members = [
@@ -95,7 +98,7 @@ members = [
     "crates/deposit/drift",
     "crates/deposit/marginfi",
     "crates/deposit/perena-bankineco",
-    "crates/swap/perena",
+    "crates/swap/perena-numeraire",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
     "crates/swap/manifest",
@@ -109,6 +112,7 @@ members = [
     "crates/swap/omnipair",
     "crates/swap/hadron",
     "crates/swap/raydium-cpmm",
+    "crates/swap/raydium-clmm",
     "program-test",
     "crates/client",
 ]
@@ -122,7 +126,7 @@ beethoven-deposit-jupiter = { path = "crates/deposit/jupiter" }
 beethoven-deposit-drift = { path = "crates/deposit/drift" }
 beethoven-deposit-marginfi = { path = "crates/deposit/marginfi" }
 beethoven-deposit-perena-bankineco = { path = "crates/deposit/perena-bankineco" }
-beethoven-swap-perena = { path = "crates/swap/perena" }
+beethoven-swap-perena-numeraire = { path = "crates/swap/perena-numeraire" }
 beethoven-swap-solfi = { path = "crates/swap/solfi" }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2" }
 beethoven-swap-manifest = { path = "crates/swap/manifest" }
@@ -136,6 +140,7 @@ beethoven-swap-scale-vmm = { path = "crates/swap/scale-vmm" }
 beethoven-swap-omnipair = { path = "crates/swap/omnipair" }
 beethoven-swap-hadron = { path = "crates/swap/hadron" }
 beethoven-swap-raydium-cpmm = { path = "crates/swap/raydium-cpmm" }
+beethoven-swap-raydium-clmm = { path = "crates/swap/raydium-clmm" }
 base64 = "0.22"
 litesvm = "0.12.0"
 pinocchio = { version = "0.11.1", default-features = false, features = ["alloc"] }
@@ -147,7 +152,9 @@ solana-account-decoder-client-types = "3"
 solana-account-view = "2.0.0"
 solana-address = "2.0.0"
 solana-clock = "3.0.0"
-solana-define-syscall = "4.0.1"
+solana-define-syscall = { version = "5.1.0", features = [
+    "unstable-static-syscalls",
+] }
 solana-instruction = "3.1.0"
 solana-instruction-view = "2.1.0"
 solana-keypair = "3.1.0"
@@ -160,8 +167,9 @@ solana-rpc-client-api = "3"
 solana-sdk-ids = "3.1.0"
 solana-signer = "3.0.0"
 solana-transaction = "3.0.2"
-spl-token-2022-interface = "2"
+spl-token-2022-interface = "2.1.0"
 spl-token-interface = "2"
+spl-associated-token-account-interface = "2.0.0"
 thiserror = "2"
 tokio = "1"
 
@@ -188,8 +196,9 @@ beethoven-client = { workspace = true, features = [
     "gamma",
     "hadron",
     "raydium-cpmm",
+    "raydium-clmm",
     "omnipair",
-    "perena",
+    "perena-numeraire",
     "heaven",
     "scale-amm",
     "scale-vmm",
@@ -200,8 +209,8 @@ beethoven-client = { workspace = true, features = [
 ] }
 solana-rpc-client.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-spl-associated-token-account = "8.0.0"
-spl-token-2022-interface = "2.1.0"
+spl-associated-token-account-interface.workspace = true
+spl-token-2022-interface.workspace = true
 
 [profile.release]
 opt-level = 3
