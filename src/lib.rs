@@ -11,6 +11,8 @@ pub use beethoven_deposit_jupiter as jupiter;
 pub use beethoven_deposit_kamino as kamino;
 #[cfg(feature = "marginfi-deposit")]
 pub use beethoven_deposit_marginfi as marginfi;
+#[cfg(feature = "perena-bankineco-deposit")]
+pub use beethoven_deposit_perena_bankineco as perena_bankineco;
 #[cfg(feature = "aldrin-swap")]
 pub use beethoven_swap_aldrin as aldrin;
 #[cfg(feature = "aldrin-v2-swap")]

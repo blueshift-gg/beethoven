@@ -12,7 +12,13 @@ default = ["deposit", "swap"]
 upstream-bpf = []
 
 # Action groups
-deposit = ["kamino-deposit", "jupiter-deposit", "drift-deposit", "marginfi-deposit"]
+deposit = [
+    "kamino-deposit",
+    "jupiter-deposit",
+    "drift-deposit",
+    "marginfi-deposit",
+    "perena-bankineco-deposit",
+]
 swap = [
     "perena-numeraire-swap",
     "solfi-swap",
@@ -36,6 +42,7 @@ kamino-deposit = ["dep:beethoven-deposit-kamino"]
 jupiter-deposit = ["dep:beethoven-deposit-jupiter"]
 drift-deposit = ["dep:beethoven-deposit-drift"]
 marginfi-deposit = ["dep:beethoven-deposit-marginfi"]
+perena-bankineco-deposit = ["dep:beethoven-deposit-perena-bankineco"]
 
 # Swap protocols
 perena-numeraire-swap = ["dep:beethoven-swap-perena-numeraire"]
@@ -66,6 +73,7 @@ beethoven-deposit-kamino = { workspace = true, optional = true }
 beethoven-deposit-jupiter = { workspace = true, optional = true }
 beethoven-deposit-drift = { workspace = true, optional = true }
 beethoven-deposit-marginfi = { workspace = true, optional = true }
+beethoven-deposit-perena-bankineco = { workspace = true, optional = true }
 beethoven-swap-perena-numeraire = { workspace = true, optional = true }
 beethoven-swap-solfi = { workspace = true, optional = true }
 beethoven-swap-solfi-v2 = { workspace = true, optional = true }
@@ -89,6 +97,7 @@ members = [
     "crates/deposit/jupiter",
     "crates/deposit/drift",
     "crates/deposit/marginfi",
+    "crates/deposit/perena-bankineco",
     "crates/swap/perena-numeraire",
     "crates/swap/solfi",
     "crates/swap/solfi-v2",
@@ -116,6 +125,7 @@ beethoven-deposit-kamino = { path = "crates/deposit/kamino" }
 beethoven-deposit-jupiter = { path = "crates/deposit/jupiter" }
 beethoven-deposit-drift = { path = "crates/deposit/drift" }
 beethoven-deposit-marginfi = { path = "crates/deposit/marginfi" }
+beethoven-deposit-perena-bankineco = { path = "crates/deposit/perena-bankineco" }
 beethoven-swap-perena-numeraire = { path = "crates/swap/perena-numeraire" }
 beethoven-swap-solfi = { path = "crates/swap/solfi" }
 beethoven-swap-solfi-v2 = { path = "crates/swap/solfi-v2" }
@@ -194,6 +204,7 @@ beethoven-client = { workspace = true, features = [
     "scale-vmm",
     "solfi",
     "solfi-v2",
+    "perena-bankineco",
     "resolve",
 ] }
 solana-rpc-client.workspace = true

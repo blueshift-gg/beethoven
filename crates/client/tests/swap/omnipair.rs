@@ -139,7 +139,6 @@ async fn test_omnipair_resolve_with_known_pair() {
         "program self-reference"
     );
 
-    // Omnipair has no extra data
     assert!(data.is_empty());
 }
 
@@ -148,7 +147,6 @@ async fn test_omnipair_resolve_flipped_mints() {
     let rpc = RpcClient::new(get_rpc_url());
     let user = Address::from_str_const("11111111111111111111111111111112");
 
-    // Selling USDC for WSOL — vaults and mints should be flipped
     let (accounts, data) = resolve_swap(
         &rpc,
         &SwapProtocol::Omnipair {
@@ -161,7 +159,7 @@ async fn test_omnipair_resolve_flipped_mints() {
     .await
     .unwrap();
 
-    assert_eq!(accounts.len(), 15);
+    assert_eq!(accounts.len(), 15, "omnipair requires 15 accounts");
 
     // Protocol program ID
     assert_eq!(accounts[0].pubkey, OMNIPAIR_PROGRAM_ID, "omnipair program");

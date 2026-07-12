@@ -509,6 +509,7 @@ dependencies = [
  "beethoven-deposit-jupiter",
  "beethoven-deposit-kamino",
  "beethoven-deposit-marginfi",
+ "beethoven-deposit-perena-bankineco",
  "beethoven-swap-aldrin",
  "beethoven-swap-aldrin-v2",
  "beethoven-swap-futarchy",
@@ -606,6 +607,17 @@ dependencies = [
 
 [[package]]
 name = "beethoven-deposit-marginfi"
+version = "0.0.1"
+dependencies = [
+ "beethoven-core",
+ "solana-account-view",
+ "solana-address 2.6.0",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
+name = "beethoven-deposit-perena-bankineco"
 version = "0.0.1"
 dependencies = [
  "beethoven-core",
